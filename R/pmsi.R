@@ -96,6 +96,27 @@
 #'
 #' @param data List of PMSI API entries.
 #' @return A list with tibbles `main`, `actes`, and `diag`.
+#' @examples
+#' example_data <- list(
+#'   list(
+#'     PATID = "P1",
+#'     EVTID = "E1",
+#'     ELTID = "L1",
+#'     DATENT = "2020-01-01T08:30:00",
+#'     DATSORT = "2020-01-02T10:15:00",
+#'     PATBD = "1980-01-01",
+#'     PATAGE = "40",
+#'     PATSEX = "M",
+#'     DALL = "01:AA 02:BB",
+#'     CODEACTE1 = "A123",
+#'     DATEACTE1 = "2020-01-01T09:00:00",
+#'     UFPRO1 = "01"
+#'   )
+#' )
+#' pmsi <- process_pmsi(example_data)
+#' pmsi$main
+#' pmsi$actes
+#' pmsi$diag
 #' @export
 process_pmsi <- function(data) {
   cleaned <- .pmsi_prepare(data)

@@ -1,5 +1,4 @@
 export(get_edsan)
-export(hello)
 export(process_biol)
 export(process_pmsi)
 importFrom(magrittr,"%>%")

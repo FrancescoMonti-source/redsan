@@ -1,4 +1,12 @@
-# Helpers
+# EDSAN data retrieval helpers
+#
+# This file contains a thin public wrapper (`get_edsan`) plus a set of focused
+# helpers used to batch requests by time window or by ID list. The helper
+# functions are intentionally small so the batching logic remains testable and
+# composable.
+
+# Time-window helpers
+# These functions translate user-provided bounds into concrete batch windows.
 .edsan_make_periods <- function(start_date, end_date,
                                 sep = ",", by = "6 months",
                                 prefix = "", suffix = "") {
@@ -30,7 +38,7 @@
 }
 
 .edsan_extract_bounds <- function(x) {
-  # Parse API-style date bounds into list(lo, hi)
+  # Parse API-style date bounds into list(lo, hi).
   if (is.null(x) || length(x) == 0 || is.na(x)) return(list(lo = NULL, hi = NULL))
   x <- trimws(as.character(x))
 
@@ -52,7 +60,7 @@
 }
 
 .edsan_infer_batch_window <- function(module, query, batch_key, start_date = NULL, end_date = NULL) {
-  # Explicit orchestration always wins
+  # Pick a usable time window based on module-specific rules.
   if (!is.null(start_date) && !is.null(end_date)) {
     lo <- as.Date(start_date)
     hi <- as.Date(end_date)
@@ -104,7 +112,8 @@
   stop("infer_batch_window: module not supported")
 }
 
-# get edsan data
+# ID-batching helpers
+# These functions decide when and how to split ID lists for safe API calls.
 
 .edsan_choose_batch_ids_key <- function(query, candidates = c("ELTID", "EVTID", "PATID")) {
   # Prefer the most specific identifier available.
@@ -117,7 +126,7 @@
 }
 
 .edsan_id_like <- function(x) {
-  # detect whether x likely encodes a list of IDs (vector or OR-separated string)
+  # Detect whether x likely encodes a list of IDs (vector or OR-separated string).
   if (is.null(x)) return(FALSE)
   if (length(x) > 1) return(TRUE)
   s <- as.character(x)[1]
@@ -144,6 +153,7 @@
 }
 
 .edsan_call <- function(module, query, what = c("data", "idtriplets")) {
+  # Single request to the EDSAN backend (data or idtriplets).
   what <- match.arg(what)
   qry <- jsonlite::toJSON(query, auto_unbox = TRUE)
 
@@ -159,6 +169,7 @@
 }
 
 .edsan_combine <- function(module, results, what = c("data", "idtriplets")) {
+  # Combine batch outputs into a single result.
   what <- match.arg(what)
   if (what == "idtriplets") {
     return(dplyr::bind_rows(purrr::compact(results)) %>%
@@ -183,6 +194,7 @@
 }
 
 .edsan_count_out_units <- function(module, value, what = c("data", "idtriplets")) {
+  # Estimate output size for adaptive splitting in ids mode.
   what <- match.arg(what)
   if (is.null(value)) return(0L)
 
@@ -214,6 +226,56 @@
 #' bounds in `query` or via `start_date`/`end_date`. For ID batching, provide
 #' an ID field containing multiple IDs (vector or OR-separated string).
 #'
+#' @details
+#' The EDSAN backend enforces strict result size limits, so `get_edsan()` uses
+#' adaptive batching to reduce failures and retry with smaller chunks.
+#'
+#' Decision flow (high level):
+#' \itemize{
+#' \item `mode = "auto"` chooses `ids` batching if the query contains a list of
+#' IDs; otherwise it uses time batching.
+#' \item `mode = "time"` attempts a single call first, then splits the time
+#' window into `periods_by` chunks only after a limit error (when
+#' `batch_on_error_only = TRUE`).
+#' \item `mode = "ids"` splits the input ID list into chunks (`max_in_ids`) and
+#' further subdivides when a chunk still returns too many rows (`max_out_units`).
+#' \item Optional `return_audit = TRUE` yields a per-batch table with inputs,
+#' outputs, and errors for debugging.
+#' }
+#'
+#' Helper roles:
+#' \describe{
+#' \item{.edsan_extract_bounds}{Parses API-style date bounds from the query.}
+#' \item{.edsan_infer_batch_window}{Determines a time window for batching.}
+#' \item{.edsan_split_id_string}{Normalizes ID vectors or OR-separated strings.}
+#' \item{.edsan_count_out_units}{Estimates output size to trigger splits.}
+#' \item{.edsan_combine}{Merges batch outputs into a single result.}
+#' }
+#'
+#' Glossary:
+#' \describe{
+#' \item{batch_key}{Query field used for time batching, e.g. `DATENT` or `DATEXAM`.}
+#' \item{bounds}{Date range like `{YYYY-MM-DD,YYYY-MM-DD}` or comparators `>YYYY-MM-DD`.}
+#' \item{limit error}{Backend error indicating too many results (quota/max rows).}
+#' \item{output units}{Heuristic count of returned rows or records used to trigger splitting.}
+#' \item{ids mode}{Batching strategy that splits the input ID list into chunks.}
+#' \item{time mode}{Batching strategy that splits a time range into periods.}
+#' }
+#'
+#' Pseudo-flow (simplified):
+#' \preformatted{
+#' get_edsan()
+#'   -> decide mode (auto | time | ids)
+#'   -> if time:
+#'        try single call
+#'        on limit error -> split into time periods -> combine
+#'   -> if ids:
+#'        split IDs into chunks
+#'        if chunk too large -> split further
+#'        optional time fallback on limit error
+#'   -> return combined result (and audit if requested)
+#' }
+#'
 #' @param module One of `doceds`, `pmsi`, or `biol`.
 #' @param what One of `data` or `idtriplets`.
 #' @param query Named list of API query parameters.
@@ -230,6 +292,41 @@
 #' @param batch_on_error_only If `TRUE`, time batching starts only after a limit error.
 #' @param fallback_time_on_error If `TRUE`, ID batching can fall back to time batching.
 #' @return A data.frame/tibble, a list of results, or a list with audit metadata.
+#' @examples
+#' \dontrun{
+#' # Time batching using explicit bounds
+#' res <- get_edsan(
+#'   module = "pmsi",
+#'   what = "data",
+#'   query = list(DATENT = "{2024-01-01,2024-01-31}"),
+#'   periods_by = "1 week"
+#' )
+#'
+#' # ID batching with audit output
+#' out <- get_edsan(
+#'   module = "biol",
+#'   what = "data",
+#'   query = list(PATID = "1 OR 2 OR 3"),
+#'   mode = "ids",
+#'   return_audit = TRUE
+#' )
+#' out$audit
+#'
+#' # Doceds example with explicit RECDATE bounds
+#' doc <- get_edsan(
+#'   module = "doceds",
+#'   what = "data",
+#'   query = list(RECDATE = "{2024-01-01,2024-01-31}")
+#' )
+#'
+#' # Minimal ids-mode example with a vector of IDs
+#' ids_out <- get_edsan(
+#'   module = "pmsi",
+#'   what = "idtriplets",
+#'   query = list(PATID = c("10", "11", "12")),
+#'   mode = "ids"
+#' )
+#' }
 #' @export
 get_edsan <- function(
     module = c("doceds", "pmsi", "biol"),
@@ -254,11 +351,13 @@ get_edsan <- function(
     batch_on_error_only = TRUE,
     fallback_time_on_error = TRUE
 ) {
+  # ---- Argument normalization ----
   module <- match.arg(module)
   what <- match.arg(what)
   mode <- match.arg(mode)
   output_count_fn <- output_count_fn %||% function(x) .edsan_count_out_units(module, x, what)
 
+  # ---- Mode selection (auto/time/ids) ----
   # AUTO: decide whether this is time-batching or id-batching.
   if (mode == "auto") {
     # If user didn't specify which ID key to batch, try to infer it.
@@ -274,6 +373,7 @@ get_edsan <- function(
     }
   }
 
+  # ---- Time batching path ----
   if (mode == "time") {
     if (is.null(batch_key)) {
       batch_key <- switch(module, doceds = "RECDATE", pmsi = "DATENT", biol = "DATEXAM")
@@ -327,6 +427,7 @@ get_edsan <- function(
     return(.edsan_combine(module, raw_batches, what))
   }
 
+  # ---- ID batching path ----
   # mode == "ids": adaptive split on input size and/or output size
   # AND semantics across different ID fields: drop redundant higher-level IDs.
   query <- .edsan_normalize_id_query(query, batch_ids_key)
@@ -339,6 +440,7 @@ get_edsan <- function(
 
   initial_chunks <- split(ids_all, ceiling(seq_along(ids_all) / max_in_ids))
 
+  # Accumulators for results and audit log.
   results <- vector("list", 0)
   audit <- vector("list", 0)
 
