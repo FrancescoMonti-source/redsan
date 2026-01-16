@@ -66,20 +66,53 @@ bounds in `query` or via `start_date`/`end_date`. For ID batching, provide
 an ID field containing multiple IDs (vector or OR-separated string).
 }
 \details{
-The EDSAN backend enforces strict result size limits, so `get_edsan()` uses
-adaptive batching to reduce failures and retry with smaller chunks.
-
-Decision flow (high level):
+\strong{Overview}
 \itemize{
-\item `mode = "auto"` chooses `ids` batching if the query contains a list of
-IDs; otherwise it uses time batching.
-\item `mode = "time"` attempts a single call first, then splits the time
-window into `periods_by` chunks only after a limit error (when
-`batch_on_error_only = TRUE`).
-\item `mode = "ids"` splits the input ID list into chunks (`max_in_ids`) and
-further subdivides when a chunk still returns too many rows (`max_out_units`).
-\item Optional `return_audit = TRUE` yields a per-batch table with inputs,
-outputs, and errors for debugging.
+\item \code{get_edsan()} wraps the EDSAN API and avoids backend limits by
+batching requests and combining the results.
+\item Batching can be time-based or ID-based depending on your query and
+\code{mode}.
+}
+
+\strong{Mode decision (auto)}
+\enumerate{
+\item If the query contains a list of IDs, \code{auto} selects \code{ids}.
+\item Otherwise it selects \code{time}.
+}
+
+\strong{Time batching}
+\itemize{
+\item Tries a single call first.
+\item If a limit error occurs (and \code{batch_on_error_only = TRUE}),
+splits the time window into \code{periods_by} chunks.
+}
+
+\strong{ID batching}
+\itemize{
+\item Splits the input ID list into chunks of size \code{max_in_ids}.
+\item If a chunk still yields too much output, it is split again using
+\code{max_out_units}.
+\item Optional fallback to time batching can occur on limit errors.
+}
+
+\strong{Returned shapes}
+\itemize{
+\item \code{what = "data"} returns module-specific data (data.frame or list).
+\item \code{what = "idtriplets"} returns a data.frame with \code{PATID},
+\code{EVTID}, \code{ELTID}.
+}
+
+\strong{Audit output}
+\itemize{
+\item With \code{return_audit = TRUE}, the result is a list containing
+\code{data} and an \code{audit} table of per-batch inputs/outputs/errors.
+}
+
+\strong{Common pitfalls}
+\itemize{
+\item Missing time bounds for time batching (\code{batch_key} not present).
+\item Very large time windows that lead to slow or many batch calls.
+\item ID lists with mixed separators; use vectors or \code{" OR "} strings.
 }
 
 \strong{Helper roles}
@@ -117,7 +150,7 @@ get_edsan()
 }
 \examples{
 \dontrun{
-# Time batching using explicit bounds
+# Quick start: time batching
 res <- get_edsan(
   module = "pmsi",
   what = "data",
@@ -125,7 +158,7 @@ res <- get_edsan(
   periods_by = "1 week"
 )
 
-# ID batching with audit output
+# Quick start: ID batching with audit output
 out <- get_edsan(
   module = "biol",
   what = "data",
@@ -135,14 +168,14 @@ out <- get_edsan(
 )
 out$audit
 
-# Doceds example with explicit RECDATE bounds
+# Doceds with explicit RECDATE bounds
 doc <- get_edsan(
   module = "doceds",
   what = "data",
   query = list(RECDATE = "{2024-01-01,2024-01-31}")
 )
 
-# Minimal ids-mode example with a vector of IDs
+# Minimal ids-mode with a vector of IDs
 ids_out <- get_edsan(
   module = "pmsi",
   what = "idtriplets",
