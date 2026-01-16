@@ -27,6 +27,9 @@ example_data <- list(
     PATBD = "1980-01-01",
     PATAGE = "40",
     PATSEX = "M",
+    SEJDUR = "2",
+    SEJUM = "2020-01-01",
+    SEJUF = "2020-01-02",
     DALL = "01:AA 02:BB",
     CODEACTE1 = "A123",
     DATEACTE1 = "2020-01-01T09:00:00",
@@ -34,7 +37,7 @@ example_data <- list(
   )
 )
 pmsi <- process_pmsi(example_data)
-pmsi$main
-pmsi$actes
-pmsi$diag
+main <- pmsi$main
+actes <- pmsi$actes
+diag <- pmsi$diag
 }

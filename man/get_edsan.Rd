@@ -82,26 +82,26 @@ further subdivides when a chunk still returns too many rows (`max_out_units`).
 outputs, and errors for debugging.
 }
 
-Helper roles:
-\describe{
-\item{.edsan_extract_bounds}{Parses API-style date bounds from the query.}
-\item{.edsan_infer_batch_window}{Determines a time window for batching.}
-\item{.edsan_split_id_string}{Normalizes ID vectors or OR-separated strings.}
-\item{.edsan_count_out_units}{Estimates output size to trigger splits.}
-\item{.edsan_combine}{Merges batch outputs into a single result.}
+\strong{Helper roles}
+\itemize{
+\item \code{.edsan_extract_bounds}: Parses API-style date bounds from the query.
+\item \code{.edsan_infer_batch_window}: Determines a time window for batching.
+\item \code{.edsan_split_id_string}: Normalizes ID vectors or OR-separated strings.
+\item \code{.edsan_count_out_units}: Estimates output size to trigger splits.
+\item \code{.edsan_combine}: Merges batch outputs into a single result.
 }
 
-Glossary:
-\describe{
-\item{batch_key}{Query field used for time batching, e.g. `DATENT` or `DATEXAM`.}
-\item{bounds}{Date range like `{YYYY-MM-DD,YYYY-MM-DD}` or comparators `>YYYY-MM-DD`.}
-\item{limit error}{Backend error indicating too many results (quota/max rows).}
-\item{output units}{Heuristic count of returned rows or records used to trigger splitting.}
-\item{ids mode}{Batching strategy that splits the input ID list into chunks.}
-\item{time mode}{Batching strategy that splits a time range into periods.}
+\strong{Glossary}
+\itemize{
+\item \code{batch_key}: Query field used for time batching, e.g. \code{DATENT} or \code{DATEXAM}.
+\item \code{bounds}: Date range like \code{\{YYYY-MM-DD,YYYY-MM-DD\}} or comparators \code{>YYYY-MM-DD}.
+\item \code{limit error}: Backend error indicating too many results (quota/max rows).
+\item \code{output units}: Heuristic count of returned rows or records used to trigger splitting.
+\item \code{ids mode}: Batching strategy that splits the input ID list into chunks.
+\item \code{time mode}: Batching strategy that splits a time range into periods.
 }
 
-Pseudo-flow (simplified):
+\strong{Pseudo-flow (simplified)}
 \preformatted{
 get_edsan()
   -> decide mode (auto | time | ids)

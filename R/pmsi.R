@@ -55,12 +55,12 @@
 .pmsi_actes <- function(data) {
   # assume DATENT/DATSORT already POSIXct and HEURE_* already set by pmsi_prepare
   data %>%
-    dplyr::select(
-      PATID, EVTID, ELTID, PATBD, PATAGE, PATSEX,
-      DATENT, HEURE_DATENT, DATSORT, HEURE_DATSORT,
-      SEJDUR, SEJUM, SEJUF,
-      dplyr::contains("ACTE"), dplyr::contains("UFPRO"), dplyr::contains("UFDEM")
-    ) %>%
+    dplyr::select(dplyr::any_of(c(
+      "PATID", "EVTID", "ELTID", "PATBD", "PATAGE", "PATSEX",
+      "DATENT", "HEURE_DATENT", "DATSORT", "HEURE_DATSORT",
+      "SEJDUR", "SEJUM", "SEJUF"
+    )),
+    dplyr::contains("ACTE"), dplyr::contains("UFPRO"), dplyr::contains("UFDEM")) %>%
     tidyr::pivot_longer(
       cols = c(
         dplyr::contains("CODEACTE"),
@@ -107,6 +107,9 @@
 #'     PATBD = "1980-01-01",
 #'     PATAGE = "40",
 #'     PATSEX = "M",
+#'     SEJDUR = "2",
+#'     SEJUM = "2020-01-01",
+#'     SEJUF = "2020-01-02",
 #'     DALL = "01:AA 02:BB",
 #'     CODEACTE1 = "A123",
 #'     DATEACTE1 = "2020-01-01T09:00:00",
@@ -114,9 +117,9 @@
 #'   )
 #' )
 #' pmsi <- process_pmsi(example_data)
-#' pmsi$main
-#' pmsi$actes
-#' pmsi$diag
+#' main <- pmsi$main
+#' actes <- pmsi$actes
+#' diag <- pmsi$diag
 #' @export
 process_pmsi <- function(data) {
   cleaned <- .pmsi_prepare(data)
