@@ -174,13 +174,6 @@
 
   res <- try(fn(module, qry, "edsan"), silent = TRUE)
   if (inherits(res, "try-error")) return(list(ok = FALSE, value = NULL, error = as.character(res)))
-  if (is.data.frame(res) && "error" %in% names(res)) {
-    err_val <- res[["error"]]
-    err_msg <- err_val[!is.na(err_val)]
-    if (length(err_msg) > 0) {
-      return(list(ok = FALSE, value = NULL, error = as.character(err_msg)))
-    }
-  }
   if (is.list(res) && "error" %in% names(res)) {
     err_val <- res[["error"]]
     if (!is.null(err_val)) {
@@ -190,8 +183,9 @@
         return(list(ok = FALSE, value = NULL, error = err_msg))
       }
     }
-    return(list(ok = TRUE, value = res, error = NULL))
-  }}
+  }
+  list(ok = TRUE, value = res, error = NULL)
+}
 
 .edsan_combine <- function(module, results, what = c("data", "idtriplets")) {
   # Combine batch outputs into a single result.
@@ -214,31 +208,13 @@
   }
 
   if (what == "idtriplets") {
-    combined <- dplyr::bind_rows(purrr::compact(results))
-    if (nrow(combined) == 0 && ncol(combined) == 0) {
-      return(tibble::tibble(ELTID = character(), EVTID = character(), PATID = character()))
-    }
-
-    lower_names <- tolower(names(combined))
-    key_map <- c(eltid = "ELTID", evtid = "EVTID", patid = "PATID")
-    if (!all(names(key_map) %in% lower_names)) {
-      warning("idtriplets response missing eltid/evtid/patid columns; returning combined result as-is.")
-      return(combined)
-    }
-
-    present <- setNames(names(combined), lower_names)
-    cols <- present[names(key_map)]
-    list_cols <- cols[vctrs::vec_is_list(combined[cols])]
-    if (length(list_cols) > 0) {
-      combined <- tidyr::unnest(combined, cols = dplyr::all_of(list_cols))
-    }
-    return(combined %>%
-             dplyr::rename(!!!rlang::set_names(key_map, cols)) %>%
+    return(dplyr::bind_rows(purrr::compact(results)) %>%
+             tidyr::unnest(cols = c("eltExt", "eltId", "evtId", "patId")) %>%
+             dplyr::rename_with(~ c("ELTID", "EVTID", "PATID"), .cols = c("eltId", "evtId", "patId")) %>%
              dplyr::select(ELTID, EVTID, PATID) %>%
-             dplyr::distinct())
+             dplyr::distinct()
+    )
   }
-
-
   if (module == "doceds") {
     coerced <- purrr::map(results, coerce_doceds_df)
     dropped <- sum(purrr::map_lgl(results, ~ !is.null(.x)) & purrr::map_lgl(coerced, is.null))
@@ -486,9 +462,6 @@ get_edsan <- function(
     } else {
       mode <- "time"
     }
-  }
-  if (what == "idtriplets" && mode == "time") {
-    batch_on_error_only <- FALSE
   }
   if (is.null(periods_overlap_days)) {
     periods_overlap_days <- if (mode == "time" && what == "idtriplets") 1L else 0L
