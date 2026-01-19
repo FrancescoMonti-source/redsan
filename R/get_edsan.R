@@ -406,14 +406,17 @@ get_edsan <- function(
     output_count_fn = NULL,
     return_audit = FALSE,
     batch_on_error_only = TRUE,
-    fallback_time_on_error = TRUE
+    fallback_time_on_error = TRUE,
+    verbose = FALSE
 ) {
   # ---- Argument normalization ----
   module <- match.arg(module)
   what <- match.arg(what)
   mode <- match.arg(mode)
   output_count_fn <- output_count_fn %||% function(x) .edsan_count_out_units(module, x, what)
-
+  if (mode == "time" && !missing(mode) && missing(batch_on_error_only)) {
+    batch_on_error_only <- FALSE
+  }
   # ---- Mode selection (auto/time/ids) ----
   # AUTO: decide whether this is time-batching or id-batching.
   if (mode == "auto") {
@@ -473,14 +476,39 @@ get_edsan <- function(
       by = periods_by
     )
 
-    raw_batches <- purrr::map(query_periods$period, function(period) {
+
+    if (isTRUE(verbose)) {
+      message("Time batching with ", length(query_periods$period), " period(s).")
+    }
+    time_errors <- vector("list", length(query_periods$period))
+    raw_batches <- purrr::imap(query_periods$period, function(period, idx) {
+      if (isTRUE(verbose)) {
+        message("Batch ", idx, "/", length(query_periods$period), " (", period, ")")
+      }
       q <- query
       q[[batch_key]] <- period
       tr <- .edsan_call(module, q, what)
-      if (!tr$ok) return(NULL)
+      if (!tr$ok) {
+        time_errors[[idx]] <<- tibble::tibble(
+          period = period,
+          error = paste(tr$error, collapse = " ")
+        )
+        if (isTRUE(verbose)) {
+          message("Batch ", idx, " failed: ", paste(tr$error, collapse = " "))
+        }
+        return(NULL)
+      }
       tr$value
     })
-
+    time_errors <- purrr::compact(time_errors)
+    if (length(time_errors) > 0) {
+      warn_preview <- dplyr::bind_rows(time_errors)
+      warn_msg <- paste0(
+        "Time batching skipped ", length(time_errors), " failed period(s). ",
+        "First error: ", warn_preview$error[[1]]
+      )
+      warning(warn_msg)
+    }
     return(.edsan_combine(module, raw_batches, what))
   }
 
