@@ -9,7 +9,9 @@
 # These functions translate user-provided bounds into concrete batch windows.
 .edsan_make_periods <- function(start_date, end_date,
                                 sep = ",", by = "6 months",
-                                prefix = "", suffix = "") {
+                                prefix = "", suffix = "",
+                                end_inclusive = TRUE,
+                                overlap_days = 0L) {
   s <- lubridate::as_date(start_date)
   e <- lubridate::as_date(end_date)
   if (is.na(s) || is.na(e)) stop("start_date/end_date must be coercible to Date")
@@ -22,7 +24,14 @@
   }
 
   starts <- seq(from = s, to = e, by = by)
-  ends <- c(starts[-1] - 1, e)
+  overlap_days <- as.integer(overlap_days %||% 0L)
+  if (overlap_days < 0L) stop("overlap_days must be >= 0")
+  base_ends <- if (isTRUE(end_inclusive)) {
+    c(starts[-1] - 1, e)
+  } else {
+    c(starts[-1], e)
+  }
+  ends <- pmin(base_ends + overlap_days, e)
 
   tibble::tibble(
     start  = starts,
@@ -165,6 +174,16 @@
 
   res <- try(fn(module, qry, "edsan"), silent = TRUE)
   if (inherits(res, "try-error")) return(list(ok = FALSE, value = NULL, error = as.character(res)))
+  if (is.list(res) && "error" %in% names(res)) {
+    err_val <- res[["error"]]
+    if (!is.null(err_val)) {
+      err_msg <- as.character(err_val)
+      err_msg <- err_msg[!is.na(err_msg) & nzchar(err_msg)]
+      if (length(err_msg) > 0) {
+        return(list(ok = FALSE, value = NULL, error = err_msg))
+      }
+    }
+  }
   list(ok = TRUE, value = res, error = NULL)
 }
 
@@ -192,14 +211,15 @@
     return(dplyr::bind_rows(purrr::compact(results)) %>%
              tidyr::unnest(cols = c("eltExt", "eltId", "evtId", "patId")) %>%
              dplyr::rename_with(~ c("ELTID", "EVTID", "PATID"), .cols = c("eltId", "evtId", "patId")) %>%
-             dplyr::select(ELTID, EVTID, PATID)
+             dplyr::select(ELTID, EVTID, PATID) %>%
+             dplyr::distinct()
     )
   }
   if (module == "doceds") {
     coerced <- purrr::map(results, coerce_doceds_df)
     dropped <- sum(purrr::map_lgl(results, ~ !is.null(.x)) & purrr::map_lgl(coerced, is.null))
     if (dropped > 0) warning("Skipped ", dropped, " doceds batch result(s) that were not data frames.")
-    return(dplyr::bind_rows(purrr::compact(coerced)))
+    return(dplyr::bind_rows(purrr::compact(coerced)) %>% distinct)
   }
   purrr::list_flatten(purrr::compact(results))
 }
@@ -395,6 +415,8 @@ get_edsan <- function(
     periods_by = "1 month",
     periods_prefix = "{",
     periods_suffix = "}",
+    periods_end_inclusive = NULL,
+    periods_overlap_days = NULL,
     batch_key = NULL,
     # retrieval mode
     mode = c("auto", "time", "ids"),
@@ -413,9 +435,18 @@ get_edsan <- function(
   module <- match.arg(module)
   what <- match.arg(what)
   mode <- match.arg(mode)
-  output_count_fn <- output_count_fn %||% function(x) .edsan_count_out_units(module, x, what)
+  if (is.null(periods_end_inclusive)) {
+    periods_end_inclusive <- TRUE
+  }
   if (mode == "time" && !missing(mode) && missing(batch_on_error_only)) {
     batch_on_error_only <- FALSE
+  }
+  output_count_fn <- output_count_fn %||% function(x) .edsan_count_out_units(module, x, what)
+  finalize_result <- function(result) {
+    if (module == "pmsi" && what == "data") {
+      return(process_pmsi(result))
+    }
+    result
   }
   # ---- Mode selection (auto/time/ids) ----
   # AUTO: decide whether this is time-batching or id-batching.
@@ -432,11 +463,19 @@ get_edsan <- function(
       mode <- "time"
     }
   }
+  if (is.null(periods_overlap_days)) {
+    periods_overlap_days <- if (mode == "time" && what == "idtriplets") 1L else 0L
+  }
+
+
 
   # ---- Time batching path ----
   if (mode == "time") {
     if (is.null(batch_key)) {
       batch_key <- switch(module, doceds = "RECDATE", pmsi = "DATENT", biol = "DATEXAM")
+    }
+    if (module == "pmsi" && "RECDATE" %in% names(query)) {
+      warning("pmsi does not support RECDATE; use DATENT or DATSORT instead.")
     }
 
     window <- try(.edsan_infer_batch_window(module, query, batch_key, start_date, end_date), silent = TRUE)
@@ -453,14 +492,14 @@ get_edsan <- function(
           paste(tr$error, collapse = " ")
         ))
       }
-      return(.edsan_combine(module, list(tr$value), what))
+      return(finalize_result(.edsan_combine(module, list(tr$value), what)))
     }
 
     # If we do have a window, first attempt a single call (cheaper).
     # Only batch if it fails due to limits (or if batch_on_error_only=FALSE).
     if (isTRUE(batch_on_error_only)) {
       tr0 <- .edsan_call(module, query, what)
-      if (tr0$ok) return(.edsan_combine(module, list(tr0$value), what))
+      if (tr0$ok) return(finalize_result(.edsan_combine(module, list(tr0$value), what)))
       if (!.edsan_is_limit_error(tr0$error)) {
         stop(paste0(
           "single_call_failed: ", module, " request failed for non-limit reason. ",
@@ -473,7 +512,9 @@ get_edsan <- function(
       window$start, window$end,
       prefix = periods_prefix,
       suffix = periods_suffix,
-      by = periods_by
+      by = periods_by,
+      end_inclusive = periods_end_inclusive,
+      overlap_days = periods_overlap_days
     )
 
 
@@ -509,7 +550,7 @@ get_edsan <- function(
       )
       warning(warn_msg)
     }
-    return(.edsan_combine(module, raw_batches, what))
+    return(finalize_result(.edsan_combine(module, raw_batches, what)))
   }
 
   # ---- ID batching path ----
@@ -549,7 +590,10 @@ get_edsan <- function(
           }
           win <- try(.edsan_infer_batch_window(module, query, batch_key, start_date, end_date), silent = TRUE)
           if (!inherits(win, "try-error")) {
-            per <- .edsan_make_periods(win$start, win$end, prefix = periods_prefix, suffix = periods_suffix, by = periods_by)
+            per <- .edsan_make_periods(win$start, win$end, prefix = periods_prefix, suffix = periods_suffix,
+                                       by = periods_by,end_inclusive = periods_end_inclusive,
+                                       overlap_days = periods_overlap_days
+            )
             sub_results <- purrr::map(per$period, function(period) {
               qq <- q
               qq[[batch_key]] <- period
@@ -618,6 +662,8 @@ get_edsan <- function(
   for (ch in initial_chunks) .process_chunk(ch)
 
   combined <- .edsan_combine(module, results, what)
+
+  combined <- finalize_result(combined)
 
   if (!return_audit) return(combined)
 
