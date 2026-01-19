@@ -174,6 +174,13 @@
 
   res <- try(fn(module, qry, "edsan"), silent = TRUE)
   if (inherits(res, "try-error")) return(list(ok = FALSE, value = NULL, error = as.character(res)))
+  if (is.data.frame(res) && "error" %in% names(res)) {
+    err_val <- res[["error"]]
+    err_msg <- err_val[!is.na(err_val)]
+    if (length(err_msg) > 0) {
+      return(list(ok = FALSE, value = NULL, error = as.character(err_msg)))
+    }
+  }
   if (is.list(res) && "error" %in% names(res)) {
     err_val <- res[["error"]]
     if (!is.null(err_val)) {
@@ -183,9 +190,8 @@
         return(list(ok = FALSE, value = NULL, error = err_msg))
       }
     }
-  }
-  list(ok = TRUE, value = res, error = NULL)
-}
+    return(list(ok = TRUE, value = res, error = NULL))
+  }}
 
 .edsan_combine <- function(module, results, what = c("data", "idtriplets")) {
   # Combine batch outputs into a single result.
@@ -208,30 +214,31 @@
   }
 
   if (what == "idtriplets") {
-    return(dplyr::bind_rows(purrr::compact(results)) %>%
-             #tidyr::unnest(cols = c("eltId", "evtId", "patId")) %>%
-             dplyr::rename_with(~ c("ELTID", "EVTID", "PATID"), .cols = c("eltId", "evtId", "patId")) %>%
-             dplyr::select(ELTID, EVTID, PATID) %>%
-             dplyr::distinct()
-    )
     combined <- dplyr::bind_rows(purrr::compact(results))
-    if (!all(c("eltId", "evtId", "patId") %in% names(combined))) {
-      warning("idtriplets response missing eltId/evtId/patId columns; returning combined result as-is.")
+    if (nrow(combined) == 0 && ncol(combined) == 0) {
+      return(tibble::tibble(ELTID = character(), EVTID = character(), PATID = character()))
+    }
+
+    lower_names <- tolower(names(combined))
+    key_map <- c(eltid = "ELTID", evtid = "EVTID", patid = "PATID")
+    if (!all(names(key_map) %in% lower_names)) {
+      warning("idtriplets response missing eltid/evtid/patid columns; returning combined result as-is.")
       return(combined)
     }
-    cols_to_unnest <- intersect(c("eltId", "evtId", "patId"), names(combined))
-    if (length(cols_to_unnest) > 0) {
-      list_cols <- cols_to_unnest[vctrs::vec_is_list(combined[cols_to_unnest])]
-      if (length(list_cols) > 0) {
-        combined <- tidyr::unnest(combined, cols = dplyr::all_of(list_cols))
-      }
 
+    present <- setNames(names(combined), lower_names)
+    cols <- present[names(key_map)]
+    list_cols <- cols[vctrs::vec_is_list(combined[cols])]
+    if (length(list_cols) > 0) {
+      combined <- tidyr::unnest(combined, cols = dplyr::all_of(list_cols))
     }
     return(combined %>%
-             dplyr::rename_with(~ c("ELTID", "EVTID", "PATID"), .cols = dplyr::all_of(c("eltId", "evtId", "patId"))) %>%
+             dplyr::rename(!!!rlang::set_names(key_map, cols)) %>%
              dplyr::select(ELTID, EVTID, PATID) %>%
              dplyr::distinct())
   }
+
+
   if (module == "doceds") {
     coerced <- purrr::map(results, coerce_doceds_df)
     dropped <- sum(purrr::map_lgl(results, ~ !is.null(.x)) & purrr::map_lgl(coerced, is.null))
