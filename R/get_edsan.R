@@ -171,6 +171,23 @@
 .edsan_combine <- function(module, results, what = c("data", "idtriplets")) {
   # Combine batch outputs into a single result.
   what <- match.arg(what)
+  coerce_doceds_df <- function(result) {
+    if (is.null(result)) return(NULL)
+    if (is.data.frame(result)) return(result)
+    if (is.list(result)) {
+      if (!is.null(result$data) && is.data.frame(result$data)) return(result$data)
+      if (!is.null(result$result) && is.data.frame(result$result)) return(result$result)
+      if (!is.null(result$value) && is.data.frame(result$value)) return(result$value)
+      if (length(result) > 0 && all(purrr::map_lgl(result, ~ is.data.frame(.x) || is.list(.x)))) {
+        attempt <- tryCatch(dplyr::bind_rows(result), error = function(e) NULL)
+        if (is.data.frame(attempt)) return(attempt)
+      }
+      attempt <- tryCatch(tibble::as_tibble(result), error = function(e) NULL)
+      if (is.data.frame(attempt)) return(attempt)
+    }
+    NULL
+  }
+
   if (what == "idtriplets") {
     return(dplyr::bind_rows(purrr::compact(results)) %>%
              tidyr::unnest(cols = c("eltExt", "eltId", "evtId", "patId")) %>%
@@ -178,7 +195,12 @@
              dplyr::select(ELTID, EVTID, PATID)
     )
   }
-  if (module == "doceds") return(dplyr::bind_rows(purrr::compact(results)))
+  if (module == "doceds") {
+    coerced <- purrr::map(results, coerce_doceds_df)
+    dropped <- sum(purrr::map_lgl(results, ~ !is.null(.x)) & purrr::map_lgl(coerced, is.null))
+    if (dropped > 0) warning("Skipped ", dropped, " doceds batch result(s) that were not data frames.")
+    return(dplyr::bind_rows(purrr::compact(coerced)))
+  }
   purrr::list_flatten(purrr::compact(results))
 }
 
@@ -222,10 +244,10 @@
 #' Retrieve EDSAN data with adaptive batching
 #'
 #' Wrapper around the EDSAN API that supports automatic time- or ID-based
-#' batching to stay within API limits. 
-#' 
-#' For time batching, provide explicit bounds in `query` or via `start_date`/`end_date`. 
-#' 
+#' batching to stay within API limits.
+#'
+#' For time batching, provide explicit bounds in `query` or via `start_date`/`end_date`.
+#'
 #' For ID batching, provide an ID field containing multiple IDs (vector or OR-separated string).
 #'
 #' @details
