@@ -209,11 +209,28 @@
 
   if (what == "idtriplets") {
     return(dplyr::bind_rows(purrr::compact(results)) %>%
-             tidyr::unnest(cols = c("eltExt", "eltId", "evtId", "patId")) %>%
+             #tidyr::unnest(cols = c("eltId", "evtId", "patId")) %>%
              dplyr::rename_with(~ c("ELTID", "EVTID", "PATID"), .cols = c("eltId", "evtId", "patId")) %>%
              dplyr::select(ELTID, EVTID, PATID) %>%
              dplyr::distinct()
     )
+    combined <- dplyr::bind_rows(purrr::compact(results))
+    if (!all(c("eltId", "evtId", "patId") %in% names(combined))) {
+      warning("idtriplets response missing eltId/evtId/patId columns; returning combined result as-is.")
+      return(combined)
+    }
+    cols_to_unnest <- intersect(c("eltId", "evtId", "patId"), names(combined))
+    if (length(cols_to_unnest) > 0) {
+      list_cols <- cols_to_unnest[vctrs::vec_is_list(combined[cols_to_unnest])]
+      if (length(list_cols) > 0) {
+        combined <- tidyr::unnest(combined, cols = dplyr::all_of(list_cols))
+      }
+
+    }
+    return(combined %>%
+             dplyr::rename_with(~ c("ELTID", "EVTID", "PATID"), .cols = dplyr::all_of(c("eltId", "evtId", "patId"))) %>%
+             dplyr::select(ELTID, EVTID, PATID) %>%
+             dplyr::distinct())
   }
   if (module == "doceds") {
     coerced <- purrr::map(results, coerce_doceds_df)
@@ -462,6 +479,9 @@ get_edsan <- function(
     } else {
       mode <- "time"
     }
+  }
+  if (what == "idtriplets" && mode == "time") {
+    batch_on_error_only <- FALSE
   }
   if (is.null(periods_overlap_days)) {
     periods_overlap_days <- if (mode == "time" && what == "idtriplets") 1L else 0L
