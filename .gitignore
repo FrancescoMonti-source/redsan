@@ -3,3 +3,4 @@
 .RData
 .Ruserdata
 *.pper
+R/moza_price_history_append.csv
