@@ -401,7 +401,7 @@
     coerced <- purrr::map(results, coerce_doceds_df)
     dropped <- sum(purrr::map_lgl(results, ~ !is.null(.x)) & purrr::map_lgl(coerced, is.null))
     if (dropped > 0) warning("Skipped ", dropped, " doceds batch result(s) that were not data frames.")
-    return(dplyr::bind_rows(purrr::compact(coerced)) %>% distinct)
+    return(dplyr::bind_rows(purrr::compact(coerced)) %>% dplyr::distinct())
   }
 
   purrr::list_flatten(purrr::compact(results))
