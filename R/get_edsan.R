@@ -49,7 +49,9 @@
 }
 
 .edsan_extract_bounds <- function(x) {
-  if (is.null(x) || length(x) == 0 || is.na(x)) return(list(lo = NULL, hi = NULL))
+  if (is.null(x) || length(x) == 0 || all(is.na(x))) {
+    return(list(lo = NULL, hi = NULL))
+  }
   x <- as.character(x)
 
   if (length(x) >= 2 && all(stringr::str_detect(x[1:2], "^\\d{4}-\\d{2}-\\d{2}$"))) {
@@ -375,7 +377,8 @@
     df <- dplyr::bind_rows(rows)
 
     if (all(c("ELTID", "EVTID", "PATID") %in% names(df))) {
-      return(df %>% dplyr::select(ELTID, EVTID, PATID) %>% dplyr::distinct())
+      df <- df[, c("ELTID", "EVTID", "PATID"), drop = FALSE]
+      return(dplyr::distinct(df))
     }
 
     nested_cols <- c("eltId", "evtId", "patId")
@@ -386,10 +389,9 @@
       } else {
         out <- tidyr::unnest(out, cols = c("eltId", "evtId", "patId"))
       }
-      out <- out %>%
-        dplyr::rename_with(~ c("ELTID", "EVTID", "PATID"), .cols = c("eltId", "evtId", "patId")) %>%
-        dplyr::select(ELTID, EVTID, PATID) %>%
-        dplyr::distinct()
+      out <- dplyr::rename_with(out, ~ c("ELTID", "EVTID", "PATID"), .cols = c("eltId", "evtId", "patId"))
+      out <- out[, c("ELTID", "EVTID", "PATID"), drop = FALSE]
+      out <- dplyr::distinct(out)
       return(out)
     }
 
@@ -401,7 +403,9 @@
     coerced <- purrr::map(results, coerce_doceds_df)
     dropped <- sum(purrr::map_lgl(results, ~ !is.null(.x)) & purrr::map_lgl(coerced, is.null))
     if (dropped > 0) warning("Skipped ", dropped, " doceds batch result(s) that were not data frames.")
-    return(dplyr::bind_rows(purrr::compact(coerced)) %>% dplyr::distinct())
+
+    return(dplyr::distinct(dplyr::bind_rows(purrr::compact(coerced))))
+
   }
 
   purrr::list_flatten(purrr::compact(results))
