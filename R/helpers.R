@@ -5,7 +5,7 @@
   err <- paste(err, collapse = " ")
   stringr::str_detect(
     stringr::str_to_lower(err),
-    "(4000|40000|40 000|too many|limit|quota|max results|max rows|allowed size limit exceeded)"
+    "(too many|limit|quota|max results|max rows|allowed size limit exceeded)"
   )
 }
 

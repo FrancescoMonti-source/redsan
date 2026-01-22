@@ -152,7 +152,8 @@
     n_chunks = NA_integer_,
     batch_ids_key = NA_character_,
     n_in = NA_integer_,
-    count_out_fn = NULL
+    count_out_fn = NULL,
+    return_audit = FALSE
 ) {
   by_seq <- .edsan_time_backoff_seq(initial_by)
   last_limit_error <- NULL
@@ -165,12 +166,14 @@
   }
 
   results <- list()
+  audit <- list()
   current_start <- lubridate::as_date(start_date)
   final_end <- lubridate::as_date(end_date)
 
   for (by in by_seq) {
     if (is.na(current_start) || is.na(final_end) || current_start > final_end) {
-      return(list(ok = TRUE, by = by, results = results, by_history = by_seq[1:match(by, by_seq)]))
+      return(list(ok = TRUE, by = by, results = results, by_history = by_seq[1:match(by, by_seq)],
+                  audit = dplyr::bind_rows(audit)))
     }
 
     periods <- .edsan_make_periods(
@@ -205,12 +208,35 @@
       tr <- .edsan_call(module, q, what)
       dt_ms <- as.integer(round((proc.time()[[3]] - t0) * 1000))
 
+      n_out <- NA_integer_
+      if (tr$ok && is.function(count_out_fn)) {
+        n_out <- tryCatch(as.integer(count_out_fn(tr$value)), error = function(e) NA_integer_)
+      }
+
+      if (isTRUE(return_audit)) {
+        audit[[length(audit) + 1]] <- tibble::tibble(
+          module = module,
+          what = what,
+          batch_key = batch_key,
+          batch_ids_key = batch_ids_key %||% NA_character_,
+          chunk_idx = chunk_idx,
+          n_in = n_in,
+          time_by = by,
+          time_idx = i,
+          time_n = nrow(periods),
+          start = as.Date(periods$start[[i]]),
+          end = as.Date(periods$end[[i]]),
+          period = per,
+          ok = tr$ok,
+          n_out = n_out,
+          dt_ms = dt_ms,
+          error = if (tr$ok) NA_character_ else paste(tr$error, collapse = " "),
+          kind = if (tr$ok) "ok" else if (.edsan_is_limit_error(tr$error)) "limit" else "error"
+        )
+      }
+
       if (isTRUE(verbose)) {
         if (tr$ok) {
-          n_out <- NA_integer_
-          if (is.function(count_out_fn)) {
-            n_out <- tryCatch(as.integer(count_out_fn(tr$value)), error = function(e) NA_integer_)
-          }
           if (!is.na(n_out)) {
             message(id_part, "[ok]   ", by, " ", i, "/", nrow(periods),
                     " [", format(periods$start[[i]]), "..", format(periods$end[[i]]), "]",
@@ -255,7 +281,8 @@
       results[[length(results) + 1]] <- tr$value
 
       if (i == nrow(periods)) {
-        return(list(ok = TRUE, by = by, results = results, by_history = by_seq[1:match(by, by_seq)]))
+        return(list(ok = TRUE, by = by, results = results, by_history = by_seq[1:match(by, by_seq)],
+                    audit = dplyr::bind_rows(audit)))
       }
     }
 
@@ -263,7 +290,8 @@
       next
     }
 
-    return(list(ok = TRUE, by = by, results = results, by_history = by_seq[1:match(by, by_seq)]))
+    return(list(ok = TRUE, by = by, results = results, by_history = by_seq[1:match(by, by_seq)],
+                audit = dplyr::bind_rows(audit)))
   }
 
   stop(paste0(
@@ -271,6 +299,7 @@
     "Last limit error: ", last_limit_error %||% "unknown"
   ))
 }
+
 
 # ID-batching helpers
 # These functions decide when and how to split ID lists for safe API calls.
@@ -291,21 +320,6 @@
 
   spec_order <- match(present, candidates)
   present[order(spec_order, -n_ids)][1]
-}
-
-.edsan_id_like <- function(x) {
-  if (is.null(x)) return(FALSE)
-  if (length(x) > 1) return(TRUE)
-
-  s <- as.character(x)[1]
-  if (is.na(s) || !nzchar(s)) return(FALSE)
-  s <- trimws(s)
-
-  if (stringr::str_detect(s, "\\s+OR\\s+")) return(TRUE)
-  if (!stringr::str_detect(s, "[,;]")) return(FALSE)
-
-  parts <- .edsan_split_id_string(s)
-  length(parts) > 1
 }
 
 .edsan_split_id_string <- function(x) {
@@ -472,6 +486,33 @@ get_edsan <- function(
   module <- match.arg(module)
   what <- match.arg(what)
 
+  date_keys <- c("RECDATE", "DATENT", "DATSORT", "DATEXAM")
+  present_dates <- intersect(names(query), date_keys)
+
+  if (module == "doceds") {
+    bad <- intersect(present_dates, c("DATENT", "DATSORT", "DATEXAM"))
+    if (length(bad) > 0) {
+      stop("doceds module only supports RECDATE as date key; unsupported key(s): ",
+           paste(bad, collapse = ", "), ". Please use RECDATE.")
+    }
+  }
+
+  if (module == "pmsi") {
+    bad <- intersect(present_dates, c("RECDATE", "DATEXAM"))
+    if (length(bad) > 0) {
+      stop("pmsi module only supports DATENT and DATSORT as date keys; unsupported key(s): ",
+           paste(bad, collapse = ", "), ". Please use DATENT or DATSORT.")
+    }
+  }
+
+  if (module == "biol") {
+    bad <- intersect(present_dates, c("RECDATE", "DATENT", "DATSORT"))
+    if (length(bad) > 0) {
+      stop("biol module only supports DATEXAM as date key; unsupported key(s): ",
+           paste(bad, collapse = ", "), ". Please use DATEXAM.")
+    }
+  }
+
   if (is.null(batch_key)) {
     batch_key <- switch(module, doceds = "RECDATE", pmsi = "DATENT", biol = "DATEXAM")
   }
@@ -623,8 +664,13 @@ get_edsan <- function(
       n_chunks = as.integer(length(id_chunks)),
       batch_ids_key = batch_ids_key %||% NA_character_,
       n_in = as.integer(n_in),
-      count_out_fn = function(x) .edsan_count_out_units(module, x, what)
+      count_out_fn = function(x) .edsan_count_out_units(module, x, what),
+      return_audit = return_audit
     )
+
+    if (isTRUE(return_audit) && !is.null(tb$audit) && is.data.frame(tb$audit) && nrow(tb$audit) > 0) {
+      audit[[length(audit) + 1]] <- tb$audit
+    }
 
     if (isTRUE(return_audit)) {
       audit[[length(audit) + 1]] <- tibble::tibble(
