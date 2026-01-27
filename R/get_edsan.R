@@ -513,8 +513,6 @@ get_edsan <- function(
 ) {
   module <- match.arg(module)
   what <- match.arg(what)
-  mode <- match.arg(mode)
-  output_count_fn <- output_count_fn %||% function(x) .edsan_count_out_units(module, x, what)
   date_keys <- c("RECDATE", "DATENT", "DATSORT", "DATEXAM")
   present_dates <- intersect(names(query), date_keys)
   query <- .edsan_normalize_date_query(query, present_dates, periods_prefix, periods_suffix)
