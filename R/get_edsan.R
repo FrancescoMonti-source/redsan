@@ -49,25 +49,30 @@
 }
 
 .edsan_extract_bounds <- function(x) {
-  if (is.null(x) || length(x) == 0 || all(is.na(x))) {
-    return(list(lo = NULL, hi = NULL))
-  }
-  x <- as.character(x)
+  # Parse API-style date bounds into list(lo, hi)
+  if (is.null(x) || length(x) == 0 || is.na(x)) return(list(lo = NULL, hi = NULL))
+  x <- trimws(as.character(x))
 
-  if (length(x) >= 2 && all(stringr::str_detect(x[1:2], "^\\d{4}-\\d{2}-\\d{2}$"))) {
-    x <- paste0("{", x[[1]], ",", x[[2]], "}")
-  } else {
-    x <- trimws(x[[1]])
+  # range: "{YYYY-MM-DD,YYYY-MM-DD}"
+  m <- stringr::str_match(x, "^\\{\\s*(\\d{4}-\\d{2}-\\d{2})\\s*,\\s*(\\d{4}-\\d{2}-\\d{2})\\s*\\}$")
+  if (!is.na(m[1, 1])) {
+    return(list(lo = as.Date(m[1, 2]), hi = as.Date(m[1, 3])))
+  }
+
+  m <- stringr::str_match(x, "^\\s*(\\d{4}-\\d{2}-\\d{2})\\s*,\\s*(\\d{4}-\\d{2}-\\d{2})\\s*$")
+  if (!is.na(m[1, 1])) {
+    return(list(lo = as.Date(m[1, 2]), hi = as.Date(m[1, 3])))
   }
 
   m <- stringr::str_match(
     x,
-    "^\\{\\s*(\\d{4}-\\d{2}-\\d{2})\\s*,\\s*(\\d{4}-\\d{2}-\\d{2})\\s*\\}$"
+    "^\\s*[^0-9]*?(\\d{4}-\\d{2}-\\d{2})\\s*,\\s*(\\d{4}-\\d{2}-\\d{2})[^0-9]*\\s*$"
   )
   if (!is.na(m[1, 1])) {
     return(list(lo = as.Date(m[1, 2]), hi = as.Date(m[1, 3])))
   }
 
+  # comparator: >YYYY-MM-DD or <YYYY-MM-DD
   m <- stringr::str_match(x, "^([<>])\\s*(\\d{4}-\\d{2}-\\d{2})$")
   if (!is.na(m[1, 1])) {
     d <- as.Date(m[1, 3])
@@ -76,6 +81,29 @@
   }
 
   list(lo = NULL, hi = NULL)
+}
+
+.edsan_normalize_date_query <- function(query, date_keys, prefix = "{", suffix = "}") {
+  if (length(date_keys) == 0) return(query)
+
+  for (key in date_keys) {
+    val <- query[[key]]
+    if (is.null(val) || length(val) == 0 || all(is.na(val))) next
+
+    val_chr <- as.character(val)
+
+    if (length(val_chr) >= 2 && all(stringr::str_detect(val_chr[1:2], "^\\d{4}-\\d{2}-\\d{2}$"))) {
+      query[[key]] <- paste0(prefix, val_chr[[1]], ",", val_chr[[2]], suffix)
+      next
+    }
+
+    val1 <- trimws(val_chr[[1]])
+    if (stringr::str_detect(val1, "^\\d{4}-\\d{2}-\\d{2}\\s*,\\s*\\d{4}-\\d{2}-\\d{2}$")) {
+      query[[key]] <- paste0(prefix, val1, suffix)
+    }
+  }
+
+  query
 }
 
 .edsan_infer_batch_window <- function(module, query, batch_key, start_date = NULL, end_date = NULL) {
@@ -485,6 +513,11 @@ get_edsan <- function(
 ) {
   module <- match.arg(module)
   what <- match.arg(what)
+  mode <- match.arg(mode)
+  output_count_fn <- output_count_fn %||% function(x) .edsan_count_out_units(module, x, what)
+  date_keys <- c("RECDATE", "DATENT", "DATSORT", "DATEXAM")
+  present_dates <- intersect(names(query), date_keys)
+  query <- .edsan_normalize_date_query(query, present_dates, periods_prefix, periods_suffix)
 
   date_keys <- c("RECDATE", "DATENT", "DATSORT", "DATEXAM")
   present_dates <- intersect(names(query), date_keys)
