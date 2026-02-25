@@ -7,7 +7,6 @@
 
 # Time-window helpers
 # These functions translate user-provided bounds into concrete batch windows.
-
 .edsan_make_periods <- function(start_date, end_date,
                                 sep = ",", by = "6 months",
                                 prefix = "", suffix = "",
@@ -27,7 +26,6 @@
   starts <- seq(from = s, to = e, by = by)
   overlap_days <- as.integer(overlap_days %||% 0L)
   if (overlap_days < 0L) stop("overlap_days must be >= 0")
-
   base_ends <- if (isTRUE(end_inclusive)) {
     c(starts[-1] - 1, e)
   } else {
@@ -49,25 +47,12 @@
 }
 
 .edsan_extract_bounds <- function(x) {
-  # Parse API-style date bounds into list(lo, hi)
+  # Parse API-style date bounds into list(lo, hi).
   if (is.null(x) || length(x) == 0 || is.na(x)) return(list(lo = NULL, hi = NULL))
   x <- trimws(as.character(x))
 
   # range: "{YYYY-MM-DD,YYYY-MM-DD}"
   m <- stringr::str_match(x, "^\\{\\s*(\\d{4}-\\d{2}-\\d{2})\\s*,\\s*(\\d{4}-\\d{2}-\\d{2})\\s*\\}$")
-  if (!is.na(m[1, 1])) {
-    return(list(lo = as.Date(m[1, 2]), hi = as.Date(m[1, 3])))
-  }
-
-  m <- stringr::str_match(x, "^\\s*(\\d{4}-\\d{2}-\\d{2})\\s*,\\s*(\\d{4}-\\d{2}-\\d{2})\\s*$")
-  if (!is.na(m[1, 1])) {
-    return(list(lo = as.Date(m[1, 2]), hi = as.Date(m[1, 3])))
-  }
-
-  m <- stringr::str_match(
-    x,
-    "^\\s*[^0-9]*?(\\d{4}-\\d{2}-\\d{2})\\s*,\\s*(\\d{4}-\\d{2}-\\d{2})[^0-9]*\\s*$"
-  )
   if (!is.na(m[1, 1])) {
     return(list(lo = as.Date(m[1, 2]), hi = as.Date(m[1, 3])))
   }
@@ -83,30 +68,8 @@
   list(lo = NULL, hi = NULL)
 }
 
-.edsan_normalize_date_query <- function(query, date_keys, prefix = "{", suffix = "}") {
-  if (length(date_keys) == 0) return(query)
-
-  for (key in date_keys) {
-    val <- query[[key]]
-    if (is.null(val) || length(val) == 0 || all(is.na(val))) next
-
-    val_chr <- as.character(val)
-
-    if (length(val_chr) >= 2 && all(stringr::str_detect(val_chr[1:2], "^\\d{4}-\\d{2}-\\d{2}$"))) {
-      query[[key]] <- paste0(prefix, val_chr[[1]], ",", val_chr[[2]], suffix)
-      next
-    }
-
-    val1 <- trimws(val_chr[[1]])
-    if (stringr::str_detect(val1, "^\\d{4}-\\d{2}-\\d{2}\\s*,\\s*\\d{4}-\\d{2}-\\d{2}$")) {
-      query[[key]] <- paste0(prefix, val1, suffix)
-    }
-  }
-
-  query
-}
-
 .edsan_infer_batch_window <- function(module, query, batch_key, start_date = NULL, end_date = NULL) {
+  # Pick a usable time window based on module-specific rules.
   if (!is.null(start_date) && !is.null(end_date)) {
     lo <- as.Date(start_date)
     hi <- as.Date(end_date)
@@ -158,199 +121,30 @@
   stop("infer_batch_window: module not supported")
 }
 
-.edsan_time_backoff_seq <- function(initial = "6 months") {
-  ladder <- c("6 months", "3 months", "1 month", "2 weeks", "1 week", "1 day")
-  i <- match(initial, ladder)
-  if (is.na(i)) i <- 1L
-  ladder[i:length(ladder)]
-}
-
-.edsan_time_batch_adaptive <- function(
-    module, what, query,
-    batch_key,
-    start_date, end_date,
-    periods_prefix = "{", periods_suffix = "}",
-    periods_end_inclusive = TRUE,
-    periods_overlap_days = 0L,
-    initial_by = "6 months",
-    max_batches = 1000L,
-    verbose = FALSE,
-    progress_every = NULL,
-    chunk_idx = NA_integer_,
-    n_chunks = NA_integer_,
-    batch_ids_key = NA_character_,
-    n_in = NA_integer_,
-    count_out_fn = NULL,
-    return_audit = FALSE
-) {
-  by_seq <- .edsan_time_backoff_seq(initial_by)
-  last_limit_error <- NULL
-
-  id_part <- if (!is.na(chunk_idx) && !is.na(n_chunks)) {
-    paste0("[", batch_ids_key %||% "ids", " ", chunk_idx, "/", n_chunks,
-           if (!is.na(n_in)) paste0(" n_in=", n_in) else "", "] ")
-  } else {
-    ""
-  }
-
-  results <- list()
-  audit <- list()
-  current_start <- lubridate::as_date(start_date)
-  final_end <- lubridate::as_date(end_date)
-
-  for (by in by_seq) {
-    if (is.na(current_start) || is.na(final_end) || current_start > final_end) {
-      return(list(ok = TRUE, by = by, results = results, by_history = by_seq[1:match(by, by_seq)],
-                  audit = dplyr::bind_rows(audit)))
-    }
-
-    periods <- .edsan_make_periods(
-      current_start, final_end,
-      by = by,
-      prefix = periods_prefix,
-      suffix = periods_suffix,
-      end_inclusive = periods_end_inclusive,
-      overlap_days = periods_overlap_days
-    )
-
-    if (nrow(periods) > as.integer(max_batches)) {
-      stop("time_batch_too_many_batches: ", nrow(periods),
-           " batches requested at granularity '", by,
-           "'. Narrow the time window or increase period size.")
-    }
-
-    progress_every <- if (isTRUE(verbose)) 1L else as.integer(progress_every %||% 25L)
-
-    for (i in seq_len(nrow(periods))) {
-      per <- periods$period[[i]]
-
-      if (isTRUE(verbose) && (i == 1L || i == nrow(periods) || (i %% progress_every) == 0L)) {
-        message(id_part, "[call] ", by, " ", i, "/", nrow(periods),
-                " [", format(periods$start[[i]]), "..", format(periods$end[[i]]), "]")
-      }
-
-      q <- query
-      q[[batch_key]] <- per
-
-      t0 <- proc.time()[[3]]
-      tr <- .edsan_call(module, q, what)
-      dt_ms <- as.integer(round((proc.time()[[3]] - t0) * 1000))
-
-      n_out <- NA_integer_
-      if (tr$ok && is.function(count_out_fn)) {
-        n_out <- tryCatch(as.integer(count_out_fn(tr$value)), error = function(e) NA_integer_)
-      }
-
-      if (isTRUE(return_audit)) {
-        audit[[length(audit) + 1]] <- tibble::tibble(
-          module = module,
-          what = what,
-          batch_key = batch_key,
-          batch_ids_key = batch_ids_key %||% NA_character_,
-          chunk_idx = chunk_idx,
-          n_in = n_in,
-          time_by = by,
-          time_idx = i,
-          time_n = nrow(periods),
-          start = as.Date(periods$start[[i]]),
-          end = as.Date(periods$end[[i]]),
-          period = per,
-          ok = tr$ok,
-          n_out = n_out,
-          dt_ms = dt_ms,
-          error = if (tr$ok) NA_character_ else paste(tr$error, collapse = " "),
-          kind = if (tr$ok) "ok" else if (.edsan_is_limit_error(tr$error)) "limit" else "error"
-        )
-      }
-
-      if (isTRUE(verbose)) {
-        if (tr$ok) {
-          if (!is.na(n_out)) {
-            message(id_part, "[ok]   ", by, " ", i, "/", nrow(periods),
-                    " [", format(periods$start[[i]]), "..", format(periods$end[[i]]), "]",
-                    " | n_out=", n_out, " | ", dt_ms, "ms")
-          } else {
-            message(id_part, "[ok]   ", by, " ", i, "/", nrow(periods),
-                    " [", format(periods$start[[i]]), "..", format(periods$end[[i]]), "]",
-                    " | ", dt_ms, "ms")
-          }
-        } else {
-          message(id_part, "[err]  ", by, " ", i, "/", nrow(periods),
-                  " [", format(periods$start[[i]]), "..", format(periods$end[[i]]), "]",
-                  " | ", if (.edsan_is_limit_error(tr$error)) "LIMIT" else "ERROR",
-                  " | ", dt_ms, "ms",
-                  " | ", paste(tr$error, collapse = " "))
-        }
-      }
-
-      if (!tr$ok) {
-        if (.edsan_is_limit_error(tr$error)) {
-          last_limit_error <- paste(tr$error, collapse = " ")
-          current_start <- periods$start[[i]]
-          if (isTRUE(verbose)) {
-            message(id_part, "[backoff] LIMIT at ", by, " ", i, "/", nrow(periods),
-                    " [", format(periods$start[[i]]), "..", format(periods$end[[i]]), "]",
-                    " -> switching smaller granularity",
-                    " | remaining_from=", format(current_start))
-          }
-          break
-        }
-
-        stop(paste0(
-          "time_batch_failed_nonlimit: module=", module,
-          ", batch_key=", batch_key,
-          ", by=", by,
-          ", period=", per,
-          ". Underlying error: ",
-          paste(tr$error, collapse = " ")
-        ))
-      }
-
-      results[[length(results) + 1]] <- tr$value
-
-      if (i == nrow(periods)) {
-        return(list(ok = TRUE, by = by, results = results, by_history = by_seq[1:match(by, by_seq)],
-                    audit = dplyr::bind_rows(audit)))
-      }
-    }
-
-    if (!is.na(current_start) && current_start <= final_end) {
-      next
-    }
-
-    return(list(ok = TRUE, by = by, results = results, by_history = by_seq[1:match(by, by_seq)],
-                audit = dplyr::bind_rows(audit)))
-  }
-
-  stop(paste0(
-    "time_batch_exhausted: even 1-day batches hit limit. ",
-    "Last limit error: ", last_limit_error %||% "unknown"
-  ))
-}
-
-
 # ID-batching helpers
 # These functions decide when and how to split ID lists for safe API calls.
 
 .edsan_choose_batch_ids_key <- function(query, candidates = c("ELTID", "EVTID", "PATID")) {
-  present <- candidates[candidates %in% names(query)]
+  # Prefer the most specific identifier available.
+  present <- candidates[candidates %in% names(query) & !purrr::map_lgl(query[candidates], is.null)]
   if (length(present) == 0) return(NULL)
 
-  n_ids <- purrr::map_int(present, function(k) {
-    v <- query[[k]]
-    if (is.null(v)) return(0L)
-    length(.edsan_split_id_string(v))
-  })
+  counts <- purrr::map_int(present, function(k) length(.edsan_split_id_string(query[[k]])))
+  spec_order <- match(present, candidates) # smaller index = more specific
+  present[order(spec_order, -counts)][1]
+}
 
-  present <- present[n_ids > 0]
-  n_ids   <- n_ids[n_ids > 0]
-  if (length(present) == 0) return(NULL)
-
-  spec_order <- match(present, candidates)
-  present[order(spec_order, -n_ids)][1]
+.edsan_id_like <- function(x) {
+  # Detect whether x likely encodes a list of IDs (vector or OR-separated string).
+  if (is.null(x)) return(FALSE)
+  if (length(x) > 1) return(TRUE)
+  s <- as.character(x)[1]
+  if (is.na(s) || !nzchar(s)) return(FALSE)
+  stringr::str_detect(s, "\\s+OR\\s+") || stringr::str_detect(s, "[\\s,;]")
 }
 
 .edsan_split_id_string <- function(x) {
+  # Accept vectors, or a single string like "1 2 3" or "1 OR 2 OR 3".
   x <- x %||% character()
   x <- as.character(x)
   x <- x[!is.na(x) & nzchar(x)]
@@ -359,13 +153,16 @@
   if (length(x) > 1) return(x)
 
   s <- x[[1]]
+  # normalize OR separators to spaces
   s <- stringr::str_replace_all(s, "\\s+OR\\s+", " ")
+  # split on whitespace, commas, semicolons
   parts <- unlist(stringr::str_split(s, "[\\s,;]+"))
   parts <- parts[!is.na(parts) & nzchar(parts)]
   parts
 }
 
 .edsan_call <- function(module, query, what = c("data", "idtriplets")) {
+  # Single request to the EDSAN backend (data or idtriplets).
   what <- match.arg(what)
   qry <- jsonlite::toJSON(query, auto_unbox = TRUE)
 
@@ -391,8 +188,8 @@
 }
 
 .edsan_combine <- function(module, results, what = c("data", "idtriplets")) {
+  # Combine batch outputs into a single result.
   what <- match.arg(what)
-
   coerce_doceds_df <- function(result) {
     if (is.null(result)) return(NULL)
     if (is.data.frame(result)) return(result)
@@ -411,49 +208,24 @@
   }
 
   if (what == "idtriplets") {
-    rows <- purrr::compact(results)
-    if (length(rows) == 0) {
-      return(tibble::tibble(ELTID = character(), EVTID = character(), PATID = character()))
-    }
-
-    df <- dplyr::bind_rows(rows)
-
-    if (all(c("ELTID", "EVTID", "PATID") %in% names(df))) {
-      df <- df[, c("ELTID", "EVTID", "PATID"), drop = FALSE]
-      return(dplyr::distinct(df))
-    }
-
-    nested_cols <- c("eltId", "evtId", "patId")
-    if (all(nested_cols %in% names(df))) {
-      out <- df
-      if ("eltExt" %in% names(out)) {
-        out <- tidyr::unnest(out, cols = c("eltExt", "eltId", "evtId", "patId"))
-      } else {
-        out <- tidyr::unnest(out, cols = c("eltId", "evtId", "patId"))
-      }
-      out <- dplyr::rename_with(out, ~ c("ELTID", "EVTID", "PATID"), .cols = c("eltId", "evtId", "patId"))
-      out <- out[, c("ELTID", "EVTID", "PATID"), drop = FALSE]
-      out <- dplyr::distinct(out)
-      return(out)
-    }
-
-    warning("idtriplets combine: unexpected shape returned by backend; returning bound rows as-is.")
-    return(df)
+    return(dplyr::bind_rows(purrr::compact(results)) %>%
+             tidyr::unnest(cols = c("eltExt", "eltId", "evtId", "patId")) %>%
+             dplyr::rename_with(~ c("ELTID", "EVTID", "PATID"), .cols = c("eltId", "evtId", "patId")) %>%
+             dplyr::select(ELTID, EVTID, PATID) %>%
+             dplyr::distinct()
+    )
   }
-
   if (module == "doceds") {
     coerced <- purrr::map(results, coerce_doceds_df)
     dropped <- sum(purrr::map_lgl(results, ~ !is.null(.x)) & purrr::map_lgl(coerced, is.null))
     if (dropped > 0) warning("Skipped ", dropped, " doceds batch result(s) that were not data frames.")
-
-    return(dplyr::distinct(dplyr::bind_rows(purrr::compact(coerced))))
-
+    return(dplyr::bind_rows(purrr::compact(coerced)) %>% distinct)
   }
-
   purrr::list_flatten(purrr::compact(results))
 }
 
 .edsan_normalize_id_query <- function(query, batch_ids_key) {
+  # AND semantics: if batching on the most specific ID, drop redundant higher-level IDs.
   if (is.null(batch_ids_key)) return(query)
   if (batch_ids_key == "ELTID") {
     query[c("EVTID", "PATID")] <- NULL
@@ -464,6 +236,7 @@
 }
 
 .edsan_count_out_units <- function(module, value, what = c("data", "idtriplets")) {
+  # Estimate output size for adaptive splitting in ids mode.
   what <- match.arg(what)
   if (is.null(value)) return(0L)
 
@@ -489,186 +262,244 @@
 }
 
 #' Retrieve EDSAN data with adaptive batching
-#' ... (roxygen omitted here for brevity in canvas; keep your original block)
 #'
+#' Wrapper around the EDSAN API that supports automatic time- or ID-based
+#' batching to stay within API limits.
+#'
+#' For time batching, provide explicit bounds in `query` or via `start_date`/`end_date`.
+#'
+#' For ID batching, provide an ID field containing multiple IDs (vector or OR-separated string).
+#'
+#' @details
+#' \strong{Overview}
+#' \itemize{
+#' \item \code{get_edsan()} wraps the EDSAN API and avoids backend limits by
+#' batching requests and combining the results.
+#' \item Batching can be time-based or ID-based depending on your query and
+#' \code{mode}.
+#' }
+#'
+#' \strong{Mode decision (auto)}
+#' \enumerate{
+#' \item If the query contains a list of IDs, \code{auto} selects \code{ids}.
+#' \item Otherwise it selects \code{time}.
+#' }
+#'
+#' \strong{Time batching}
+#' \itemize{
+#' \item Tries a single call first.
+#' \item If a limit error occurs (and \code{batch_on_error_only = TRUE}),
+#' splits the time window into \code{periods_by} chunks.
+#' }
+#'
+#' \strong{ID batching}
+#' \itemize{
+#' \item Splits the input ID list into chunks of size \code{max_in_ids}.
+#' \item If a chunk still yields too much output, it is split again using
+#' \code{max_out_units}.
+#' \item Optional fallback to time batching can occur on limit errors.
+#' }
+#'
+#' \strong{Returned shapes}
+#' \itemize{
+#' \item \code{what = "data"} returns module-specific data (data.frame or list).
+#' \item \code{what = "idtriplets"} returns a data.frame with \code{PATID},
+#' \code{EVTID}, \code{ELTID}.
+#' }
+#'
+#' \strong{Audit output}
+#' \itemize{
+#' \item With \code{return_audit = TRUE}, the result is a list containing
+#' \code{data} and an \code{audit} table of per-batch inputs/outputs/errors.
+#' }
+#'
+#' \strong{Common pitfalls}
+#' \itemize{
+#' \item Missing time bounds for time batching (\code{batch_key} not present).
+#' \item Very large time windows that lead to slow or many batch calls.
+#' \item ID lists with mixed separators; use vectors or \code{" OR "} strings.
+#' }
+#'
+#' \strong{Helper roles}
+#' \itemize{
+#' \item \code{.edsan_extract_bounds}: Parses API-style date bounds from the query.
+#' \item \code{.edsan_infer_batch_window}: Determines a time window for batching.
+#' \item \code{.edsan_split_id_string}: Normalizes ID vectors or OR-separated strings.
+#' \item \code{.edsan_count_out_units}: Estimates output size to trigger splits.
+#' \item \code{.edsan_combine}: Merges batch outputs into a single result.
+#' }
+#'
+#' \strong{Glossary}
+#' \itemize{
+#' \item \code{batch_key}: Query field used for time batching, e.g. \code{DATENT} or \code{DATEXAM}.
+#' \item \code{bounds}: Date range like \code{\{YYYY-MM-DD,YYYY-MM-DD\}} or comparators \code{>YYYY-MM-DD}.
+#' \item \code{limit error}: Backend error indicating too many results (quota/max rows).
+#' \item \code{output units}: Heuristic count of returned rows or records used to trigger splitting.
+#' \item \code{ids mode}: Batching strategy that splits the input ID list into chunks.
+#' \item \code{time mode}: Batching strategy that splits a time range into periods.
+#' }
+#'
+#' \strong{Pseudo-flow (simplified)}
+#' \preformatted{
+#' get_edsan()
+#'   -> decide mode (auto | time | ids)
+#'   -> if time:
+#'        try single call
+#'        on limit error -> split into time periods -> combine
+#'   -> if ids:
+#'        split IDs into chunks
+#'        if chunk too large -> split further
+#'        optional time fallback on limit error
+#'   -> return combined result (and audit if requested)
+#' }
+#'
+#' @param module One of `doceds`, `pmsi`, or `biol`.
+#' @param what One of `data` or `idtriplets`.
+#' @param query Named list of API query parameters.
+#' @param start_date,end_date Optional Date bounds for time batching.
+#' @param periods_by Size of each time chunk (default to "1 month", which should never fail in practice).
+#' @param periods_prefix,periods_suffix Strings wrapped around each time window.
+#' @param batch_key Field used for *time* batching (defaults by module ex RECDATE for doceds etc..).
+#' @param mode `auto`, `time`, or `ids` batching strategy.
+#' @param batch_ids_key Field used for ID batching.
+#' @param max_in_ids,min_in_ids Limits for input ID chunk sizes.
+#' @param max_out_units Maximum output units before further splitting. Usually EDSAN rows or records. throws an "maximum allowed size reached" at 40000 rows.
+#' @param output_count_fn Function to count output units (defaults by module).
+#' @param return_audit If `TRUE`, returns a list with `data` and `audit`.
+#' @param batch_on_error_only If `TRUE`, first try without batching. If it fails due to a limit error then start time batching
+#' @param fallback_time_on_error If `TRUE`, ID batching can fall back to time batching.
+#' @return A data.frame/tibble, a list of results, or a list with audit metadata.
+#' @examples
+#' \dontrun{
+#' # Quick start: time batching
+#' res <- get_edsan(
+#'   module = "pmsi",
+#'   what = "data",
+#'   query = list(DATENT = "{2024-01-01,2024-01-31}"),
+#'   periods_by = "1 week"
+#' )
+#'
+#' # Quick start: ID batching with audit output
+#' out <- get_edsan(
+#'   module = "biol",
+#'   what = "data",
+#'   query = list(PATID = "1 OR 2 OR 3"),
+#'   mode = "ids",
+#'   return_audit = TRUE
+#' )
+#' out$audit
+#'
+#' # Doceds with explicit RECDATE bounds
+#' doc <- get_edsan(
+#'   module = "doceds",
+#'   what = "data",
+#'   query = list(RECDATE = "{2024-01-01,2024-01-31}")
+#' )
+#'
+#' # Minimal ids-mode with a vector of IDs
+#' ids_out <- get_edsan(
+#'   module = "pmsi",
+#'   what = "idtriplets",
+#'   query = list(PATID = c("10", "11", "12")),
+#'   mode = "ids"
+#' )
+#' }
 #' @export
 get_edsan <- function(
     module = c("doceds", "pmsi", "biol"),
     what = c("data", "idtriplets"),
     query = list(),
+    # time-window batching (default)
     start_date = NULL,
     end_date = NULL,
-    periods_by = "6 months",
+    periods_by = "1 month",
     periods_prefix = "{",
     periods_suffix = "}",
-    periods_end_inclusive = TRUE,
-    periods_overlap_days = 0L,
+    periods_end_inclusive = NULL,
+    periods_overlap_days = NULL,
     batch_key = NULL,
+    # retrieval mode
+    mode = c("auto", "time", "ids"),
+    # id-batching options
     batch_ids_key = NULL,
     max_in_ids = 3500,
-    max_time_batches = 1000,
+    min_in_ids = 50,
+    max_out_units = 40000,
+    output_count_fn = NULL,
     return_audit = FALSE,
-    batch_on_error_only = FALSE,
+    batch_on_error_only = TRUE,
+    fallback_time_on_error = TRUE,
     verbose = FALSE
 ) {
+  # ---- Argument normalization ----
   module <- match.arg(module)
   what <- match.arg(what)
-  date_keys <- c("RECDATE", "DATENT", "DATSORT", "DATEXAM")
-  present_dates <- intersect(names(query), date_keys)
-  query <- .edsan_normalize_date_query(query, present_dates, periods_prefix, periods_suffix)
-
-  date_keys <- c("RECDATE", "DATENT", "DATSORT", "DATEXAM")
-  present_dates <- intersect(names(query), date_keys)
-
-  if (module == "doceds") {
-    bad <- intersect(present_dates, c("DATENT", "DATSORT", "DATEXAM"))
-    if (length(bad) > 0) {
-      stop("doceds module only supports RECDATE as date key; unsupported key(s): ",
-           paste(bad, collapse = ", "), ". Please use RECDATE.")
+  mode <- match.arg(mode)
+  if (is.null(periods_end_inclusive)) {
+    periods_end_inclusive <- TRUE
+  }
+  if (mode == "time" && !missing(mode) && missing(batch_on_error_only)) {
+    batch_on_error_only <- FALSE
+  }
+  output_count_fn <- output_count_fn %||% function(x) .edsan_count_out_units(module, x, what)
+  finalize_result <- function(result) {
+    if (module == "pmsi" && what == "data") {
+      return(process_pmsi(result))
     }
+    result
   }
-
-  if (module == "pmsi") {
-    bad <- intersect(present_dates, c("RECDATE", "DATEXAM"))
-    if (length(bad) > 0) {
-      stop("pmsi module only supports DATENT and DATSORT as date keys; unsupported key(s): ",
-           paste(bad, collapse = ", "), ". Please use DATENT or DATSORT.")
-    }
-  }
-
-  if (module == "biol") {
-    bad <- intersect(present_dates, c("RECDATE", "DATENT", "DATSORT"))
-    if (length(bad) > 0) {
-      stop("biol module only supports DATEXAM as date key; unsupported key(s): ",
-           paste(bad, collapse = ", "), ". Please use DATEXAM.")
-    }
-  }
-
-  if (is.null(batch_key)) {
-    batch_key <- switch(module, doceds = "RECDATE", pmsi = "DATENT", biol = "DATEXAM")
-  }
-
-  if (is.null(batch_ids_key)) {
-    batch_ids_key <- .edsan_choose_batch_ids_key(query, candidates = c("ELTID", "EVTID", "PATID"))
-  }
-
-  query <- .edsan_normalize_id_query(query, batch_ids_key)
-
-  ids_all <- character()
-  if (!is.null(batch_ids_key) && !is.null(query[[batch_ids_key]])) {
-    ids_all <- .edsan_split_id_string(query[[batch_ids_key]])
-  }
-
-  id_chunks <- if (length(ids_all) == 0) {
-    list(NULL)
-  } else {
-    split(ids_all, ceiling(seq_along(ids_all) / max_in_ids))
-  }
-
-  if (isTRUE(verbose)) {
-    window0 <- try(.edsan_infer_batch_window(module, query, batch_key, start_date, end_date), silent = TRUE)
-    est_n_time <- NA_integer_
-    est_total_calls <- NA_integer_
-    if (!inherits(window0, "try-error")) {
-      est_n_time <- tryCatch({
-        nrow(.edsan_make_periods(window0$start, window0$end,
-                                 by = periods_by,
-                                 prefix = periods_prefix,
-                                 suffix = periods_suffix,
-                                 end_inclusive = periods_end_inclusive,
-                                 overlap_days = as.integer(periods_overlap_days %||% 0L)))
-      }, error = function(e) NA_integer_)
-      if (!is.na(est_n_time)) {
-        est_total_calls <- as.integer(length(id_chunks) * est_n_time)
-      }
+  # ---- Mode selection (auto/time/ids) ----
+  # AUTO: decide whether this is time-batching or id-batching.
+  if (mode == "auto") {
+    # If user didn't specify which ID key to batch, try to infer it.
+    if (is.null(batch_ids_key)) {
+      batch_ids_key <- .edsan_choose_batch_ids_key(query)
     }
 
-    message("[plan] module=", module,
-            " | what=", what,
-            " | batch_key=", batch_key,
-            if (!is.null(batch_ids_key) && length(ids_all) > 0) paste0(" | batch_ids_key=", batch_ids_key, " n_ids=", length(ids_all), " id_chunks=", length(id_chunks)) else " | no_ids",
-            " | periods_by=", periods_by,
-            if (!is.na(est_n_time)) paste0(" | time_chunks=", est_n_time) else "",
-            if (!is.na(est_total_calls)) paste0(" | est_calls=", est_total_calls) else "")
+    # If an ID key is present and looks like a list, default to ids mode.
+    if (!is.null(batch_ids_key) && .edsan_id_like(query[[batch_ids_key]])) {
+      mode <- "ids"
+    } else {
+      mode <- "time"
+    }
+  }
+  if (is.null(periods_overlap_days)) {
+    periods_overlap_days <- if (mode == "time" && what == "idtriplets") 1L else 0L
   }
 
-  audit <- vector("list", 0)
-  results <- vector("list", 0)
 
-  current_by <- periods_by
 
-  for (chunk_idx in seq_along(id_chunks)) {
-    chunk_ids <- id_chunks[[chunk_idx]]
-
-    q <- query
-    n_in <- NA_integer_
-    if (!is.null(chunk_ids)) {
-      n_in <- length(chunk_ids)
-      q[[batch_ids_key]] <- paste(chunk_ids, collapse = " OR ")
+  # ---- Time batching path ----
+  if (mode == "time") {
+    if (is.null(batch_key)) {
+      batch_key <- switch(module, doceds = "RECDATE", pmsi = "DATENT", biol = "DATEXAM")
+    }
+    if (module == "pmsi" && "RECDATE" %in% names(query)) {
+      warning("pmsi does not support RECDATE; use DATENT or DATSORT instead.")
     }
 
-    window <- try(.edsan_infer_batch_window(module, q, batch_key, start_date, end_date), silent = TRUE)
+    window <- try(.edsan_infer_batch_window(module, query, batch_key, start_date, end_date), silent = TRUE)
 
+    # If no time window is provided, we can still try a single unbatched call.
+    # This may succeed if the result set stays under API limits.
     if (inherits(window, "try-error")) {
-      if (isTRUE(verbose)) {
-        message("[single] chunk ", chunk_idx, "/", length(id_chunks),
-                " | no time bounds found for batch_key=", batch_key,
-                " -> single call")
-      }
-      tr <- .edsan_call(module, q, what)
-
-      if (isTRUE(return_audit)) {
-        audit[[length(audit) + 1]] <- tibble::tibble(
-          module = module,
-          what = what,
-          batch_key = batch_key,
-          batch_ids_key = batch_ids_key %||% NA_character_,
-          chunk_idx = chunk_idx,
-          n_in = n_in,
-          strategy = "single",
-          time_by = NA_character_,
-          period = NA_character_,
-          ok = tr$ok,
-          error = if (tr$ok) NA_character_ else paste(tr$error, collapse = " ")
-        )
-      }
-
+      tr <- .edsan_call(module, query, what)
       if (!tr$ok) {
         stop(paste0(
-          "missing_time_window: no usable time bounds for ", module,
-          " (batch_key=", batch_key, ") and single-call failed. Underlying error: ",
+          "missing_time_window: no explicit time bounds for ", module,
+          " and single-call attempt failed. Provide ", batch_key,
+          " bounds or use ids batching. Underlying error: ",
           paste(tr$error, collapse = " ")
         ))
       }
-
-      results[[length(results) + 1]] <- tr$value
-      next
+      return(finalize_result(.edsan_combine(module, list(tr$value), what)))
     }
 
+    # If we do have a window, first attempt a single call (cheaper).
+    # Only batch if it fails due to limits (or if batch_on_error_only=FALSE).
     if (isTRUE(batch_on_error_only)) {
-      tr0 <- .edsan_call(module, q, what)
-
-      if (isTRUE(return_audit)) {
-        audit[[length(audit) + 1]] <- tibble::tibble(
-          module = module,
-          what = what,
-          batch_key = batch_key,
-          batch_ids_key = batch_ids_key %||% NA_character_,
-          chunk_idx = chunk_idx,
-          n_in = n_in,
-          strategy = "probe",
-          time_by = NA_character_,
-          period = NA_character_,
-          ok = tr0$ok,
-          error = if (tr0$ok) NA_character_ else paste(tr0$error, collapse = " ")
-        )
-      }
-
-      if (tr0$ok) {
-        results[[length(results) + 1]] <- tr0$value
-        next
-      }
-
+      tr0 <- .edsan_call(module, query, what)
+      if (tr0$ok) return(finalize_result(.edsan_combine(module, list(tr0$value), what)))
       if (!.edsan_is_limit_error(tr0$error)) {
         stop(paste0(
           "single_call_failed: ", module, " request failed for non-limit reason. ",
@@ -677,59 +508,162 @@ get_edsan <- function(
       }
     }
 
-    tb <- .edsan_time_batch_adaptive(
-      module = module,
-      what = what,
-      query = q,
-      batch_key = batch_key,
-      start_date = window$start,
-      end_date = window$end,
-      periods_prefix = periods_prefix,
-      periods_suffix = periods_suffix,
-      periods_end_inclusive = periods_end_inclusive,
-      periods_overlap_days = as.integer(periods_overlap_days %||% 0L),
-      initial_by = current_by,
-      max_batches = max_time_batches,
-      verbose = verbose,
-      chunk_idx = as.integer(chunk_idx),
-      n_chunks = as.integer(length(id_chunks)),
-      batch_ids_key = batch_ids_key %||% NA_character_,
-      n_in = as.integer(n_in),
-      count_out_fn = function(x) .edsan_count_out_units(module, x, what),
-      return_audit = return_audit
+    query_periods <- .edsan_make_periods(
+      window$start, window$end,
+      prefix = periods_prefix,
+      suffix = periods_suffix,
+      by = periods_by,
+      end_inclusive = periods_end_inclusive,
+      overlap_days = periods_overlap_days
     )
 
-    if (isTRUE(return_audit) && !is.null(tb$audit) && is.data.frame(tb$audit) && nrow(tb$audit) > 0) {
-      audit[[length(audit) + 1]] <- tb$audit
+
+    if (isTRUE(verbose)) {
+      message("Time batching with ", length(query_periods$period), " period(s).")
     }
-
-    if (isTRUE(return_audit)) {
-      audit[[length(audit) + 1]] <- tibble::tibble(
-        module = module,
-        what = what,
-        batch_key = batch_key,
-        batch_ids_key = batch_ids_key %||% NA_character_,
-        chunk_idx = chunk_idx,
-        n_in = n_in,
-        strategy = "time",
-        time_by = tb$by,
-        period = NA_character_,
-        ok = TRUE,
-        error = NA_character_
-      )
-    }
-
-    results[[length(results) + 1]] <- .edsan_combine(module, tb$results, what)
-
-    if (!identical(tb$by, current_by)) {
+    time_errors <- vector("list", length(query_periods$period))
+    raw_batches <- purrr::imap(query_periods$period, function(period, idx) {
       if (isTRUE(verbose)) {
-        message("[plan] downgraded time granularity to '", tb$by, "' for remaining chunks")
+        message("Batch ", idx, "/", length(query_periods$period), " (", period, ")")
       }
-      current_by <- tb$by
+      q <- query
+      q[[batch_key]] <- period
+      tr <- .edsan_call(module, q, what)
+      if (!tr$ok) {
+        time_errors[[idx]] <<- tibble::tibble(
+          period = period,
+          error = paste(tr$error, collapse = " ")
+        )
+        if (isTRUE(verbose)) {
+          message("Batch ", idx, " failed: ", paste(tr$error, collapse = " "))
+        }
+        return(NULL)
+      }
+      tr$value
+    })
+    time_errors <- purrr::compact(time_errors)
+    if (length(time_errors) > 0) {
+      warn_preview <- dplyr::bind_rows(time_errors)
+      warn_msg <- paste0(
+        "Time batching skipped ", length(time_errors), " failed period(s). ",
+        "First error: ", warn_preview$error[[1]]
+      )
+      warning(warn_msg)
     }
+    return(finalize_result(.edsan_combine(module, raw_batches, what)))
   }
 
+  # ---- ID batching path ----
+  # mode == "ids": adaptive split on input size and/or output size
+  # AND semantics across different ID fields: drop redundant higher-level IDs.
+  query <- .edsan_normalize_id_query(query, batch_ids_key)
+  if (is.null(batch_ids_key) || is.null(query[[batch_ids_key]])) {
+    stop("ids mode requires batch_ids_key and query[[batch_ids_key]]")
+  }
+
+  ids_all <- .edsan_split_id_string(query[[batch_ids_key]])
+  if (length(ids_all) == 0) stop("No ids found in query[[batch_ids_key]]")
+
+  initial_chunks <- split(ids_all, ceiling(seq_along(ids_all) / max_in_ids))
+
+  # Accumulators for results and audit log.
+  results <- vector("list", 0)
+  audit <- vector("list", 0)
+
+  .process_chunk <- function(chunk_ids) {
+    n_in <- length(chunk_ids)
+
+    q <- query
+    # IMPORTANT: API requires OR-separated IDs in a single string
+    q[[batch_ids_key]] <- paste(chunk_ids, collapse = " OR ")
+
+    tr <- .edsan_call(module, q, what)
+
+    err_is_limit <- if (!tr$ok) .edsan_is_limit_error(tr$error) else FALSE
+
+    if (!tr$ok) {
+      if (n_in <= min_in_ids) {
+        # Last resort: only if this looks like a LIMIT error, try time-splitting inside this ID chunk.
+        if (isTRUE(fallback_time_on_error) && isTRUE(err_is_limit)) {
+          if (is.null(batch_key)) {
+            batch_key <- switch(module, doceds = "RECDATE", pmsi = "DATENT", biol = "DATEXAM")
+          }
+          win <- try(.edsan_infer_batch_window(module, query, batch_key, start_date, end_date), silent = TRUE)
+          if (!inherits(win, "try-error")) {
+            per <- .edsan_make_periods(win$start, win$end, prefix = periods_prefix, suffix = periods_suffix,
+                                       by = periods_by,end_inclusive = periods_end_inclusive,
+                                       overlap_days = periods_overlap_days
+            )
+            sub_results <- purrr::map(per$period, function(period) {
+              qq <- q
+              qq[[batch_key]] <- period
+              trp <- .edsan_call(module, qq, what)
+              if (!trp$ok) return(NULL)
+              trp$value
+            })
+            sub_combined <- .edsan_combine(module, sub_results, what)
+            # If we got anything, accept it and record audit; otherwise fall through to failure logging.
+            if ((is.data.frame(sub_combined) && nrow(sub_combined) > 0) || (is.list(sub_combined) && length(sub_combined) > 0)) {
+              results[[length(results) + 1]] <<- sub_combined
+              audit[[length(audit) + 1]] <<- tibble::tibble(
+                module = module,
+                batch_ids_key = batch_ids_key,
+                n_in = n_in,
+                ok = TRUE,
+                n_out = output_count_fn(sub_combined),
+                reason = "ok_time_fallback",
+                error = NA_character_
+              )
+              return(invisible(NULL))
+            }
+          }
+        }
+
+        audit[[length(audit) + 1]] <<- tibble::tibble(
+          module = module,
+          batch_ids_key = batch_ids_key,
+          n_in = n_in,
+          ok = FALSE,
+          n_out = NA_integer_,
+          reason = if (err_is_limit) "limit_error" else "backend_error",
+          error = paste(tr$error, collapse = " ")
+        )
+        return(invisible(NULL))
+      }
+      mid <- floor(n_in / 2)
+      .process_chunk(chunk_ids[seq_len(mid)])
+      .process_chunk(chunk_ids[(mid + 1):n_in])
+      return(invisible(NULL))
+    }
+
+    n_out <- output_count_fn(tr$value)
+
+    if (!is.na(n_out) && n_out > max_out_units && n_in > min_in_ids) {
+      mid <- floor(n_in / 2)
+      .process_chunk(chunk_ids[seq_len(mid)])
+      .process_chunk(chunk_ids[(mid + 1):n_in])
+      return(invisible(NULL))
+    }
+
+    results[[length(results) + 1]] <<- tr$value
+    audit[[length(audit) + 1]] <<- tibble::tibble(
+      module = module,
+      batch_ids_key = batch_ids_key,
+      n_in = n_in,
+      ok = TRUE,
+      n_out = n_out,
+      reason = "ok",
+      error = NA_character_
+    )
+
+    invisible(NULL)
+  }
+
+  for (ch in initial_chunks) .process_chunk(ch)
+
   combined <- .edsan_combine(module, results, what)
+
+  combined <- finalize_result(combined)
 
   if (!return_audit) return(combined)
 

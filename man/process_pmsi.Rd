@@ -2,19 +2,28 @@
 % Please edit documentation in R/pmsi.R
 \name{process_pmsi}
 \alias{process_pmsi}
-\title{Process PMSI stays}
+\title{Process PMSI stays into analysis-ready tables}
 \usage{
 process_pmsi(data)
 }
 \arguments{
-\item{data}{List of PMSI API entries.}
+\item{data}{List of PMSI API entries (one list per stay).}
 }
 \value{
 A list with tibbles `main`, `actes`, and `diag`.
 }
 \description{
-Flatten PMSI stay data into three tables: main stays, actes, and diagnoses.
-DATENT and DATSORT are parsed and corresponding HEURE_* columns are derived.
+Flattens PMSI stay payloads and returns three tables:
+\describe{
+  \item{`main`}{one row per stay (stay-level variables)}
+  \item{`actes`}{actes in long format (one row per acte)}
+  \item{`diag`}{diagnoses derived from `DALL` (one row per token)}
+}
+}
+\details{
+`DATENT` and `DATSORT` are parsed to `POSIXct` and corresponding `HEURE_*`
+columns are derived as `hms` times when the raw input included an explicit
+time component.
 }
 \examples{
 example_data <- list(
@@ -37,7 +46,8 @@ example_data <- list(
   )
 )
 pmsi <- process_pmsi(example_data)
-main <- pmsi$main
-actes <- pmsi$actes
-diag <- pmsi$diag
+pmsi$main
+pmsi$actes
+pmsi$diag
+
 }

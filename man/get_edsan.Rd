@@ -13,6 +13,8 @@ get_edsan(
   periods_by = "1 month",
   periods_prefix = "{",
   periods_suffix = "}",
+  periods_end_inclusive = NULL,
+  periods_overlap_days = NULL,
   batch_key = NULL,
   mode = c("auto", "time", "ids"),
   batch_ids_key = NULL,
@@ -22,7 +24,8 @@ get_edsan(
   output_count_fn = NULL,
   return_audit = FALSE,
   batch_on_error_only = TRUE,
-  fallback_time_on_error = TRUE
+  fallback_time_on_error = TRUE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -34,11 +37,11 @@ get_edsan(
 
 \item{start_date, end_date}{Optional Date bounds for time batching.}
 
-\item{periods_by}{Size of each time chunk (passed to `seq`, e.g. "1 month").}
+\item{periods_by}{Size of each time chunk (default to "1 month", which should never fail in practice).}
 
 \item{periods_prefix, periods_suffix}{Strings wrapped around each time window.}
 
-\item{batch_key}{Field used for time batching (defaults by module).}
+\item{batch_key}{Field used for *time* batching (defaults by module ex RECDATE for doceds etc..).}
 
 \item{mode}{`auto`, `time`, or `ids` batching strategy.}
 
@@ -46,13 +49,13 @@ get_edsan(
 
 \item{max_in_ids, min_in_ids}{Limits for input ID chunk sizes.}
 
-\item{max_out_units}{Maximum output units before further splitting.}
+\item{max_out_units}{Maximum output units before further splitting. Usually EDSAN rows or records. throws an "maximum allowed size reached" at 40000 rows.}
 
 \item{output_count_fn}{Function to count output units (defaults by module).}
 
 \item{return_audit}{If `TRUE`, returns a list with `data` and `audit`.}
 
-\item{batch_on_error_only}{If `TRUE`, time batching starts only after a limit error.}
+\item{batch_on_error_only}{If `TRUE`, first try without batching. If it fails due to a limit error then start time batching}
 
 \item{fallback_time_on_error}{If `TRUE`, ID batching can fall back to time batching.}
 }
@@ -61,11 +64,14 @@ A data.frame/tibble, a list of results, or a list with audit metadata.
 }
 \description{
 Wrapper around the EDSAN API that supports automatic time- or ID-based
-batching to stay within API limits. For time batching, provide explicit
-bounds in `query` or via `start_date`/`end_date`. For ID batching, provide
-an ID field containing multiple IDs (vector or OR-separated string).
+batching to stay within API limits.
 }
 \details{
+For time batching, provide explicit bounds in `query` or via `start_date`/`end_date`.
+
+For ID batching, provide an ID field containing multiple IDs (vector or OR-separated string).
+
+
 \strong{Overview}
 \itemize{
 \item \code{get_edsan()} wraps the EDSAN API and avoids backend limits by
