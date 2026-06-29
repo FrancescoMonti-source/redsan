@@ -14,6 +14,7 @@
 #' list(a = 1) %||% list(a = 2)
 #'
 #' @keywords internal
+#' @noRd
 `%||%` <- function(x, y) if (!is.null(x)) x else y
 
 
@@ -44,6 +45,7 @@
 #'
 #' @importFrom stringr str_detect str_to_lower
 #' @keywords internal
+#' @noRd
 .edsan_is_limit_error <- function(err) {
   if (is.null(err)) return(FALSE)
   err <- paste(err, collapse = " ")
@@ -71,6 +73,7 @@
 #'
 #' @importFrom stringr str_detect
 #' @keywords internal
+#' @noRd
 .pmsi_has_time <- function(x) {
   x <- as.character(x %||% "")
   stringr::str_detect(x, "\\d{2}:\\d{2}")
@@ -105,6 +108,7 @@
 #'
 #' @importFrom lubridate parse_date_time
 #' @keywords internal
+#' @noRd
 .pmsi_parse_datetime <- function(x, tz = "Europe/Paris") {
   # Robust parsing for both date-only and datetime strings.
   # Returns POSIXct (NA where parsing fails).
@@ -146,6 +150,7 @@
 #'
 #' @importFrom hms as_hms
 #' @keywords internal
+#' @noRd
 .pmsi_time_hms <- function(dt, raw) {
   # Return hms time if raw had an explicit time component, else NA.
   out <- rep(NA_character_, length(dt))

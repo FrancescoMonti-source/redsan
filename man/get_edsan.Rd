@@ -10,183 +10,105 @@ get_edsan(
   query = list(),
   start_date = NULL,
   end_date = NULL,
-  periods_by = "1 month",
+  periods_by = "6 months",
   periods_prefix = "{",
   periods_suffix = "}",
-  periods_end_inclusive = NULL,
-  periods_overlap_days = NULL,
+  periods_end_inclusive = TRUE,
+  periods_overlap_days = 0L,
   batch_key = NULL,
-  mode = c("auto", "time", "ids"),
   batch_ids_key = NULL,
   max_in_ids = 3500,
-  min_in_ids = 50,
-  max_out_units = 40000,
-  output_count_fn = NULL,
+  max_time_batches = 1000,
   return_audit = FALSE,
-  batch_on_error_only = TRUE,
-  fallback_time_on_error = TRUE,
-  verbose = FALSE
+  batch_on_error_only = FALSE,
+  verbose = FALSE,
+  fields = NULL
 )
 }
 \arguments{
-\item{module}{One of `doceds`, `pmsi`, or `biol`.}
+\item{module}{EDSAN module to query: \code{"doceds"}, \code{"pmsi"}, or \code{"biol"}.}
 
-\item{what}{One of `data` or `idtriplets`.}
+\item{what}{Endpoint shape to request. \code{"data"} returns module payloads;
+\code{"idtriplets"} returns native identifier triplets unless extra \code{fields}
+require the data endpoint.}
 
-\item{query}{Named list of API query parameters.}
+\item{query}{Named list of EDSAN API query parameters.}
 
-\item{start_date, end_date}{Optional Date bounds for time batching.}
+\item{start_date, end_date}{Optional explicit bounds for time batching. When
+omitted, bounds are inferred from the module-compatible date key in \code{query}.}
 
-\item{periods_by}{Size of each time chunk (default to "1 month", which should never fail in practice).}
+\item{periods_by}{Initial time chunk size passed to \code{seq.Date()}, for example
+\code{"6 months"}, \code{"1 month"}, or \code{"1 week"}.}
 
-\item{periods_prefix, periods_suffix}{Strings wrapped around each time window.}
+\item{periods_prefix, periods_suffix}{Strings wrapped around generated API date
+ranges. Defaults produce \code{"{YYYY-MM-DD,YYYY-MM-DD}"}.}
 
-\item{batch_key}{Field used for *time* batching (defaults by module ex RECDATE for doceds etc..).}
+\item{periods_end_inclusive}{If \code{TRUE}, adjacent generated periods do not
+share an endpoint day.}
 
-\item{mode}{`auto`, `time`, or `ids` batching strategy.}
+\item{periods_overlap_days}{Non-negative number of days added to each period
+end. Use only when the backend query needs overlapping windows.}
 
-\item{batch_ids_key}{Field used for ID batching.}
+\item{batch_key}{Date key used for time batching. Defaults by module:
+\code{RECDATE} for \code{doceds}, \code{DATENT} for \code{pmsi}, and \code{DATEXAM} for \code{biol}.}
 
-\item{max_in_ids, min_in_ids}{Limits for input ID chunk sizes.}
+\item{batch_ids_key}{Identifier key used for ID batching. If \code{NULL}, one of
+\code{ELTID}, \code{EVTID}, or \code{PATID} is selected from \code{query} when present.}
 
-\item{max_out_units}{Maximum output units before further splitting. Usually EDSAN rows or records. throws an "maximum allowed size reached" at 40000 rows.}
+\item{max_in_ids}{Maximum number of input identifiers per ID chunk.}
 
-\item{output_count_fn}{Function to count output units (defaults by module).}
+\item{max_time_batches}{Maximum number of generated time batches at one
+granularity before stopping.}
 
-\item{return_audit}{If `TRUE`, returns a list with `data` and `audit`.}
+\item{return_audit}{If \code{TRUE}, return \code{list(data = ..., audit = ...)}.}
 
-\item{batch_on_error_only}{If `TRUE`, first try without batching. If it fails due to a limit error then start time batching}
+\item{batch_on_error_only}{If \code{TRUE}, try a single call first and fall back to
+time batching only for limit-style backend errors.}
 
-\item{fallback_time_on_error}{If `TRUE`, ID batching can fall back to time batching.}
+\item{verbose}{If \code{TRUE}, emit a concise retrieval plan and per-batch status.}
+
+\item{fields}{Optional character vector or comma-separated string of fields to
+request from the backend.}
 }
 \value{
-A data.frame/tibble, a list of results, or a list with audit metadata.
+A data frame/tibble, a module-specific list of results, or when
+\code{return_audit = TRUE}, a list with \code{data} and \code{audit}.
 }
 \description{
-Wrapper around the EDSAN API that supports automatic time- or ID-based
-batching to stay within API limits.
+Calls the EDSAN API for one module and splits large requests by source time
+and, when present, by native identifiers. Module date keys and default
+batching keys are read from \code{\link[=edsan_sources]{edsan_sources()}}, so validation follows the same
+source contracts documented by the package.
 }
 \details{
-For time batching, provide explicit bounds in `query` or via `start_date`/`end_date`.
-
-For ID batching, provide an ID field containing multiple IDs (vector or OR-separated string).
-
-
-\strong{Overview}
+Supported module date keys are:
 \itemize{
-\item \code{get_edsan()} wraps the EDSAN API and avoids backend limits by
-batching requests and combining the results.
-\item Batching can be time-based or ID-based depending on your query and
-\code{mode}.
+\item \code{doceds}: \code{RECDATE}
+\item \code{pmsi}: \code{DATENT} and/or \code{DATSORT}
+\item \code{biol}: \code{DATEXAM}
 }
 
-\strong{Mode decision (auto)}
-\enumerate{
-\item If the query contains a list of IDs, \code{auto} selects \code{ids}.
-\item Otherwise it selects \code{time}.
-}
-
-\strong{Time batching}
-\itemize{
-\item Tries a single call first.
-\item If a limit error occurs (and \code{batch_on_error_only = TRUE}),
-splits the time window into \code{periods_by} chunks.
-}
-
-\strong{ID batching}
-\itemize{
-\item Splits the input ID list into chunks of size \code{max_in_ids}.
-\item If a chunk still yields too much output, it is split again using
-\code{max_out_units}.
-\item Optional fallback to time batching can occur on limit errors.
-}
-
-\strong{Returned shapes}
-\itemize{
-\item \code{what = "data"} returns module-specific data (data.frame or list).
-\item \code{what = "idtriplets"} returns a data.frame with \code{PATID},
-\code{EVTID}, \code{ELTID}.
-}
-
-\strong{Audit output}
-\itemize{
-\item With \code{return_audit = TRUE}, the result is a list containing
-\code{data} and an \code{audit} table of per-batch inputs/outputs/errors.
-}
-
-\strong{Common pitfalls}
-\itemize{
-\item Missing time bounds for time batching (\code{batch_key} not present).
-\item Very large time windows that lead to slow or many batch calls.
-\item ID lists with mixed separators; use vectors or \code{" OR "} strings.
-}
-
-\strong{Helper roles}
-\itemize{
-\item \code{.edsan_extract_bounds}: Parses API-style date bounds from the query.
-\item \code{.edsan_infer_batch_window}: Determines a time window for batching.
-\item \code{.edsan_split_id_string}: Normalizes ID vectors or OR-separated strings.
-\item \code{.edsan_count_out_units}: Estimates output size to trigger splits.
-\item \code{.edsan_combine}: Merges batch outputs into a single result.
-}
-
-\strong{Glossary}
-\itemize{
-\item \code{batch_key}: Query field used for time batching, e.g. \code{DATENT} or \code{DATEXAM}.
-\item \code{bounds}: Date range like \code{\{YYYY-MM-DD,YYYY-MM-DD\}} or comparators \code{>YYYY-MM-DD}.
-\item \code{limit error}: Backend error indicating too many results (quota/max rows).
-\item \code{output units}: Heuristic count of returned rows or records used to trigger splitting.
-\item \code{ids mode}: Batching strategy that splits the input ID list into chunks.
-\item \code{time mode}: Batching strategy that splits a time range into periods.
-}
-
-\strong{Pseudo-flow (simplified)}
-\preformatted{
-get_edsan()
-  -> decide mode (auto | time | ids)
-  -> if time:
-       try single call
-       on limit error -> split into time periods -> combine
-  -> if ids:
-       split IDs into chunks
-       if chunk too large -> split further
-       optional time fallback on limit error
-  -> return combined result (and audit if requested)
-}
+\code{redsan} handles request batching and raw source retrieval. Normalize raw
+PMSI and biology results with \code{\link[=process_pmsi]{process_pmsi()}} and \code{\link[=process_biol]{process_biol()}} before
+building downstream study evidence.
 }
 \examples{
 \dontrun{
-# Quick start: time batching
-res <- get_edsan(
+raw_pmsi <- get_edsan(
   module = "pmsi",
   what = "data",
-  query = list(DATENT = "{2024-01-01,2024-01-31}"),
-  periods_by = "1 week"
+  query = list(DATENT = c("2024-01-01", "2024-01-31")),
+  fields = c("PATID", "EVTID", "ELTID", "DATENT", "DATSORT", "DALL")
 )
+pmsi <- process_pmsi(raw_pmsi)
 
-# Quick start: ID batching with audit output
-out <- get_edsan(
+ids <- get_edsan(
   module = "biol",
-  what = "data",
-  query = list(PATID = "1 OR 2 OR 3"),
-  mode = "ids",
+  what = "idtriplets",
+  query = list(DATEXAM = "{2024-01-01,2024-01-31}"),
   return_audit = TRUE
 )
-out$audit
-
-# Doceds with explicit RECDATE bounds
-doc <- get_edsan(
-  module = "doceds",
-  what = "data",
-  query = list(RECDATE = "{2024-01-01,2024-01-31}")
-)
-
-# Minimal ids-mode with a vector of IDs
-ids_out <- get_edsan(
-  module = "pmsi",
-  what = "idtriplets",
-  query = list(PATID = c("10", "11", "12")),
-  mode = "ids"
-)
+ids$audit
 }
+
 }

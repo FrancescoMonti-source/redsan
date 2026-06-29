@@ -4,3 +4,6 @@
 .Ruserdata
 *.pper
 R/moza_price_history_append.csv
+*.Rcheck/
+..Rcheck/
+*.tar.gz

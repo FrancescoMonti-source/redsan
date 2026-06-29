@@ -1,19 +1,23 @@
 Package: redsan
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Retrieve and Normalize EDSAN Warehouse Data
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
+      given = "Francesco",
+      family = "Monti-source",
+      email = "58150610+FrancescoMonti-source@users.noreply.github.com",
       role = c("aut", "cre")
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
-License: What license is it under?
+Author: Francesco Monti-source [aut, cre]
+Maintainer: Francesco Monti-source <58150610+FrancescoMonti-source@users.noreply.github.com>
+Description: Retrieves and normalizes EDSAN health data warehouse modules for
+    downstream analysis. The package records module-level source contracts,
+    batches live API calls, and prepares PMSI and biology payloads into stable
+    analysis tables while preserving native identifiers.
+License: file LICENSE
 Encoding: UTF-8
-LazyData: true
 Imports:
     dplyr,
     hms,
@@ -24,4 +28,8 @@ Imports:
     stringr,
     tibble,
     tidyr
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3

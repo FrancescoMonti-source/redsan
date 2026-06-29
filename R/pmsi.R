@@ -39,6 +39,7 @@
 #' @importFrom tibble as_tibble
 #' @importFrom dplyr bind_rows
 #' @keywords internal
+#' @noRd
 .pmsi_prepare <- function(data) {
   clean_data <- lapply(data, function(x) {
     flat <- unlist(x, recursive = TRUE)
@@ -98,6 +99,7 @@
 #'
 #' @importFrom dplyr select any_of distinct
 #' @keywords internal
+#' @noRd
 .pmsi_main <- function(data) {
   cols <- c(
     "PATID", "EVTID", "ELTID",
@@ -155,6 +157,7 @@
 #' @importFrom dplyr select any_of contains distinct
 #' @importFrom tidyr pivot_longer
 #' @keywords internal
+#' @noRd
 .pmsi_actes <- function(data) {
   # assume DATENT/DATSORT already POSIXct and HEURE_* already set by pmsi_prepare
   data %>%
@@ -214,6 +217,7 @@
 #' @importFrom tidyr separate_rows
 #' @importFrom stringr str_detect str_extract str_sub
 #' @keywords internal
+#' @noRd
 .pmsi_diag <- function(data) {
   data %>%
     dplyr::select(dplyr::ends_with("ID"), DATENT, HEURE_DATENT, DATSORT, HEURE_DATSORT, DALL) %>%

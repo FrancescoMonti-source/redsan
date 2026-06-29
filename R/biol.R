@@ -39,6 +39,7 @@
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr bind_cols
 #' @keywords internal
+#' @noRd
 .biol_prepare <- function(data) {
   # data: list of lab exams; each element has metadata + RESULTATS (data.frame)
   purrr::imap(data, function(entry, biol_id) {
@@ -104,6 +105,7 @@
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr bind_rows
 #' @keywords internal
+#' @noRd
 .biol_results <- function(data) {
   # Accept either raw list (API chunks) or already prepared list of tibbles
   if (is.list(data) && !is.data.frame(data)) {

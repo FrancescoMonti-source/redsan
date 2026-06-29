@@ -10,19 +10,19 @@ process_pmsi(data)
 \item{data}{List of PMSI API entries (one list per stay).}
 }
 \value{
-A list with tibbles `main`, `actes`, and `diag`.
+A list with tibbles \code{main}, \code{actes}, and \code{diag}.
 }
 \description{
 Flattens PMSI stay payloads and returns three tables:
 \describe{
-  \item{`main`}{one row per stay (stay-level variables)}
-  \item{`actes`}{actes in long format (one row per acte)}
-  \item{`diag`}{diagnoses derived from `DALL` (one row per token)}
+\item{\code{main}}{one row per stay (stay-level variables)}
+\item{\code{actes}}{actes in long format (one row per acte)}
+\item{\code{diag}}{diagnoses derived from \code{DALL} (one row per token)}
 }
 }
 \details{
-`DATENT` and `DATSORT` are parsed to `POSIXct` and corresponding `HEURE_*`
-columns are derived as `hms` times when the raw input included an explicit
+\code{DATENT} and \code{DATSORT} are parsed to \code{POSIXct} and corresponding \verb{HEURE_*}
+columns are derived as \code{hms} times when the raw input included an explicit
 time component.
 }
 \examples{

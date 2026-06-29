@@ -1,2 +1,11 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^.*\.Rcheck$
+^.*\.tar\.gz$
+^\.Rhistory$
+^\.RData$
+^\.Ruserdata$
+^\.git$
+^\.gitignore$
+^\.gitattributes$
+^\.agents$

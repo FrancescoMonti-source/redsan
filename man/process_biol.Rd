@@ -7,12 +7,24 @@
 process_biol(data)
 }
 \arguments{
-\item{data}{List of BIOL API entries or a data.frame/tibble already in result form.}
+\item{data}{List of BIOL API entries (raw exams with \code{RESULTATS}) or a
+data.frame/tibble already in result form.}
 }
 \value{
-A tibble with metadata columns and lab results.
+A tibble with exam metadata columns and lab result columns. When
+available, adds \code{HEURE_DATEXAM}.
 }
 \description{
-Flatten and parse BIOL lab results from the EDSAN API. DATEXAM is parsed
-into POSIXct and HEURE_DATEXAM is derived only when a time is present.
+Flattens BIOL lab results from the EDSaN API into a single tibble.
+If \code{DATEXAM} is present, it is parsed into \code{POSIXct} and \code{HEURE_DATEXAM}
+(\code{hms}) is derived only when an explicit time is present in the raw string.
+}
+\examples{
+raw <- list(list(
+  PATID="P1", EVTID="E1", ELTID="L1",
+  DATEXAM="2020-01-01 08:30",
+  RESULTATS=data.frame(ANALYTE="Hb", VALEUR="13.2")
+))
+process_biol(raw)
+
 }

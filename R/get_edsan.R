@@ -380,6 +380,25 @@
   parts
 }
 
+.edsan_backend_function <- function(use_data_endpoint) {
+  fn_name <- if (use_data_endpoint) {
+    "d2im_wsc.get_edsan_data_as_dataframe"
+  } else {
+    "d2im_wsc.get_edsan_idtriplets_as_dataframe"
+  }
+
+  tryCatch(
+    getExportedValue("d2imr", fn_name),
+    error = function(e) {
+      stop(
+        "Package 'd2imr' is required for live EDSAN retrieval. ",
+        "Install it in the EDSAN environment before calling get_edsan().",
+        call. = FALSE
+      )
+    }
+  )
+}
+
 .edsan_call <- function(module, query, what = c("data", "idtriplets"), fields = NULL, ...) {
   what <- match.arg(what)
 
@@ -390,10 +409,9 @@
   use_data_endpoint <- identical(what, "data") ||
     (identical(what, "idtriplets") && length(extra_fields) > 0)
 
-  fn <- if (use_data_endpoint) {
-    d2imr::d2im_wsc.get_edsan_data_as_dataframe
-  } else {
-    d2imr::d2im_wsc.get_edsan_idtriplets_as_dataframe
+  fn <- try(.edsan_backend_function(use_data_endpoint), silent = TRUE)
+  if (inherits(fn, "try-error")) {
+    return(list(ok = FALSE, value = NULL, error = as.character(fn)))
   }
 
   qry <- jsonlite::toJSON(query, auto_unbox = TRUE)
@@ -560,7 +578,72 @@
 }
 
 #' Retrieve EDSAN data with adaptive batching
-#' ... (roxygen omitted here for brevity in canvas; keep your original block)
+#'
+#' Calls the EDSAN API for one module and splits large requests by source time
+#' and, when present, by native identifiers. Module date keys and default
+#' batching keys are read from [edsan_sources()], so validation follows the same
+#' source contracts documented by the package.
+#'
+#' @param module EDSAN module to query: `"doceds"`, `"pmsi"`, or `"biol"`.
+#' @param what Endpoint shape to request. `"data"` returns module payloads;
+#'   `"idtriplets"` returns native identifier triplets unless extra `fields`
+#'   require the data endpoint.
+#' @param query Named list of EDSAN API query parameters.
+#' @param start_date,end_date Optional explicit bounds for time batching. When
+#'   omitted, bounds are inferred from the module-compatible date key in `query`.
+#' @param periods_by Initial time chunk size passed to `seq.Date()`, for example
+#'   `"6 months"`, `"1 month"`, or `"1 week"`.
+#' @param periods_prefix,periods_suffix Strings wrapped around generated API date
+#'   ranges. Defaults produce `"{YYYY-MM-DD,YYYY-MM-DD}"`.
+#' @param periods_end_inclusive If `TRUE`, adjacent generated periods do not
+#'   share an endpoint day.
+#' @param periods_overlap_days Non-negative number of days added to each period
+#'   end. Use only when the backend query needs overlapping windows.
+#' @param batch_key Date key used for time batching. Defaults by module:
+#'   `RECDATE` for `doceds`, `DATENT` for `pmsi`, and `DATEXAM` for `biol`.
+#' @param batch_ids_key Identifier key used for ID batching. If `NULL`, one of
+#'   `ELTID`, `EVTID`, or `PATID` is selected from `query` when present.
+#' @param max_in_ids Maximum number of input identifiers per ID chunk.
+#' @param max_time_batches Maximum number of generated time batches at one
+#'   granularity before stopping.
+#' @param return_audit If `TRUE`, return `list(data = ..., audit = ...)`.
+#' @param batch_on_error_only If `TRUE`, try a single call first and fall back to
+#'   time batching only for limit-style backend errors.
+#' @param verbose If `TRUE`, emit a concise retrieval plan and per-batch status.
+#' @param fields Optional character vector or comma-separated string of fields to
+#'   request from the backend.
+#'
+#' @return A data frame/tibble, a module-specific list of results, or when
+#'   `return_audit = TRUE`, a list with `data` and `audit`.
+#'
+#' @details
+#' Supported module date keys are:
+#' - `doceds`: `RECDATE`
+#' - `pmsi`: `DATENT` and/or `DATSORT`
+#' - `biol`: `DATEXAM`
+#'
+#' `redsan` handles request batching and raw source retrieval. Normalize raw
+#' PMSI and biology results with [process_pmsi()] and [process_biol()] before
+#' building downstream study evidence.
+#'
+#' @examples
+#' \dontrun{
+#' raw_pmsi <- get_edsan(
+#'   module = "pmsi",
+#'   what = "data",
+#'   query = list(DATENT = c("2024-01-01", "2024-01-31")),
+#'   fields = c("PATID", "EVTID", "ELTID", "DATENT", "DATSORT", "DALL")
+#' )
+#' pmsi <- process_pmsi(raw_pmsi)
+#'
+#' ids <- get_edsan(
+#'   module = "biol",
+#'   what = "idtriplets",
+#'   query = list(DATEXAM = "{2024-01-01,2024-01-31}"),
+#'   return_audit = TRUE
+#' )
+#' ids$audit
+#' }
 #'
 #' @export
 get_edsan <- function(
@@ -583,41 +666,27 @@ get_edsan <- function(
     verbose = FALSE,
     fields = NULL
 ) {
-  module <- match.arg(module)
+  module <- match.arg(module, .edsan_supported_modules())
   what <- match.arg(what)
-  date_keys <- c("RECDATE", "DATENT", "DATSORT", "DATEXAM")
+  date_keys <- .edsan_all_date_keys()
   present_dates <- intersect(names(query), date_keys)
   query <- .edsan_normalize_date_query(query, present_dates, periods_prefix, periods_suffix)
 
-  date_keys <- c("RECDATE", "DATENT", "DATSORT", "DATEXAM")
   present_dates <- intersect(names(query), date_keys)
-
-  if (module == "doceds") {
-    bad <- intersect(present_dates, c("DATENT", "DATSORT", "DATEXAM"))
-    if (length(bad) > 0) {
-      stop("doceds module only supports RECDATE as date key; unsupported key(s): ",
-           paste(bad, collapse = ", "), ". Please use RECDATE.")
-    }
-  }
-
-  if (module == "pmsi") {
-    bad <- intersect(present_dates, c("RECDATE", "DATEXAM"))
-    if (length(bad) > 0) {
-      stop("pmsi module only supports DATENT and DATSORT as date keys; unsupported key(s): ",
-           paste(bad, collapse = ", "), ". Please use DATENT or DATSORT.")
-    }
-  }
-
-  if (module == "biol") {
-    bad <- intersect(present_dates, c("RECDATE", "DATENT", "DATSORT"))
-    if (length(bad) > 0) {
-      stop("biol module only supports DATEXAM as date key; unsupported key(s): ",
-           paste(bad, collapse = ", "), ". Please use DATEXAM.")
-    }
-  }
+  .edsan_validate_date_keys(module, present_dates)
 
   if (is.null(batch_key)) {
-    batch_key <- switch(module, doceds = "RECDATE", pmsi = "DATENT", biol = "DATEXAM")
+    batch_key <- .edsan_default_batch_key(module)
+  } else if (!batch_key %in% .edsan_module_date_keys(module)) {
+    stop(
+      module,
+      " module cannot batch on ",
+      batch_key,
+      "; supported date batch key(s): ",
+      paste(.edsan_module_date_keys(module), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
   }
 
   if (is.null(batch_ids_key)) {
