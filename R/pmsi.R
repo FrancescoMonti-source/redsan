@@ -41,6 +41,13 @@
 #' @keywords internal
 #' @noRd
 .pmsi_prepare <- function(data) {
+  if (is.null(data) || length(data) == 0) {
+    return(tibble::tibble(
+      HEURE_DATENT = hms::as_hms(character()),
+      HEURE_DATSORT = hms::as_hms(character())
+    ))
+  }
+
   clean_data <- lapply(data, function(x) {
     flat <- unlist(x, recursive = TRUE)
     flat <- lapply(flat, function(v) {
@@ -110,7 +117,86 @@
     "PMSISTATUT", "SEJUM", "SEJUF",
     "GHM", "SEVERITE", "SRC"
   )
+  if (nrow(data) == 0) {
+    return(tibble::tibble(
+      PATID = character(),
+      EVTID = character(),
+      ELTID = character(),
+      DATENT = as.POSIXct(character()),
+      HEURE_DATENT = hms::as_hms(character()),
+      DATSORT = as.POSIXct(character()),
+      HEURE_DATSORT = hms::as_hms(character()),
+      PATBD = character(),
+      PATAGE = character(),
+      PATSEX = character(),
+      SEJDUR = character(),
+      MODEENT = character(),
+      MODESORT = character(),
+      PMSISTATUT = character(),
+      SEJUM = character(),
+      SEJUF = character(),
+      GHM = character(),
+      SEVERITE = character(),
+      SRC = character()
+    ))
+  }
+
   data %>% dplyr::select(dplyr::any_of(cols)) %>% dplyr::distinct()
+}
+
+.pmsi_missing_datetime <- function(x) {
+  tz <- attr(x, "tzone") %||% "Europe/Paris"
+  as.POSIXct(NA_real_, origin = "1970-01-01", tz = tz)
+}
+
+.pmsi_as_datetime <- function(x) {
+  if (inherits(x, "POSIXt")) return(as.POSIXct(x))
+  .pmsi_parse_datetime(x)
+}
+
+.pmsi_min_datetime <- function(x) {
+  x <- .pmsi_as_datetime(x)
+  if (length(x) == 0 || all(is.na(x))) return(.pmsi_missing_datetime(x))
+  min(x, na.rm = TRUE)
+}
+
+.pmsi_max_datetime <- function(x) {
+  x <- .pmsi_as_datetime(x)
+  if (length(x) == 0 || all(is.na(x))) return(.pmsi_missing_datetime(x))
+  max(x, na.rm = TRUE)
+}
+
+.pmsi_event_dates <- function(main) {
+  if (!"EVTID" %in% names(main)) {
+    return(tibble::tibble(
+      EVTID = character(),
+      DATENT = as.POSIXct(character()),
+      DATSORT = as.POSIXct(character())
+    ))
+  }
+
+  if (!"DATENT" %in% names(main)) {
+    main$DATENT <- .pmsi_missing_datetime(main$EVTID)
+  }
+  if (!"DATSORT" %in% names(main)) {
+    main$DATSORT <- .pmsi_missing_datetime(main$EVTID)
+  }
+
+  main %>%
+    dplyr::group_by(EVTID) %>%
+    dplyr::summarise(
+      DATENT = .pmsi_min_datetime(DATENT),
+      DATSORT = .pmsi_max_datetime(DATSORT),
+      .groups = "drop"
+    )
+}
+
+.pmsi_attach_event_dates <- function(data, event_dates) {
+  if (!"EVTID" %in% names(data)) return(data)
+
+  data %>%
+    dplyr::select(-dplyr::any_of(c("DATENT", "DATSORT"))) %>%
+    dplyr::left_join(event_dates, by = "EVTID")
 }
 
 
@@ -160,6 +246,24 @@
 #' @noRd
 .pmsi_actes <- function(data) {
   # assume DATENT/DATSORT already POSIXct and HEURE_* already set by pmsi_prepare
+  acte_cols <- names(data)[grepl("ACTE|UFPRO|UFDEM|NOMENCLATURE", names(data))]
+  if (length(acte_cols) == 0) {
+    return(tibble::tibble(
+      PATID = character(),
+      EVTID = character(),
+      ELTID = character(),
+      DATENT = as.POSIXct(character()),
+      HEURE_DATENT = hms::as_hms(character()),
+      DATSORT = as.POSIXct(character()),
+      HEURE_DATSORT = hms::as_hms(character()),
+      CODEACTE = character(),
+      DATEACTE = character(),
+      UFPRO = character(),
+      UFDEM = character(),
+      NOMENCLATURE = character()
+    ))
+  }
+
   data %>%
     dplyr::select(dplyr::any_of(c(
       "PATID", "EVTID", "ELTID", "PATBD", "PATAGE", "PATSEX",
@@ -219,6 +323,20 @@
 #' @keywords internal
 #' @noRd
 .pmsi_diag <- function(data) {
+  if (!"DALL" %in% names(data)) {
+    return(tibble::tibble(
+      PATID = character(),
+      EVTID = character(),
+      ELTID = character(),
+      DATENT = as.POSIXct(character()),
+      HEURE_DATENT = hms::as_hms(character()),
+      DATSORT = as.POSIXct(character()),
+      HEURE_DATSORT = hms::as_hms(character()),
+      diag = character(),
+      type_diag = character()
+    ))
+  }
+
   data %>%
     dplyr::select(dplyr::ends_with("ID"), DATENT, HEURE_DATENT, DATSORT, HEURE_DATSORT, DALL) %>%
     tidyr::separate_rows(DALL, sep = " ") %>%
@@ -242,7 +360,8 @@
 #'
 #' `DATENT` and `DATSORT` are parsed to `POSIXct` and corresponding `HEURE_*`
 #' columns are derived as `hms` times when the raw input included an explicit
-#' time component.
+#' time component. `actes` and `diag` receive event-level stay dates computed
+#' from `main`: minimum `DATENT` and maximum `DATSORT` per `EVTID`.
 #'
 #' @param data List of PMSI API entries (one list per stay).
 #'
@@ -276,9 +395,14 @@
 #' @export
 process_pmsi <- function(data) {
   cleaned <- .pmsi_prepare(data)
+  main <- .pmsi_main(cleaned)
+  event_dates <- .pmsi_event_dates(main)
+  actes <- .pmsi_attach_event_dates(.pmsi_actes(cleaned), event_dates)
+  diag <- .pmsi_attach_event_dates(.pmsi_diag(cleaned), event_dates)
+
   list(
-    main  = .pmsi_main(cleaned),
-    actes = .pmsi_actes(cleaned),
-    diag  = .pmsi_diag(cleaned)
+    main  = main,
+    actes = actes,
+    diag  = diag
   )
 }

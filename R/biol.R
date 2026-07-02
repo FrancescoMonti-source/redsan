@@ -42,23 +42,29 @@
 #' @noRd
 .biol_prepare <- function(data) {
   # data: list of lab exams; each element has metadata + RESULTATS (data.frame)
+  get_value <- function(entry, name) {
+    value <- entry[[name]]
+    if (is.null(value) || length(value) == 0) return(NA_character_)
+    as.character(value)[[1]]
+  }
+
   purrr::imap(data, function(entry, biol_id) {
     if (is.null(entry) || !is.list(entry)) return(NULL)
     results <- entry$RESULTATS
     if (is.null(results) || (is.data.frame(results) && nrow(results) == 0)) return(NULL)
 
     meta <- tibble::tibble(
-      PATID = entry$PATID,
-      EVTID = entry$EVTID,
-      ELTID = entry$ELTID,
+      PATID = get_value(entry, "PATID"),
+      EVTID = get_value(entry, "EVTID"),
+      ELTID = get_value(entry, "ELTID"),
       BIOL_ID = biol_id,
-      DATEXAM = entry$DATEXAM,
-      SEJUM = entry$SEJUM,
-      SEJUF = entry$SEJUF,
-      PATBD = entry$PATBD,
-      PATAGE = entry$PATAGE,
-      PATSEX = entry$PATSEX,
-      CSTE_LABO = entry$CSTE_LABO
+      DATEXAM = get_value(entry, "DATEXAM"),
+      SEJUM = get_value(entry, "SEJUM"),
+      SEJUF = get_value(entry, "SEJUF"),
+      PATBD = get_value(entry, "PATBD"),
+      PATAGE = get_value(entry, "PATAGE"),
+      PATSEX = get_value(entry, "PATSEX"),
+      CSTE_LABO = get_value(entry, "CSTE_LABO")
     )
 
     # Ensure results is a tibble

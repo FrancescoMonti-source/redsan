@@ -29,6 +29,9 @@ Current modules:
 
 ## Basic workflow
 
+Live retrieval through `get_edsan()` requires the EDSAN client package `d2imr`
+to be installed in the calling environment.
+
 ```r
 raw_pmsi <- get_edsan(
   module = "pmsi",

@@ -91,6 +91,9 @@ Supported module date keys are:
 \code{redsan} handles request batching and raw source retrieval. Normalize raw
 PMSI and biology results with \code{\link[=process_pmsi]{process_pmsi()}} and \code{\link[=process_biol]{process_biol()}} before
 building downstream study evidence.
+
+Live retrieval requires the EDSAN client package \code{d2imr} to be installed in
+the calling environment.
 }
 \examples{
 \dontrun{

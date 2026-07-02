@@ -626,6 +626,9 @@
 #' PMSI and biology results with [process_pmsi()] and [process_biol()] before
 #' building downstream study evidence.
 #'
+#' Live retrieval requires the EDSAN client package `d2imr` to be installed in
+#' the calling environment.
+#'
 #' @examples
 #' \dontrun{
 #' raw_pmsi <- get_edsan(
@@ -756,7 +759,7 @@ get_edsan <- function(
                 " | no time bounds found for batch_key=", batch_key,
                 " -> single call")
       }
-      tr <- .edsan_call(module, q, what,fields = fields)
+      tr <- .edsan_call(module, q, what, fields = fields)
 
       if (isTRUE(return_audit)) {
         audit[[length(audit) + 1]] <- tibble::tibble(
