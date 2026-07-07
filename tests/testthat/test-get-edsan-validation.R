@@ -30,6 +30,43 @@ test_that("field parsing normalizes vectors and comma-separated strings", {
   )
 })
 
+test_that("data payloads are normalized by module unless the escape is used", {
+  # Rationale: retrieval/normalization contract. A what="data" call chains the
+  # matching processor by default (process=TRUE); process=FALSE, idtriplets, and
+  # doceds (no processor) return the payload unchanged.
+  raw_pmsi <- list(list(
+    PATID = "P1", EVTID = "E1", ELTID = "L1",
+    DATENT = "2024-01-01 08:30", DATSORT = "2024-01-03",
+    PATSEX = "M", DALL = "01:A41 02:I10"
+  ))
+
+  # default TRUE + what="data" + pmsi -> normalized tables
+  out <- redsan:::.edsan_maybe_process(raw_pmsi, "pmsi", "data", TRUE)
+  expect_named(out, c("main", "actes", "diag"))
+  expect_equal(out$diag$diag, c("A41", "I10"))
+  expect_equal(out$diag$PATSEX, c("M", "M"))
+
+  # escape hatch: process=FALSE returns the raw list unchanged
+  expect_identical(
+    redsan:::.edsan_maybe_process(raw_pmsi, "pmsi", "data", FALSE),
+    raw_pmsi
+  )
+
+  # idtriplets has nothing to normalize -> passthrough even with process=TRUE
+  trip <- tibble::tibble(ELTID = "L1", EVTID = "E1", PATID = "P1")
+  expect_identical(
+    redsan:::.edsan_maybe_process(trip, "pmsi", "idtriplets", TRUE),
+    trip
+  )
+
+  # doceds data is already flat (no processor) -> passthrough
+  doc <- tibble::tibble(ELTID = "L1", RECDATE = "2024-01-01", RECTYPE = "CR")
+  expect_identical(
+    redsan:::.edsan_maybe_process(doc, "doceds", "data", TRUE),
+    doc
+  )
+})
+
 test_that("missing live backend is reported as a retrieval error", {
   # Rationale: retrieval integration contract. Local checks often lack d2imr;
   # the call helper should return an explicit backend error shape.

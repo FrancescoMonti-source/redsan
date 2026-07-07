@@ -22,7 +22,8 @@ get_edsan(
   return_audit = FALSE,
   batch_on_error_only = FALSE,
   verbose = FALSE,
-  fields = NULL
+  fields = NULL,
+  process = TRUE
 )
 }
 \arguments{
@@ -69,10 +70,21 @@ time batching only for limit-style backend errors.}
 
 \item{fields}{Optional character vector or comma-separated string of fields to
 request from the backend.}
+
+\item{process}{If \code{TRUE} (default), a \code{what = "data"} payload for a module that
+has a processor is normalized before it is returned: \code{pmsi} through
+\code{\link[=process_pmsi]{process_pmsi()}}, \code{biol} through \code{\link[=process_biol]{process_biol()}}. Set \code{FALSE} to return the
+raw payload unchanged -- the escape hatch for re-normalizing later with an
+updated \code{redsan}, auditing the payload, or caching the raw. \code{idtriplets}
+results and \code{doceds} data (already flat, no processor) pass through either way.}
 }
 \value{
-A data frame/tibble, a module-specific list of results, or when
-\code{return_audit = TRUE}, a list with \code{data} and \code{audit}.
+By default (\code{process = TRUE}), a \code{what = "data"} call returns the
+normalized tables: a \code{list(main, actes, diag)} for \code{pmsi}, a processed tibble
+for \code{biol}, and the flat data frame for \code{doceds}. With \code{process = FALSE}, or
+for \code{what = "idtriplets"}, the raw data frame/list is returned instead. When
+\code{return_audit = TRUE}, a list with \code{data} (the value just described) and
+\code{audit}.
 }
 \description{
 Calls the EDSAN API for one module and splits large requests by source time
@@ -88,21 +100,29 @@ Supported module date keys are:
 \item \code{biol}: \code{DATEXAM}
 }
 
-\code{redsan} handles request batching and raw source retrieval. Normalize raw
-PMSI and biology results with \code{\link[=process_pmsi]{process_pmsi()}} and \code{\link[=process_biol]{process_biol()}} before
-building downstream study evidence.
+Retrieval (batching, raw source fetch) and normalization (\code{\link[=process_pmsi]{process_pmsi()}},
+\code{\link[=process_biol]{process_biol()}}) are separate concerns -- the raw payload is the expensive,
+cacheable artifact -- but because a \code{what = "data"} call almost always wants the
+analysis tables, \code{get_edsan()} chains the matching processor by default. Pass
+\code{process = FALSE} to keep the two steps apart and hold the raw payload.
 
 Live retrieval requires the EDSAN client package \code{d2imr} to be installed in
 the calling environment.
 }
 \examples{
 \dontrun{
-raw_pmsi <- get_edsan(
+# Default: normalized PMSI tables straight out of the call.
+pmsi <- get_edsan(
   module = "pmsi",
   what = "data",
   query = list(DATENT = c("2024-01-01", "2024-01-31")),
   fields = c("PATID", "EVTID", "ELTID", "DATENT", "DATSORT", "DALL")
 )
+pmsi$main
+
+# Escape hatch: keep the raw payload to (re)process yourself later.
+raw_pmsi <- get_edsan(module = "pmsi", what = "data", process = FALSE,
+                      query = list(DATENT = c("2024-01-01", "2024-01-31")))
 pmsi <- process_pmsi(raw_pmsi)
 
 ids <- get_edsan(

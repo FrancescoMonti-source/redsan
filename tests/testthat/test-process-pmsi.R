@@ -37,6 +37,9 @@ test_that("process_pmsi returns stable normalized PMSI tables", {
   expect_equal(out$actes$CODEACTE, "ABCD001")
   expect_equal(out$diag$diag, c("A41", "I10"))
   expect_equal(out$diag$type_diag, c("01", "02"))
+  # diag carries the subject attributes like main and actes (one row per DALL token).
+  expect_equal(out$diag$PATSEX, c("M", "M"))
+  expect_equal(out$diag$PATAGE, c("44", "44"))
 })
 
 test_that("process_pmsi handles empty and missing-detail payloads", {

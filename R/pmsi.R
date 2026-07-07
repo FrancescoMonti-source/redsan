@@ -328,6 +328,9 @@
       PATID = character(),
       EVTID = character(),
       ELTID = character(),
+      PATBD = character(),
+      PATAGE = character(),
+      PATSEX = character(),
       DATENT = as.POSIXct(character()),
       HEURE_DATENT = hms::as_hms(character()),
       DATSORT = as.POSIXct(character()),
@@ -338,7 +341,11 @@
   }
 
   data %>%
-    dplyr::select(dplyr::ends_with("ID"), DATENT, HEURE_DATENT, DATSORT, HEURE_DATSORT, DALL) %>%
+    dplyr::select(
+      dplyr::ends_with("ID"),
+      dplyr::any_of(c("PATBD", "PATAGE", "PATSEX")),
+      DATENT, HEURE_DATENT, DATSORT, HEURE_DATSORT, DALL
+    ) %>%
     tidyr::separate_rows(DALL, sep = " ") %>%
     dplyr::filter(stringr::str_detect(DALL, "\\d")) %>%
     dplyr::mutate(

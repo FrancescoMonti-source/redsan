@@ -577,6 +577,24 @@
   0L
 }
 
+# Post-retrieval normalization step. Retrieval and normalization are separate
+# concerns (the raw payload is the expensive, cacheable artifact), but for the
+# common case -- `what = "data"` on a module that HAS a processor -- returning the
+# analysis tables directly is what callers want, so `get_edsan()` chains the
+# matching processor by default. `process = FALSE` is the escape hatch: it returns
+# the raw list unchanged, for re-normalizing later with an updated redsan, auditing
+# the payload, or holding the raw at a cache boundary. `idtriplets` has nothing to
+# normalize, and `doceds` "data" is already a flat data frame (no processor), so
+# both pass through regardless.
+.edsan_maybe_process <- function(combined, module, what, process) {
+  if (!isTRUE(process) || !identical(what, "data")) return(combined)
+  switch(module,
+    pmsi = process_pmsi(combined),
+    biol = process_biol(combined),
+    combined
+  )
+}
+
 #' Retrieve EDSAN data with adaptive batching
 #'
 #' Calls the EDSAN API for one module and splits large requests by source time
@@ -612,9 +630,19 @@
 #' @param verbose If `TRUE`, emit a concise retrieval plan and per-batch status.
 #' @param fields Optional character vector or comma-separated string of fields to
 #'   request from the backend.
+#' @param process If `TRUE` (default), a `what = "data"` payload for a module that
+#'   has a processor is normalized before it is returned: `pmsi` through
+#'   [process_pmsi()], `biol` through [process_biol()]. Set `FALSE` to return the
+#'   raw payload unchanged -- the escape hatch for re-normalizing later with an
+#'   updated `redsan`, auditing the payload, or caching the raw. `idtriplets`
+#'   results and `doceds` data (already flat, no processor) pass through either way.
 #'
-#' @return A data frame/tibble, a module-specific list of results, or when
-#'   `return_audit = TRUE`, a list with `data` and `audit`.
+#' @return By default (`process = TRUE`), a `what = "data"` call returns the
+#'   normalized tables: a `list(main, actes, diag)` for `pmsi`, a processed tibble
+#'   for `biol`, and the flat data frame for `doceds`. With `process = FALSE`, or
+#'   for `what = "idtriplets"`, the raw data frame/list is returned instead. When
+#'   `return_audit = TRUE`, a list with `data` (the value just described) and
+#'   `audit`.
 #'
 #' @details
 #' Supported module date keys are:
@@ -622,21 +650,29 @@
 #' - `pmsi`: `DATENT` and/or `DATSORT`
 #' - `biol`: `DATEXAM`
 #'
-#' `redsan` handles request batching and raw source retrieval. Normalize raw
-#' PMSI and biology results with [process_pmsi()] and [process_biol()] before
-#' building downstream study evidence.
+#' Retrieval (batching, raw source fetch) and normalization ([process_pmsi()],
+#' [process_biol()]) are separate concerns -- the raw payload is the expensive,
+#' cacheable artifact -- but because a `what = "data"` call almost always wants the
+#' analysis tables, `get_edsan()` chains the matching processor by default. Pass
+#' `process = FALSE` to keep the two steps apart and hold the raw payload.
 #'
 #' Live retrieval requires the EDSAN client package `d2imr` to be installed in
 #' the calling environment.
 #'
 #' @examples
 #' \dontrun{
-#' raw_pmsi <- get_edsan(
+#' # Default: normalized PMSI tables straight out of the call.
+#' pmsi <- get_edsan(
 #'   module = "pmsi",
 #'   what = "data",
 #'   query = list(DATENT = c("2024-01-01", "2024-01-31")),
 #'   fields = c("PATID", "EVTID", "ELTID", "DATENT", "DATSORT", "DALL")
 #' )
+#' pmsi$main
+#'
+#' # Escape hatch: keep the raw payload to (re)process yourself later.
+#' raw_pmsi <- get_edsan(module = "pmsi", what = "data", process = FALSE,
+#'                       query = list(DATENT = c("2024-01-01", "2024-01-31")))
 #' pmsi <- process_pmsi(raw_pmsi)
 #'
 #' ids <- get_edsan(
@@ -667,7 +703,8 @@ get_edsan <- function(
     return_audit = FALSE,
     batch_on_error_only = FALSE,
     verbose = FALSE,
-    fields = NULL
+    fields = NULL,
+    process = TRUE
 ) {
   module <- match.arg(module, .edsan_supported_modules())
   what <- match.arg(what)
@@ -875,6 +912,7 @@ get_edsan <- function(
   }
 
   combined <- .edsan_combine(module, results, what, fields = fields)
+  combined <- .edsan_maybe_process(combined, module, what, process)
 
   if (!return_audit) return(combined)
 
