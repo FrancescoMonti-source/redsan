@@ -16,6 +16,27 @@ test_that("process_doceds types recorded dates without inventing times", {
   expect_equal(as.character(out$HEURE_RECDATE), c("08:30:00", NA_character_))
 })
 
+test_that("process_doceds types PATAGE without changing the remaining payload", {
+  # Rationale: process-output contract. DOCEDS should expose the same numeric
+  # age type as the other normalized modules while preserving document fields.
+  raw <- data.frame(
+    PATID = c("P1", "P2"),
+    EVTID = c("E1", "E2"),
+    ELTID = c("L1", "L2"),
+    PATAGE = c("44", "43"),
+    RECTYPE = c("CR", "CR"),
+    RECTXT = c("synthetic one", "synthetic two")
+  )
+
+  out <- process_doceds(raw)
+
+  expect_type(out$PATAGE, "double")
+  expect_equal(out$PATAGE, c(44, 43))
+
+  other_columns <- setdiff(names(raw), "PATAGE")
+  expect_equal(out[other_columns], tibble::as_tibble(raw[other_columns]))
+})
+
 test_that("process_doceds rejects non-tabular payloads", {
   # Rationale: process-input contract. A nested/raw payload is not a prepared
   # DOCEDS table and must fail at the package boundary.

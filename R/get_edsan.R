@@ -629,7 +629,9 @@
 #'   time batching only for limit-style backend errors.
 #' @param verbose If `TRUE`, emit a concise retrieval plan and per-batch status.
 #' @param fields Optional character vector or comma-separated string of fields to
-#'   request from the backend.
+#'   request from the backend. For `module = "doceds"` with `what = "data"`,
+#'   defaults to `PATID`, `EVTID`, `ELTID`, `PATAGE`, `PATSEX`, `PATBD`,
+#'   `RECTYPE`, `RECDATE`, `SEJUM`, `SEJUF`, and `RECTXT`.
 #' @param process If `TRUE` (default), a `what = "data"` payload for a module that
 #'   has a processor is normalized before it is returned: `doceds` through
 #'   [process_doceds()], `pmsi` through [process_pmsi()], and `biol` through
@@ -709,6 +711,14 @@ get_edsan <- function(
 ) {
   module <- match.arg(module, .edsan_supported_modules())
   what <- match.arg(what)
+
+  if (identical(module, "doceds") && identical(what, "data") && is.null(fields)) {
+    fields <- c(
+      "PATID", "EVTID", "ELTID", "PATAGE", "PATSEX", "PATBD",
+      "RECTYPE", "RECDATE", "SEJUM", "SEJUF", "RECTXT"
+    )
+  }
+
   date_keys <- .edsan_all_date_keys()
   present_dates <- intersect(names(query), date_keys)
   query <- .edsan_normalize_date_query(query, present_dates, periods_prefix, periods_suffix)

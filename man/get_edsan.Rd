@@ -69,7 +69,9 @@ time batching only for limit-style backend errors.}
 \item{verbose}{If \code{TRUE}, emit a concise retrieval plan and per-batch status.}
 
 \item{fields}{Optional character vector or comma-separated string of fields to
-request from the backend.}
+request from the backend. For \code{module = "doceds"} with \code{what = "data"},
+defaults to \code{PATID}, \code{EVTID}, \code{ELTID}, \code{PATAGE}, \code{PATSEX}, \code{PATBD},
+\code{RECTYPE}, \code{RECDATE}, \code{SEJUM}, \code{SEJUF}, and \code{RECTXT}.}
 
 \item{process}{If \code{TRUE} (default), a \code{what = "data"} payload for a module that
 has a processor is normalized before it is returned: \code{doceds} through

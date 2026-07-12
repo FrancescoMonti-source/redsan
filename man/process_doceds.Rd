@@ -12,11 +12,12 @@ process_doceds(data)
 \value{
 A tibble. When \code{RECDATE} is present, it is parsed to \code{POSIXct} and
 \code{HEURE_RECDATE} records an \code{hms} value only when the source string included
-an explicit time.
+an explicit time. When \code{PATAGE} is present, it is converted to numeric.
 }
 \description{
-Converts a flat DOCEDS payload to a tibble and normalizes its recorded time.
-Native identifiers and document payload columns are otherwise preserved.
+Converts a flat DOCEDS payload to a tibble and normalizes its recorded time
+and patient age. Native identifiers and document payload columns are
+otherwise preserved.
 }
 \examples{
 process_doceds(data.frame(

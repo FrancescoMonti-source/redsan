@@ -1,13 +1,14 @@
 #' Process DOCEDS documents
 #'
-#' Converts a flat DOCEDS payload to a tibble and normalizes its recorded time.
-#' Native identifiers and document payload columns are otherwise preserved.
+#' Converts a flat DOCEDS payload to a tibble and normalizes its recorded time
+#' and patient age. Native identifiers and document payload columns are
+#' otherwise preserved.
 #'
 #' @param data A data frame returned by the DOCEDS data endpoint.
 #'
 #' @return A tibble. When `RECDATE` is present, it is parsed to `POSIXct` and
 #'   `HEURE_RECDATE` records an `hms` value only when the source string included
-#'   an explicit time.
+#'   an explicit time. When `PATAGE` is present, it is converted to numeric.
 #'
 #' @examples
 #' process_doceds(data.frame(
@@ -27,6 +28,10 @@ process_doceds <- function(data) {
     raw <- as.character(out$RECDATE)
     out$RECDATE <- .pmsi_parse_datetime(raw)
     out$HEURE_RECDATE <- .pmsi_time_hms(out$RECDATE, raw)
+  }
+
+  if ("PATAGE" %in% names(out)) {
+    out$PATAGE <- suppressWarnings(as.numeric(as.character(out$PATAGE)))
   }
 
   out
