@@ -133,10 +133,12 @@
     df$PATAGE <- suppressWarnings(as.numeric(as.character(df$PATAGE)))
   }
 
-  # NUMRES is the result field consumed by the current extraction workflow.
-  # Keep it verbatim for audit and expose a separate numeric interpretation.
+  # EDSAN exposes numeric results in NUMRES and qualitative results in STRRES.
+  # Raw API payloads may store each numeric scalar in a one-element list, while
+  # prepared extracts already use a numeric vector. Normalize both shapes in
+  # place and leave STRRES untouched.
   if ("NUMRES" %in% names(df)) {
-    df$NUMRES_NUM <- suppressWarnings(as.numeric(as.character(df$NUMRES)))
+    df$NUMRES <- suppressWarnings(as.numeric(as.character(df$NUMRES)))
   }
 
   df
@@ -152,10 +154,8 @@
 #'   data.frame/tibble already in result form.
 #'
 #' @return A tibble with exam metadata columns and lab result columns. When
-#'   available, adds `HEURE_DATEXAM`. `PATAGE` is numeric. When `NUMRES` is
-#'   present, it is preserved and `NUMRES_NUM` contains its numeric
-#'   interpretation; non-numeric result strings become missing only in the
-#'   companion column.
+#'   available, adds `HEURE_DATEXAM`. `PATAGE` and `NUMRES`, when present, are
+#'   numeric. Qualitative result fields such as `STRRES` are preserved.
 #'
 #' @examples
 #' raw <- list(list(
