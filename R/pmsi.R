@@ -216,7 +216,9 @@
 #' `NOMENCLATURE*`) from wide to long using a `.value` pivot.
 #'
 #' This function assumes `DATENT` and `DATSORT` are already parsed as `POSIXct`
-#' and `HEURE_*` columns are already created by `.pmsi_prepare()`.
+#' and `HEURE_*` columns are already created by `.pmsi_prepare()`. After the
+#' pivot, `DATEACTE` is parsed to `POSIXct` and `HEURE_DATEACTE` records an
+#' explicitly supplied time.
 #'
 #' @param data A tibble produced by `.pmsi_prepare()`.
 #'
@@ -262,14 +264,15 @@
       DATSORT = as.POSIXct(character()),
       HEURE_DATSORT = hms::as_hms(character()),
       CODEACTE = character(),
-      DATEACTE = character(),
+      DATEACTE = as.POSIXct(character()),
+      HEURE_DATEACTE = hms::as_hms(character()),
       UFPRO = character(),
       UFDEM = character(),
       NOMENCLATURE = character()
     ))
   }
 
-  data %>%
+  out <- data %>%
     dplyr::select(dplyr::any_of(c(
       "PATID", "EVTID", "ELTID", "PATBD", "PATAGE", "PATSEX",
       "DATENT", "HEURE_DATENT", "DATSORT", "HEURE_DATSORT",
@@ -289,6 +292,14 @@
       values_drop_na = TRUE
     ) %>%
     dplyr::distinct()
+
+  if ("DATEACTE" %in% names(out)) {
+    raw <- out$DATEACTE
+    out$DATEACTE <- .pmsi_parse_datetime(raw)
+    out$HEURE_DATEACTE <- .pmsi_time_hms(out$DATEACTE, raw)
+  }
+
+  out
 }
 
 
@@ -370,9 +381,9 @@
 #'   \item{`diag`}{diagnoses derived from `DALL` (one row per token)}
 #' }
 #'
-#' `DATENT` and `DATSORT` are parsed to `POSIXct` and corresponding `HEURE_*`
-#' columns are derived as `hms` times when the raw input included an explicit
-#' time component. `actes` and `diag` receive event-level stay dates computed
+#' `DATENT`, `DATSORT`, and acte-level `DATEACTE` are parsed to `POSIXct` and
+#' corresponding `HEURE_*` columns are derived as `hms` times when the raw input
+#' included an explicit time component. `actes` and `diag` receive event-level stay dates computed
 #' from `main`: minimum `DATENT` and maximum `DATSORT` per `EVTID`. `PATAGE` is
 #' numeric in every returned table that carries it.
 #'

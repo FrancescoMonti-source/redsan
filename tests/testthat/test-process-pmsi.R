@@ -35,6 +35,8 @@ test_that("process_pmsi returns stable normalized PMSI tables", {
   expect_true(is.na(out$main$HEURE_DATSORT))
 
   expect_equal(out$actes$CODEACTE, "ABCD001")
+  expect_true(inherits(out$actes$DATEACTE, "POSIXct"))
+  expect_equal(as.character(out$actes$HEURE_DATEACTE), "09:15:00")
   expect_equal(out$diag$diag, c("A41", "I10"))
   expect_equal(out$diag$type_diag, c("01", "02"))
   # diag carries the subject attributes like main and actes (one row per DALL token).
@@ -53,7 +55,8 @@ test_that("process_pmsi handles empty and missing-detail payloads", {
   expect_equal(nrow(empty$main), 0)
   expect_true(all(c("PATID", "EVTID", "ELTID", "DATENT", "DATSORT") %in% names(empty$main)))
   expect_equal(nrow(empty$actes), 0)
-  expect_true(all(c("CODEACTE", "DATEACTE", "UFPRO", "UFDEM", "NOMENCLATURE") %in% names(empty$actes)))
+  expect_true(all(c("CODEACTE", "DATEACTE", "HEURE_DATEACTE", "UFPRO", "UFDEM",
+                    "NOMENCLATURE") %in% names(empty$actes)))
   expect_equal(nrow(empty$diag), 0)
   expect_true(all(c("diag", "type_diag") %in% names(empty$diag)))
 
