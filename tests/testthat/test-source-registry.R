@@ -5,6 +5,7 @@ test_that("EDSAN source registry documents module source contracts", {
 
   expect_setequal(sources$module, c("doceds", "pmsi", "biol"))
   expect_equal(edsan_sources("doceds")$default_batch_key, "RECDATE")
+  expect_equal(edsan_sources("doceds")$normalizer, "process_doceds")
   expect_equal(edsan_sources("biol")$source_time_kind, "point")
 
   pmsi_diag <- edsan_sources("pmsi", "diag")

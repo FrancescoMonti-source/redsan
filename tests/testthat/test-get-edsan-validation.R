@@ -59,12 +59,11 @@ test_that("data payloads are normalized by module unless the escape is used", {
     trip
   )
 
-  # doceds data is already flat (no processor) -> passthrough
+  # doceds data is flat but still needs recorded-time normalization
   doc <- tibble::tibble(ELTID = "L1", RECDATE = "2024-01-01", RECTYPE = "CR")
-  expect_identical(
-    redsan:::.edsan_maybe_process(doc, "doceds", "data", TRUE),
-    doc
-  )
+  normalized_doc <- redsan:::.edsan_maybe_process(doc, "doceds", "data", TRUE)
+  expect_true(inherits(normalized_doc$RECDATE, "POSIXct"))
+  expect_true(is.na(normalized_doc$HEURE_RECDATE))
 })
 
 test_that("missing live backend is reported as a retrieval error", {

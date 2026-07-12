@@ -23,7 +23,7 @@
       "DATEXAM"
     ),
     default_batch_key = c("RECDATE", "DATENT", "DATENT", "DATENT", "DATEXAM"),
-    normalizer = c(NA_character_, "process_pmsi", "process_pmsi", "process_pmsi", "process_biol"),
+    normalizer = c("process_doceds", "process_pmsi", "process_pmsi", "process_pmsi", "process_biol"),
     notes = c(
       "Clinical documents; RECTXT and RECTYPE are document payload fields.",
       "PMSI stay-level table; DATENT/DATSORT define the stay interval.",

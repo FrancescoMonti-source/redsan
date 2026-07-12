@@ -4,7 +4,8 @@
 #'
 #' Flattens a list of PMSI API stay entries into a single tibble and standardizes
 #' column values. Nested structures are recursively unlisted; empty or missing
-#' values become `NA_character_`, and multi-valued fields are collapsed with `;`.
+#' values become `NA_character_`, multi-valued fields are collapsed with `;`,
+#' and `PATAGE` is converted to numeric when present.
 #'
 #' If present, `DATENT` and `DATSORT` are parsed to `POSIXct` using
 #' `.pmsi_parse_datetime()`. For each, a corresponding `HEURE_*` column is added
@@ -78,6 +79,10 @@
     clean_data$HEURE_DATSORT <- hms::as_hms(rep(NA_character_, nrow(clean_data)))
   }
 
+  if ("PATAGE" %in% names(clean_data)) {
+    clean_data$PATAGE <- suppressWarnings(as.numeric(clean_data$PATAGE))
+  }
+
   clean_data
 }
 
@@ -127,7 +132,7 @@
       DATSORT = as.POSIXct(character()),
       HEURE_DATSORT = hms::as_hms(character()),
       PATBD = character(),
-      PATAGE = character(),
+      PATAGE = numeric(),
       PATSEX = character(),
       SEJDUR = character(),
       MODEENT = character(),
@@ -329,7 +334,7 @@
       EVTID = character(),
       ELTID = character(),
       PATBD = character(),
-      PATAGE = character(),
+      PATAGE = numeric(),
       PATSEX = character(),
       DATENT = as.POSIXct(character()),
       HEURE_DATENT = hms::as_hms(character()),
@@ -368,7 +373,8 @@
 #' `DATENT` and `DATSORT` are parsed to `POSIXct` and corresponding `HEURE_*`
 #' columns are derived as `hms` times when the raw input included an explicit
 #' time component. `actes` and `diag` receive event-level stay dates computed
-#' from `main`: minimum `DATENT` and maximum `DATSORT` per `EVTID`.
+#' from `main`: minimum `DATENT` and maximum `DATSORT` per `EVTID`. `PATAGE` is
+#' numeric in every returned table that carries it.
 #'
 #' @param data List of PMSI API entries (one list per stay).
 #'

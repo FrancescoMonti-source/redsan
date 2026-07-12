@@ -584,11 +584,11 @@
 # matching processor by default. `process = FALSE` is the escape hatch: it returns
 # the raw list unchanged, for re-normalizing later with an updated redsan, auditing
 # the payload, or holding the raw at a cache boundary. `idtriplets` has nothing to
-# normalize, and `doceds` "data" is already a flat data frame (no processor), so
-# both pass through regardless.
+# normalize and passes through regardless.
 .edsan_maybe_process <- function(combined, module, what, process) {
   if (!isTRUE(process) || !identical(what, "data")) return(combined)
   switch(module,
+    doceds = process_doceds(combined),
     pmsi = process_pmsi(combined),
     biol = process_biol(combined),
     combined
@@ -631,15 +631,16 @@
 #' @param fields Optional character vector or comma-separated string of fields to
 #'   request from the backend.
 #' @param process If `TRUE` (default), a `what = "data"` payload for a module that
-#'   has a processor is normalized before it is returned: `pmsi` through
-#'   [process_pmsi()], `biol` through [process_biol()]. Set `FALSE` to return the
+#'   has a processor is normalized before it is returned: `doceds` through
+#'   [process_doceds()], `pmsi` through [process_pmsi()], and `biol` through
+#'   [process_biol()]. Set `FALSE` to return the
 #'   raw payload unchanged -- the escape hatch for re-normalizing later with an
 #'   updated `redsan`, auditing the payload, or caching the raw. `idtriplets`
-#'   results and `doceds` data (already flat, no processor) pass through either way.
+#'   results pass through either way.
 #'
 #' @return By default (`process = TRUE`), a `what = "data"` call returns the
-#'   normalized tables: a `list(main, actes, diag)` for `pmsi`, a processed tibble
-#'   for `biol`, and the flat data frame for `doceds`. With `process = FALSE`, or
+#'   normalized tables: a `list(main, actes, diag)` for `pmsi`, and processed
+#'   tibbles for `biol` and `doceds`. With `process = FALSE`, or
 #'   for `what = "idtriplets"`, the raw data frame/list is returned instead. When
 #'   `return_audit = TRUE`, a list with `data` (the value just described) and
 #'   `audit`.
@@ -650,8 +651,8 @@
 #' - `pmsi`: `DATENT` and/or `DATSORT`
 #' - `biol`: `DATEXAM`
 #'
-#' Retrieval (batching, raw source fetch) and normalization ([process_pmsi()],
-#' [process_biol()]) are separate concerns -- the raw payload is the expensive,
+#' Retrieval (batching, raw source fetch) and normalization ([process_doceds()],
+#' [process_pmsi()], [process_biol()]) are separate concerns -- the raw payload is the expensive,
 #' cacheable artifact -- but because a `what = "data"` call almost always wants the
 #' analysis tables, `get_edsan()` chains the matching processor by default. Pass
 #' `process = FALSE` to keep the two steps apart and hold the raw payload.

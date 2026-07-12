@@ -72,16 +72,17 @@ time batching only for limit-style backend errors.}
 request from the backend.}
 
 \item{process}{If \code{TRUE} (default), a \code{what = "data"} payload for a module that
-has a processor is normalized before it is returned: \code{pmsi} through
-\code{\link[=process_pmsi]{process_pmsi()}}, \code{biol} through \code{\link[=process_biol]{process_biol()}}. Set \code{FALSE} to return the
+has a processor is normalized before it is returned: \code{doceds} through
+\code{\link[=process_doceds]{process_doceds()}}, \code{pmsi} through \code{\link[=process_pmsi]{process_pmsi()}}, and \code{biol} through
+\code{\link[=process_biol]{process_biol()}}. Set \code{FALSE} to return the
 raw payload unchanged -- the escape hatch for re-normalizing later with an
 updated \code{redsan}, auditing the payload, or caching the raw. \code{idtriplets}
-results and \code{doceds} data (already flat, no processor) pass through either way.}
+results pass through either way.}
 }
 \value{
 By default (\code{process = TRUE}), a \code{what = "data"} call returns the
-normalized tables: a \code{list(main, actes, diag)} for \code{pmsi}, a processed tibble
-for \code{biol}, and the flat data frame for \code{doceds}. With \code{process = FALSE}, or
+normalized tables: a \code{list(main, actes, diag)} for \code{pmsi}, and processed
+tibbles for \code{biol} and \code{doceds}. With \code{process = FALSE}, or
 for \code{what = "idtriplets"}, the raw data frame/list is returned instead. When
 \code{return_audit = TRUE}, a list with \code{data} (the value just described) and
 \code{audit}.
@@ -100,8 +101,8 @@ Supported module date keys are:
 \item \code{biol}: \code{DATEXAM}
 }
 
-Retrieval (batching, raw source fetch) and normalization (\code{\link[=process_pmsi]{process_pmsi()}},
-\code{\link[=process_biol]{process_biol()}}) are separate concerns -- the raw payload is the expensive,
+Retrieval (batching, raw source fetch) and normalization (\code{\link[=process_doceds]{process_doceds()}},
+\code{\link[=process_pmsi]{process_pmsi()}}, \code{\link[=process_biol]{process_biol()}}) are separate concerns -- the raw payload is the expensive,
 cacheable artifact -- but because a \code{what = "data"} call almost always wants the
 analysis tables, \code{get_edsan()} chains the matching processor by default. Pass
 \code{process = FALSE} to keep the two steps apart and hold the raw payload.

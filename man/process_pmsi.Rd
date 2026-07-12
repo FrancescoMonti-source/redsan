@@ -24,7 +24,8 @@ Flattens PMSI stay payloads and returns three tables:
 \code{DATENT} and \code{DATSORT} are parsed to \code{POSIXct} and corresponding \verb{HEURE_*}
 columns are derived as \code{hms} times when the raw input included an explicit
 time component. \code{actes} and \code{diag} receive event-level stay dates computed
-from \code{main}: minimum \code{DATENT} and maximum \code{DATSORT} per \code{EVTID}.
+from \code{main}: minimum \code{DATENT} and maximum \code{DATSORT} per \code{EVTID}. \code{PATAGE} is
+numeric in every returned table that carries it.
 }
 \examples{
 example_data <- list(

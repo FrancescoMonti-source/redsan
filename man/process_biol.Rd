@@ -12,7 +12,10 @@ data.frame/tibble already in result form.}
 }
 \value{
 A tibble with exam metadata columns and lab result columns. When
-available, adds \code{HEURE_DATEXAM}.
+available, adds \code{HEURE_DATEXAM}. \code{PATAGE} is numeric. When \code{NUMRES} is
+present, it is preserved and \code{NUMRES_NUM} contains its numeric
+interpretation; non-numeric result strings become missing only in the
+companion column.
 }
 \description{
 Flattens BIOL lab results from the EDSaN API into a single tibble.

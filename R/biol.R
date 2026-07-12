@@ -129,6 +129,16 @@
     df$HEURE_DATEXAM <- .pmsi_time_hms(df$DATEXAM, raw)
   }
 
+  if ("PATAGE" %in% names(df)) {
+    df$PATAGE <- suppressWarnings(as.numeric(as.character(df$PATAGE)))
+  }
+
+  # NUMRES is the result field consumed by the current extraction workflow.
+  # Keep it verbatim for audit and expose a separate numeric interpretation.
+  if ("NUMRES" %in% names(df)) {
+    df$NUMRES_NUM <- suppressWarnings(as.numeric(as.character(df$NUMRES)))
+  }
+
   df
 }
 
@@ -142,7 +152,10 @@
 #'   data.frame/tibble already in result form.
 #'
 #' @return A tibble with exam metadata columns and lab result columns. When
-#'   available, adds `HEURE_DATEXAM`.
+#'   available, adds `HEURE_DATEXAM`. `PATAGE` is numeric. When `NUMRES` is
+#'   present, it is preserved and `NUMRES_NUM` contains its numeric
+#'   interpretation; non-numeric result strings become missing only in the
+#'   companion column.
 #'
 #' @examples
 #' raw <- list(list(

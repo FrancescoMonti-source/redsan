@@ -13,7 +13,7 @@ test_that("process_biol preserves exam metadata and result payload columns", {
       PATAGE = "44",
       PATSEX = "M",
       CSTE_LABO = "LAB",
-      RESULTATS = data.frame(TYPEANA = "K.K", VALEUR = "5.4")
+      RESULTATS = data.frame(TYPEANA = c("K.K", "K.K"), NUMRES = c("5.4", "<3"))
     ),
     examB = list(
       PATID = "P2",
@@ -33,13 +33,15 @@ test_that("process_biol preserves exam metadata and result payload columns", {
   out <- process_biol(raw)
 
   expect_s3_class(out, "tbl_df")
-  expect_equal(nrow(out), 1)
-  expect_equal(out$PATID, "P1")
-  expect_equal(out$BIOL_ID, "examA")
-  expect_equal(out$TYPEANA, "K.K")
-  expect_equal(out$VALEUR, "5.4")
+  expect_equal(nrow(out), 2)
+  expect_equal(out$PATID, c("P1", "P1"))
+  expect_equal(out$BIOL_ID, c("examA", "examA"))
+  expect_equal(out$TYPEANA, c("K.K", "K.K"))
+  expect_equal(out$NUMRES, c("5.4", "<3"))
+  expect_equal(out$NUMRES_NUM, c(5.4, NA_real_))
+  expect_equal(out$PATAGE, c(44, 44))
   expect_true(inherits(out$DATEXAM, "POSIXct"))
-  expect_equal(as.character(out$HEURE_DATEXAM), "08:30:00")
+  expect_equal(as.character(out$HEURE_DATEXAM), c("08:30:00", "08:30:00"))
 })
 
 test_that("process_biol keeps metadata columns when source metadata is sparse", {

@@ -3,6 +3,7 @@
 export(edsan_sources)
 export(get_edsan)
 export(process_biol)
+export(process_doceds)
 export(process_pmsi)
 importFrom(dplyr,any_of)
 importFrom(dplyr,bind_cols)
