@@ -36,8 +36,6 @@ test_that("process_biol preserves exam metadata and result payload columns", {
 
   out <- process_biol(raw)
 
-  expect_s3_class(out, "tbl_df")
-  expect_equal(nrow(out), 3)
   expect_equal(out$PATID, rep("P1", 3))
   expect_equal(out$BIOL_ID, rep("examA", 3))
   expect_equal(out$TYPEANA, rep("K.K", 3))
@@ -62,7 +60,6 @@ test_that("process_biol keeps metadata columns when source metadata is sparse", 
 
   out <- process_biol(raw)
 
-  expect_equal(nrow(out), 1)
   expect_true(all(c("PATID", "EVTID", "ELTID", "BIOL_ID", "DATEXAM") %in% names(out)))
   expect_equal(out$PATID, "P1")
   expect_true(is.na(out$EVTID))

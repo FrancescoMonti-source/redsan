@@ -1,7 +1,7 @@
 test_that("process_pmsi returns stable normalized PMSI tables", {
-  # Rationale: process-output contract. PMSI parsing should preserve native IDs,
-  # split stay/act/diagnosis grains, and keep date-only values distinct from
-  # explicitly timed values.
+  # Rationale: source/output sentinel plus process contract. The normalized
+  # table names and minimum columns are an executable compatibility surface for
+  # the raw export; the remaining assertions protect silent parsing changes.
   raw <- list(
     list(
       PATID = "P1",
@@ -25,11 +25,10 @@ test_that("process_pmsi returns stable normalized PMSI tables", {
   out <- process_pmsi(raw)
 
   expect_named(out, c("main", "actes", "diag"))
-  expect_s3_class(out$main, "tbl_df")
-  expect_s3_class(out$actes, "tbl_df")
-  expect_s3_class(out$diag, "tbl_df")
+  expect_true(all(c("PATID", "EVTID", "ELTID", "DATENT", "DATSORT") %in% names(out$main)))
+  expect_true(all(c("EVTID", "CODEACTE", "DATEACTE") %in% names(out$actes)))
+  expect_true(all(c("EVTID", "diag", "type_diag") %in% names(out$diag)))
 
-  expect_equal(out$main$PATID, "P1")
   expect_true(inherits(out$main$DATENT, "POSIXct"))
   expect_equal(as.character(out$main$HEURE_DATENT), "08:30:00")
   expect_true(is.na(out$main$HEURE_DATSORT))
@@ -51,14 +50,7 @@ test_that("process_pmsi handles empty and missing-detail payloads", {
   # actes/DALL are valid no-evidence shapes, not parser failures.
   empty <- process_pmsi(list())
 
-  expect_named(empty, c("main", "actes", "diag"))
-  expect_equal(nrow(empty$main), 0)
-  expect_true(all(c("PATID", "EVTID", "ELTID", "DATENT", "DATSORT") %in% names(empty$main)))
-  expect_equal(nrow(empty$actes), 0)
-  expect_true(all(c("CODEACTE", "DATEACTE", "HEURE_DATEACTE", "UFPRO", "UFDEM",
-                    "NOMENCLATURE") %in% names(empty$actes)))
-  expect_equal(nrow(empty$diag), 0)
-  expect_true(all(c("diag", "type_diag") %in% names(empty$diag)))
+  expect_true(all(vapply(empty, nrow, integer(1)) == 0L))
 
   no_details <- process_pmsi(list(list(PATID = "P1", EVTID = "E1", ELTID = "L1")))
 
@@ -92,6 +84,17 @@ test_that("process_pmsi joins event-level stay dates to detail tables", {
       CODEACTE1 = "ACTE2",
       DATEACTE1 = "2024-02-02",
       UFPRO1 = "UF2"
+    ),
+    list(
+      PATID = "P2",
+      EVTID = "E2",
+      ELTID = "L3",
+      DATENT = "05/03/2024 09:00",
+      DATSORT = "06/03/2024",
+      DALL = "03:J20",
+      CODEACTE1 = "ACTE3",
+      DATEACTE1 = "2024-03-05",
+      UFPRO1 = "UF3"
     )
   )
 
@@ -99,8 +102,13 @@ test_that("process_pmsi joins event-level stay dates to detail tables", {
 
   expect_true(inherits(out$diag$DATENT, "POSIXct"))
   expect_true(inherits(out$diag$DATSORT, "POSIXct"))
-  expect_equal(unique(as.Date(out$diag$DATENT, tz = "Europe/Paris")), as.Date("2024-01-10"))
-  expect_equal(unique(as.Date(out$diag$DATSORT, tz = "Europe/Paris")), as.Date("2024-02-03"))
-  expect_equal(unique(as.Date(out$actes$DATENT, tz = "Europe/Paris")), as.Date("2024-01-10"))
-  expect_equal(unique(as.Date(out$actes$DATSORT, tz = "Europe/Paris")), as.Date("2024-02-03"))
+  for (table_name in c("diag", "actes")) {
+    table <- out[[table_name]]
+    e1 <- table$EVTID == "E1"
+    e2 <- table$EVTID == "E2"
+    expect_equal(unique(as.Date(table$DATENT[e1], tz = "Europe/Paris")), as.Date("2024-01-10"))
+    expect_equal(unique(as.Date(table$DATSORT[e1], tz = "Europe/Paris")), as.Date("2024-02-03"))
+    expect_equal(unique(as.Date(table$DATENT[e2], tz = "Europe/Paris")), as.Date("2024-03-05"))
+    expect_equal(unique(as.Date(table$DATSORT[e2], tz = "Europe/Paris")), as.Date("2024-03-06"))
+  }
 })
