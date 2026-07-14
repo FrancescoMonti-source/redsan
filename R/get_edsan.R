@@ -585,11 +585,15 @@
 # the raw list unchanged, for re-normalizing later with an updated redsan, auditing
 # the payload, or holding the raw at a cache boundary. `idtriplets` has nothing to
 # normalize and passes through regardless.
-.edsan_maybe_process <- function(combined, module, what, process) {
+.edsan_maybe_process <- function(combined, module, what, process, source_policy = NULL) {
   if (!isTRUE(process) || !identical(what, "data")) return(combined)
   switch(module,
     doceds = process_doceds(combined),
-    pmsi = process_pmsi(combined),
+    pmsi = if (is.null(source_policy)) {
+      process_pmsi(combined)
+    } else {
+      process_pmsi(combined, source_policy = source_policy)
+    },
     biol = process_biol(combined),
     combined
   )
@@ -639,6 +643,10 @@
 #'   raw payload unchanged -- the escape hatch for re-normalizing later with an
 #'   updated `redsan`, auditing the payload, or caching the raw. `idtriplets`
 #'   results pass through either way.
+#' @param source_policy Optional PMSI `main` source policy passed to
+#'   [process_pmsi()]. `NULL` uses its default (`"c_over_dw"`); `"all"` retains
+#'   every normalized PMSI `main` row. An explicit value is valid only for
+#'   `module = "pmsi"`, `what = "data"`, and `process = TRUE`.
 #'
 #' @return By default (`process = TRUE`), a `what = "data"` call returns the
 #'   normalized tables: a `list(main, actes, diag)` for `pmsi`, and processed
@@ -672,6 +680,15 @@
 #'   fields = c("PATID", "EVTID", "ELTID", "DATENT", "DATSORT", "DALL")
 #' )
 #' pmsi$main
+#'
+#' # Keep every normalized PMSI main source row without breaking the retrieval
+#' # and processing flow.
+#' pmsi_all_sources <- get_edsan(
+#'   module = "pmsi",
+#'   what = "data",
+#'   query = list(DATENT = c("2024-01-01", "2024-01-31")),
+#'   source_policy = "all"
+#' )
 #'
 #' # Escape hatch: keep the raw payload to (re)process yourself later.
 #' raw_pmsi <- get_edsan(module = "pmsi", what = "data", process = FALSE,
@@ -707,10 +724,22 @@ get_edsan <- function(
     batch_on_error_only = FALSE,
     verbose = FALSE,
     fields = NULL,
-    process = TRUE
+    process = TRUE,
+    source_policy = NULL
 ) {
   module <- match.arg(module, .edsan_supported_modules())
   what <- match.arg(what)
+
+  if (!is.null(source_policy)) {
+    if (!identical(module, "pmsi") || !identical(what, "data") || !isTRUE(process)) {
+      stop(
+        "`source_policy` is only valid for `module = \"pmsi\"`, ",
+        "`what = \"data\"`, and `process = TRUE`.",
+        call. = FALSE
+      )
+    }
+    source_policy <- match.arg(source_policy, c("c_over_dw", "all"))
+  }
 
   if (identical(module, "doceds") && identical(what, "data") && is.null(fields)) {
     fields <- c(
@@ -923,7 +952,13 @@ get_edsan <- function(
   }
 
   combined <- .edsan_combine(module, results, what, fields = fields)
-  combined <- .edsan_maybe_process(combined, module, what, process)
+  combined <- .edsan_maybe_process(
+    combined,
+    module,
+    what,
+    process,
+    source_policy = source_policy
+  )
 
   if (!return_audit) return(combined)
 

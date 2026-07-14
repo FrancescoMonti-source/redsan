@@ -4,10 +4,15 @@
 \alias{process_pmsi}
 \title{Process PMSI stays into analysis-ready tables}
 \usage{
-process_pmsi(data)
+process_pmsi(data, source_policy = c("c_over_dw", "all"))
 }
 \arguments{
 \item{data}{List of PMSI API entries (one list per stay).}
+
+\item{source_policy}{PMSI \code{main} source policy. \code{"c_over_dw"} (default)
+removes \code{DW} rows only where \code{C} exists for the same
+\code{PATID + EVTID + SEJUM + SEJUF}; \code{"all"} retains every normalized row.
+If \code{SRC} is absent, both policies return the same \code{main}.}
 }
 \value{
 A list with tibbles \code{main}, \code{actes}, and \code{diag}.
@@ -15,7 +20,7 @@ A list with tibbles \code{main}, \code{actes}, and \code{diag}.
 \description{
 Flattens PMSI stay payloads and returns three tables:
 \describe{
-\item{\code{main}}{the complete normalized PMSI main table, without source filtering}
+\item{\code{main}}{the normalized PMSI main table after the selected source policy}
 \item{\code{actes}}{actes in long format (one row per acte)}
 \item{\code{diag}}{diagnoses derived from \code{DALL} (one row per token)}
 }
@@ -27,9 +32,10 @@ included an explicit time component. \code{actes} and \code{diag} remain complet
 receive event-level stay dates computed from the complete \code{main}: minimum
 \code{DATENT} and maximum \code{DATSORT} per \code{PATID + EVTID}. For legacy payloads that
 do not contain \code{PATID}, the event bounds fall back to \code{EVTID}. \code{PATAGE} is
-numeric in every returned table that carries it. Use
-\code{\link[=prefer_pmsi_main_source]{prefer_pmsi_main_source()}} explicitly when a source-preferred unit view is
-needed.
+numeric in every returned table that carries it. By default, the returned
+\code{main} applies \code{\link[=prefer_pmsi_src_c_over_dw]{prefer_pmsi_src_c_over_dw()}} after those bounds have been
+derived. Use \code{source_policy = "all"} to retain every normalized \code{main} row.
+\code{actes} and \code{diag} are not source-filtered.
 }
 \examples{
 example_data <- list(

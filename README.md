@@ -19,6 +19,9 @@ edsan_sources("pmsi", "diag")
 
 The registry records each module's normalized table, row grain, native
 identifiers, query date keys, default batching key, and source time kind.
+Across modules, each `ELTID` belongs to exactly one `EVTID`, and each `EVTID`
+belongs to exactly one `PATID`. This provenance relationship does not imply
+that `ELTID` alone is always sufficient for normalized row uniqueness.
 
 Current modules:
 
@@ -37,7 +40,10 @@ raw_pmsi <- get_edsan(
   module = "pmsi",
   what = "data",
   query = list(DATENT = c("2024-01-01", "2024-01-31")),
-  fields = c("PATID", "EVTID", "ELTID", "DATENT", "DATSORT", "DALL"),
+  fields = c(
+    "PATID", "EVTID", "ELTID", "DATENT", "DATSORT", "SEJUM", "SEJUF",
+    "SRC", "DALL"
+  ),
   process = FALSE
 )
 
@@ -46,16 +52,30 @@ pmsi$main
 pmsi$actes
 pmsi$diag
 
-unit_stays <- prefer_pmsi_main_source(pmsi$main)
+pmsi_all_sources <- process_pmsi(raw_pmsi, source_policy = "all")
 ```
 
-`process_pmsi()` keeps the complete normalized `main`, `actes`, and `diag`
-tables. Event limits inherited by `actes` and `diag` are derived from the
-complete `main`. Use `prefer_pmsi_main_source()` explicitly for a unit-level
-view where source `C` takes precedence over `DW`; do not use that view to
-derive global event limits. Passing `process = FALSE` to `get_edsan()` keeps
-the raw payload available when retrieval and normalization need to be audited
-separately.
+`process_pmsi()` returns exactly `list(main, actes, diag)`. Its default
+`source_policy = "c_over_dw"` applies the PMSI rule `C > DW` within each
+`PATID + EVTID + SEJUM + SEJUF`: `DW` is removed where `C` exists and remains
+the fallback otherwise. `source_policy = "all"` retains every normalized
+`main` row. Event limits inherited by `actes` and `diag` are always derived
+from the complete `main` before that policy is applied; the two detail tables
+are not source-filtered.
+
+The same choice is available without breaking the retrieval flow:
+
+```r
+pmsi_all_sources <- get_edsan(
+  module = "pmsi",
+  what = "data",
+  query = list(DATENT = c("2024-01-01", "2024-01-31")),
+  source_policy = "all"
+)
+```
+
+Passing `process = FALSE` to `get_edsan()` instead keeps the raw payload
+available when retrieval and normalization need to be audited separately.
 
 ```r
 raw_biol <- get_edsan(
