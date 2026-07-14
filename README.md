@@ -37,14 +37,25 @@ raw_pmsi <- get_edsan(
   module = "pmsi",
   what = "data",
   query = list(DATENT = c("2024-01-01", "2024-01-31")),
-  fields = c("PATID", "EVTID", "ELTID", "DATENT", "DATSORT", "DALL")
+  fields = c("PATID", "EVTID", "ELTID", "DATENT", "DATSORT", "DALL"),
+  process = FALSE
 )
 
 pmsi <- process_pmsi(raw_pmsi)
 pmsi$main
 pmsi$actes
 pmsi$diag
+
+unit_stays <- prefer_pmsi_main_source(pmsi$main)
 ```
+
+`process_pmsi()` keeps the complete normalized `main`, `actes`, and `diag`
+tables. Event limits inherited by `actes` and `diag` are derived from the
+complete `main`. Use `prefer_pmsi_main_source()` explicitly for a unit-level
+view where source `C` takes precedence over `DW`; do not use that view to
+derive global event limits. Passing `process = FALSE` to `get_edsan()` keeps
+the raw payload available when retrieval and normalization need to be audited
+separately.
 
 ```r
 raw_biol <- get_edsan(

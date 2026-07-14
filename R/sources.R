@@ -26,9 +26,15 @@
     normalizer = c("process_doceds", "process_pmsi", "process_pmsi", "process_pmsi", "process_biol"),
     notes = c(
       "Clinical documents; RECTXT and RECTYPE are document payload fields.",
-      "PMSI stay-level table; DATENT/DATSORT define the stay interval.",
-      "PMSI procedure table; DATEACTE is a point time when present.",
-      "PMSI diagnosis table parsed from DALL; diagnoses inherit the stay interval.",
+      paste(
+        "Complete PMSI main table; DATENT/DATSORT define source intervals.",
+        "Use prefer_pmsi_main_source() explicitly for a source-preferred unit view."
+      ),
+      "Complete PMSI procedure table; DATEACTE is a point time when present.",
+      paste(
+        "Complete PMSI diagnosis table parsed from DALL; diagnoses inherit",
+        "PATID + EVTID limits from the complete main table."
+      ),
       "Biology results; analyte/value/unit columns depend on the returned payload."
     )
   )

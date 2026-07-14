@@ -1,7 +1,7 @@
 Package: redsan
 Type: Package
 Title: Retrieve and Normalize EDSAN Warehouse Data
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: c(
     person(
       given = "Francesco",
@@ -25,6 +25,7 @@ Imports:
     lubridate,
     magrittr,
     purrr,
+    rlang,
     stringr,
     tibble,
     tidyr
