@@ -23,7 +23,8 @@ get_edsan(
   batch_on_error_only = FALSE,
   verbose = FALSE,
   fields = NULL,
-  process = TRUE
+  process = TRUE,
+  source_policy = NULL
 )
 }
 \arguments{
@@ -80,6 +81,11 @@ has a processor is normalized before it is returned: \code{doceds} through
 raw payload unchanged -- the escape hatch for re-normalizing later with an
 updated \code{redsan}, auditing the payload, or caching the raw. \code{idtriplets}
 results pass through either way.}
+
+\item{source_policy}{Optional PMSI \code{main} source policy passed to
+\code{\link[=process_pmsi]{process_pmsi()}}. \code{NULL} uses its default (\code{"c_over_dw"}); \code{"all"} retains
+every normalized PMSI \code{main} row. An explicit value is valid only for
+\code{module = "pmsi"}, \code{what = "data"}, and \code{process = TRUE}.}
 }
 \value{
 By default (\code{process = TRUE}), a \code{what = "data"} call returns the
@@ -122,6 +128,15 @@ pmsi <- get_edsan(
   fields = c("PATID", "EVTID", "ELTID", "DATENT", "DATSORT", "DALL")
 )
 pmsi$main
+
+# Keep every normalized PMSI main source row without breaking the retrieval
+# and processing flow.
+pmsi_all_sources <- get_edsan(
+  module = "pmsi",
+  what = "data",
+  query = list(DATENT = c("2024-01-01", "2024-01-31")),
+  source_policy = "all"
+)
 
 # Escape hatch: keep the raw payload to (re)process yourself later.
 raw_pmsi <- get_edsan(module = "pmsi", what = "data", process = FALSE,

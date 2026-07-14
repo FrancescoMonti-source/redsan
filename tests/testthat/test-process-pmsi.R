@@ -59,10 +59,11 @@ test_that("process_pmsi handles empty and missing-detail payloads", {
   expect_equal(nrow(no_details$diag), 0)
 })
 
-test_that("prefer_pmsi_main_source applies C over DW only within a complete unit key", {
+test_that("prefer_pmsi_src_c_over_dw applies C over DW only within a complete unit key", {
   # Rationale: source-normalization invariant. C replaces DW only for the same
   # patient-event unit, while DW fallback, unclassified sources, incomplete
-  # keys, native row identifiers, column types, and retained order stay intact.
+  # keys, native row identifiers, column types, retained order, and an input
+  # without SRC stay intact.
   main <- tibble::tibble(
     PATID = c("P1", "P1", "P1", "P1", "P1", "P1", NA, NA, "P3", "P3"),
     EVTID = c("E1", "E1", "E1", "E1", "E1", "E1", "E2", "E2", NA, NA),
@@ -73,7 +74,7 @@ test_that("prefer_pmsi_main_source applies C over DW only within a complete unit
     sequence = seq_len(10)
   )
 
-  out <- prefer_pmsi_main_source(main)
+  out <- prefer_pmsi_src_c_over_dw(main)
 
   expect_identical(out$ELTID, paste0("L", 2:10))
   expect_identical(names(out), names(main))
@@ -82,17 +83,23 @@ test_that("prefer_pmsi_main_source applies C over DW only within a complete unit
     vapply(out, function(x) paste(class(x), collapse = "/"), character(1)),
     vapply(main, function(x) paste(class(x), collapse = "/"), character(1))
   )
+
+  without_src <- dplyr::select(main, -SRC)
+  expect_identical(prefer_pmsi_src_c_over_dw(without_src), without_src)
 })
 
-test_that("process_pmsi joins event-level stay dates to detail tables", {
-  # Rationale: process-output contract. Detail tables should inherit event-level
-  # stay bounds for their PATID + EVTID from parsed dates in main, so min/max
-  # must not be string-based or leak across patients sharing an EVTID.
+test_that("process_pmsi applies source policy after deriving complete event bounds", {
+  # Rationale: process-output contract. The default must filter only returned
+  # main rows after complete-main event bounds are derived, while actes/diag stay
+  # complete and bounds do not leak across patients sharing an EVTID.
   raw <- list(
     list(
       PATID = "P1",
       EVTID = "E1",
       ELTID = "L1",
+      SEJUM = "U1",
+      SEJUF = "F1",
+      SRC = "DW",
       DATENT = "10/01/2024 08:00",
       DATSORT = "20/01/2024",
       DALL = "01:A41",
@@ -104,6 +111,9 @@ test_that("process_pmsi joins event-level stay dates to detail tables", {
       PATID = "P1",
       EVTID = "E1",
       ELTID = "L2",
+      SEJUM = "U1",
+      SEJUF = "F1",
+      SRC = "C",
       DATENT = "02/02/2024 09:00",
       DATSORT = "03/02/2024",
       DALL = "02:I10",
@@ -115,6 +125,9 @@ test_that("process_pmsi joins event-level stay dates to detail tables", {
       PATID = "P2",
       EVTID = "E1",
       ELTID = "L3",
+      SEJUM = "U2",
+      SEJUF = "F2",
+      SRC = "C",
       DATENT = "05/03/2024 09:00",
       DATSORT = "06/03/2024",
       DALL = "03:J20",
@@ -125,7 +138,12 @@ test_that("process_pmsi joins event-level stay dates to detail tables", {
   )
 
   out <- process_pmsi(raw)
+  out_all <- process_pmsi(raw, source_policy = "all")
 
+  expect_identical(out$main$ELTID, c("L2", "L3"))
+  expect_identical(out_all$main$ELTID, c("L1", "L2", "L3"))
+  expect_setequal(out$actes$CODEACTE, c("ACTE1", "ACTE2", "ACTE3"))
+  expect_setequal(out$diag$diag, c("A41", "I10", "J20"))
   expect_true(inherits(out$diag$DATENT, "POSIXct"))
   expect_true(inherits(out$diag$DATSORT, "POSIXct"))
   for (table_name in c("diag", "actes")) {

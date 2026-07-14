@@ -27,8 +27,9 @@
     notes = c(
       "Clinical documents; RECTXT and RECTYPE are document payload fields.",
       paste(
-        "Complete PMSI main table; DATENT/DATSORT define source intervals.",
-        "Use prefer_pmsi_main_source() explicitly for a source-preferred unit view."
+        "PMSI main table; DATENT/DATSORT define source intervals.",
+        "Default processing applies C over DW within each patient-event unit;",
+        "use source_policy = 'all' to retain every normalized main row."
       ),
       "Complete PMSI procedure table; DATEACTE is a point time when present.",
       paste(
@@ -85,6 +86,12 @@
 #' registry is intentionally about source mechanics: identifiers, row grain,
 #' query date keys, default batching keys, and point/interval time semantics.
 #' Clinical concepts and study-specific measurement rules belong downstream.
+#'
+#' @details
+#' Across EDSAN modules, each `ELTID` belongs to exactly one `EVTID`, and each
+#' `EVTID` belongs to exactly one `PATID`. These relationships describe document
+#' provenance; additional source-row coordinates may still be required for row
+#' uniqueness within normalized tables.
 #'
 #' @param module Optional module filter. Supported values are `"doceds"`,
 #'   `"pmsi"`, and `"biol"`.

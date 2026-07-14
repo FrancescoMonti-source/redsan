@@ -149,9 +149,9 @@
   data %>% dplyr::select(dplyr::any_of(cols)) %>% dplyr::distinct()
 }
 
-#' Prefer the authoritative PMSI main source within each unit
+#' Prefer PMSI source C over DW within each unit
 #'
-#' Builds a source-preferred view of a complete `process_pmsi()` `main` table.
+#' Applies the PMSI source rule used by [process_pmsi()] by default.
 #' Within each `PATID + EVTID + SEJUM + SEJUF` group, rows whose `SRC` is `"DW"`
 #' are removed only when at least one `"C"` row is present. `"DW"` remains the
 #' fallback for units without `"C"`; unknown and missing sources are always
@@ -159,13 +159,16 @@
 #' their stored values are not modified.
 #'
 #' Rows with a missing `PATID` or `EVTID` are not subject to source precedence.
+#' If `SRC` is absent, `main` is returned unchanged.
 #' The function preserves the input columns, column types, and retained row
 #' order, including `ELTID`.
 #'
-#' @param main A PMSI main data frame containing `PATID`, `EVTID`, `SEJUM`,
-#'   `SEJUF`, and `SRC`.
+#' @param main A PMSI main data frame. When `SRC` is present, `PATID`, `EVTID`,
+#'   `SEJUM`, and `SEJUF` must also be present so the precedence group is
+#'   defined.
 #'
-#' @return `main` restricted to the source-preferred rows.
+#' @return `main` after applying the `C`-over-`DW` rule, or unchanged when
+#'   `SRC` is absent.
 #'
 #' @examples
 #' main <- tibble::tibble(
@@ -175,14 +178,16 @@
 #'   SEJUF = c("UF1", "UF1", "UF2"),
 #'   SRC = c("DW", "C", "DW")
 #' )
-#' prefer_pmsi_main_source(main)
+#' prefer_pmsi_src_c_over_dw(main)
 #'
 #' @importFrom rlang .data
 #' @export
-prefer_pmsi_main_source <- function(main) {
+prefer_pmsi_src_c_over_dw <- function(main) {
   if (!is.data.frame(main)) {
     stop("`main` must be a data frame.", call. = FALSE)
   }
+
+  if (!"SRC" %in% names(main)) return(main)
 
   required <- c("PATID", "EVTID", "SEJUM", "SEJUF", "SRC")
   missing <- setdiff(required, names(main))
@@ -452,7 +457,7 @@ prefer_pmsi_main_source <- function(main) {
 #'
 #' Flattens PMSI stay payloads and returns three tables:
 #' \describe{
-#'   \item{`main`}{the complete normalized PMSI main table, without source filtering}
+#'   \item{`main`}{the normalized PMSI main table after the selected source policy}
 #'   \item{`actes`}{actes in long format (one row per acte)}
 #'   \item{`diag`}{diagnoses derived from `DALL` (one row per token)}
 #' }
@@ -463,11 +468,16 @@ prefer_pmsi_main_source <- function(main) {
 #' receive event-level stay dates computed from the complete `main`: minimum
 #' `DATENT` and maximum `DATSORT` per `PATID + EVTID`. For legacy payloads that
 #' do not contain `PATID`, the event bounds fall back to `EVTID`. `PATAGE` is
-#' numeric in every returned table that carries it. Use
-#' [prefer_pmsi_main_source()] explicitly when a source-preferred unit view is
-#' needed.
+#' numeric in every returned table that carries it. By default, the returned
+#' `main` applies [prefer_pmsi_src_c_over_dw()] after those bounds have been
+#' derived. Use `source_policy = "all"` to retain every normalized `main` row.
+#' `actes` and `diag` are not source-filtered.
 #'
 #' @param data List of PMSI API entries (one list per stay).
+#' @param source_policy PMSI `main` source policy. `"c_over_dw"` (default)
+#'   removes `DW` rows only where `C` exists for the same
+#'   `PATID + EVTID + SEJUM + SEJUF`; `"all"` retains every normalized row.
+#'   If `SRC` is absent, both policies return the same `main`.
 #'
 #' @return A list with tibbles `main`, `actes`, and `diag`.
 #'
@@ -497,12 +507,18 @@ prefer_pmsi_main_source <- function(main) {
 #' pmsi$diag
 #'
 #' @export
-process_pmsi <- function(data) {
+process_pmsi <- function(data, source_policy = c("c_over_dw", "all")) {
+  source_policy <- match.arg(source_policy)
   cleaned <- .pmsi_prepare(data)
-  main <- .pmsi_main(cleaned)
-  event_dates <- .pmsi_event_dates(main)
+  complete_main <- .pmsi_main(cleaned)
+  event_dates <- .pmsi_event_dates(complete_main)
   actes <- .pmsi_attach_event_dates(.pmsi_actes(cleaned), event_dates)
   diag <- .pmsi_attach_event_dates(.pmsi_diag(cleaned), event_dates)
+  main <- if (identical(source_policy, "c_over_dw")) {
+    prefer_pmsi_src_c_over_dw(complete_main)
+  } else {
+    complete_main
+  }
 
   list(
     main  = main,

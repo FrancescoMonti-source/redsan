@@ -2,7 +2,7 @@
 
 export(edsan_sources)
 export(get_edsan)
-export(prefer_pmsi_main_source)
+export(prefer_pmsi_src_c_over_dw)
 export(process_biol)
 export(process_doceds)
 export(process_pmsi)

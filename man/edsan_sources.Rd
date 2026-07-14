@@ -22,6 +22,12 @@ registry is intentionally about source mechanics: identifiers, row grain,
 query date keys, default batching keys, and point/interval time semantics.
 Clinical concepts and study-specific measurement rules belong downstream.
 }
+\details{
+Across EDSAN modules, each \code{ELTID} belongs to exactly one \code{EVTID}, and each
+\code{EVTID} belongs to exactly one \code{PATID}. These relationships describe document
+provenance; additional source-row coordinates may still be required for row
+uniqueness within normalized tables.
+}
 \examples{
 edsan_sources()
 edsan_sources("pmsi")
