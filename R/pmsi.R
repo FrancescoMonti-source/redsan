@@ -88,10 +88,10 @@
 
 
 
-#' Extract the main (stay-level) PMSI table
+#' Extract the complete main PMSI table
 #'
-#' Selects a standard set of stay-level variables from prepared PMSI data and
-#' returns one row per distinct stay.
+#' Selects a standard set of PMSI variables from prepared data and retains every
+#' distinct source record. No source precedence is applied here.
 #'
 #' Intended to be applied after `.pmsi_prepare()`, which parses `DATENT/DATSORT`
 #' and populates `HEURE_*` columns.
@@ -149,6 +149,76 @@
   data %>% dplyr::select(dplyr::any_of(cols)) %>% dplyr::distinct()
 }
 
+#' Prefer the authoritative PMSI main source within each unit
+#'
+#' Builds a source-preferred view of a complete `process_pmsi()` `main` table.
+#' Within each `PATID + EVTID + SEJUM + SEJUF` group, rows whose `SRC` is `"DW"`
+#' are removed only when at least one `"C"` row is present. `"DW"` remains the
+#' fallback for units without `"C"`; unknown and missing sources are always
+#' retained. Source labels are matched case-insensitively after trimming, but
+#' their stored values are not modified.
+#'
+#' Rows with a missing `PATID` or `EVTID` are not subject to source precedence.
+#' The function preserves the input columns, column types, and retained row
+#' order, including `ELTID`.
+#'
+#' @param main A PMSI main data frame containing `PATID`, `EVTID`, `SEJUM`,
+#'   `SEJUF`, and `SRC`.
+#'
+#' @return `main` restricted to the source-preferred rows.
+#'
+#' @examples
+#' main <- tibble::tibble(
+#'   PATID = c("P1", "P1", "P1"),
+#'   EVTID = c("E1", "E1", "E1"),
+#'   SEJUM = c("U1", "U1", "U2"),
+#'   SEJUF = c("UF1", "UF1", "UF2"),
+#'   SRC = c("DW", "C", "DW")
+#' )
+#' prefer_pmsi_main_source(main)
+#'
+#' @importFrom rlang .data
+#' @export
+prefer_pmsi_main_source <- function(main) {
+  if (!is.data.frame(main)) {
+    stop("`main` must be a data frame.", call. = FALSE)
+  }
+
+  required <- c("PATID", "EVTID", "SEJUM", "SEJUF", "SRC")
+  missing <- setdiff(required, names(main))
+  if (length(missing) > 0) {
+    stop(
+      "`main` is missing required column(s): ",
+      paste(missing, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+
+  if (nrow(main) == 0) return(main)
+
+  main %>%
+    dplyr::mutate(
+      .pmsi_source = toupper(trimws(as.character(.data$SRC))),
+      .pmsi_key_complete = !is.na(.data$PATID) & !is.na(.data$EVTID)
+    ) %>%
+    dplyr::group_by(dplyr::across(dplyr::all_of(required[1:4]))) %>%
+    dplyr::mutate(
+      .pmsi_has_c = any(.data$.pmsi_source %in% "C")
+    ) %>%
+    dplyr::filter(
+      !(
+        .data$.pmsi_key_complete &
+          .data$.pmsi_has_c &
+          .data$.pmsi_source %in% "DW"
+      )
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(
+      -dplyr::all_of(c(".pmsi_source", ".pmsi_key_complete", ".pmsi_has_c"))
+    )
+}
+
 .pmsi_missing_datetime <- function(x) {
   tz <- attr(x, "tzone") %||% "Europe/Paris"
   as.POSIXct(NA_real_, origin = "1970-01-01", tz = tz)
@@ -187,8 +257,10 @@
     main$DATSORT <- .pmsi_missing_datetime(main$EVTID)
   }
 
+  event_keys <- if ("PATID" %in% names(main)) c("PATID", "EVTID") else "EVTID"
+
   main %>%
-    dplyr::group_by(EVTID) %>%
+    dplyr::group_by(dplyr::across(dplyr::all_of(event_keys))) %>%
     dplyr::summarise(
       DATENT = .pmsi_min_datetime(DATENT),
       DATSORT = .pmsi_max_datetime(DATSORT),
@@ -199,9 +271,13 @@
 .pmsi_attach_event_dates <- function(data, event_dates) {
   if (!"EVTID" %in% names(data)) return(data)
 
+  event_keys <- if (
+    "PATID" %in% names(data) && "PATID" %in% names(event_dates)
+  ) c("PATID", "EVTID") else "EVTID"
+
   data %>%
     dplyr::select(-dplyr::any_of(c("DATENT", "DATSORT"))) %>%
-    dplyr::left_join(event_dates, by = "EVTID")
+    dplyr::left_join(event_dates, by = event_keys)
 }
 
 
@@ -376,16 +452,20 @@
 #'
 #' Flattens PMSI stay payloads and returns three tables:
 #' \describe{
-#'   \item{`main`}{one row per stay (stay-level variables)}
+#'   \item{`main`}{the complete normalized PMSI main table, without source filtering}
 #'   \item{`actes`}{actes in long format (one row per acte)}
 #'   \item{`diag`}{diagnoses derived from `DALL` (one row per token)}
 #' }
 #'
 #' `DATENT`, `DATSORT`, and acte-level `DATEACTE` are parsed to `POSIXct` and
 #' corresponding `HEURE_*` columns are derived as `hms` times when the raw input
-#' included an explicit time component. `actes` and `diag` receive event-level stay dates computed
-#' from `main`: minimum `DATENT` and maximum `DATSORT` per `EVTID`. `PATAGE` is
-#' numeric in every returned table that carries it.
+#' included an explicit time component. `actes` and `diag` remain complete and
+#' receive event-level stay dates computed from the complete `main`: minimum
+#' `DATENT` and maximum `DATSORT` per `PATID + EVTID`. For legacy payloads that
+#' do not contain `PATID`, the event bounds fall back to `EVTID`. `PATAGE` is
+#' numeric in every returned table that carries it. Use
+#' [prefer_pmsi_main_source()] explicitly when a source-preferred unit view is
+#' needed.
 #'
 #' @param data List of PMSI API entries (one list per stay).
 #'

@@ -15,7 +15,7 @@ A list with tibbles \code{main}, \code{actes}, and \code{diag}.
 \description{
 Flattens PMSI stay payloads and returns three tables:
 \describe{
-\item{\code{main}}{one row per stay (stay-level variables)}
+\item{\code{main}}{the complete normalized PMSI main table, without source filtering}
 \item{\code{actes}}{actes in long format (one row per acte)}
 \item{\code{diag}}{diagnoses derived from \code{DALL} (one row per token)}
 }
@@ -23,9 +23,13 @@ Flattens PMSI stay payloads and returns three tables:
 \details{
 \code{DATENT}, \code{DATSORT}, and acte-level \code{DATEACTE} are parsed to \code{POSIXct} and
 corresponding \verb{HEURE_*} columns are derived as \code{hms} times when the raw input
-included an explicit time component. \code{actes} and \code{diag} receive event-level stay dates computed
-from \code{main}: minimum \code{DATENT} and maximum \code{DATSORT} per \code{EVTID}. \code{PATAGE} is
-numeric in every returned table that carries it.
+included an explicit time component. \code{actes} and \code{diag} remain complete and
+receive event-level stay dates computed from the complete \code{main}: minimum
+\code{DATENT} and maximum \code{DATSORT} per \code{PATID + EVTID}. For legacy payloads that
+do not contain \code{PATID}, the event bounds fall back to \code{EVTID}. \code{PATAGE} is
+numeric in every returned table that carries it. Use
+\code{\link[=prefer_pmsi_main_source]{prefer_pmsi_main_source()}} explicitly when a source-preferred unit view is
+needed.
 }
 \examples{
 example_data <- list(

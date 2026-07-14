@@ -59,9 +59,35 @@ test_that("process_pmsi handles empty and missing-detail payloads", {
   expect_equal(nrow(no_details$diag), 0)
 })
 
+test_that("prefer_pmsi_main_source applies C over DW only within a complete unit key", {
+  # Rationale: source-normalization invariant. C replaces DW only for the same
+  # patient-event unit, while DW fallback, unclassified sources, incomplete
+  # keys, native row identifiers, column types, and retained order stay intact.
+  main <- tibble::tibble(
+    PATID = c("P1", "P1", "P1", "P1", "P1", "P1", NA, NA, "P3", "P3"),
+    EVTID = c("E1", "E1", "E1", "E1", "E1", "E1", "E2", "E2", NA, NA),
+    ELTID = paste0("L", 1:10),
+    SEJUM = c("U1", "U1", "U2", "U3", "U3", "U3", "U4", "U4", "U5", "U5"),
+    SEJUF = c("F1", "F1", "F2", "F3", "F3", "F3", "F4", "F4", "F5", "F5"),
+    SRC = c("DW", "C", "DW", "C", "other", NA, "DW", "C", "DW", "C"),
+    sequence = seq_len(10)
+  )
+
+  out <- prefer_pmsi_main_source(main)
+
+  expect_identical(out$ELTID, paste0("L", 2:10))
+  expect_identical(names(out), names(main))
+  expect_identical(vapply(out, typeof, character(1)), vapply(main, typeof, character(1)))
+  expect_identical(
+    vapply(out, function(x) paste(class(x), collapse = "/"), character(1)),
+    vapply(main, function(x) paste(class(x), collapse = "/"), character(1))
+  )
+})
+
 test_that("process_pmsi joins event-level stay dates to detail tables", {
   # Rationale: process-output contract. Detail tables should inherit event-level
-  # stay bounds from parsed dates in main, so min/max must not be string-based.
+  # stay bounds for their PATID + EVTID from parsed dates in main, so min/max
+  # must not be string-based or leak across patients sharing an EVTID.
   raw <- list(
     list(
       PATID = "P1",
@@ -87,7 +113,7 @@ test_that("process_pmsi joins event-level stay dates to detail tables", {
     ),
     list(
       PATID = "P2",
-      EVTID = "E2",
+      EVTID = "E1",
       ELTID = "L3",
       DATENT = "05/03/2024 09:00",
       DATSORT = "06/03/2024",
@@ -104,11 +130,11 @@ test_that("process_pmsi joins event-level stay dates to detail tables", {
   expect_true(inherits(out$diag$DATSORT, "POSIXct"))
   for (table_name in c("diag", "actes")) {
     table <- out[[table_name]]
-    e1 <- table$EVTID == "E1"
-    e2 <- table$EVTID == "E2"
-    expect_equal(unique(as.Date(table$DATENT[e1], tz = "Europe/Paris")), as.Date("2024-01-10"))
-    expect_equal(unique(as.Date(table$DATSORT[e1], tz = "Europe/Paris")), as.Date("2024-02-03"))
-    expect_equal(unique(as.Date(table$DATENT[e2], tz = "Europe/Paris")), as.Date("2024-03-05"))
-    expect_equal(unique(as.Date(table$DATSORT[e2], tz = "Europe/Paris")), as.Date("2024-03-06"))
+    p1 <- table$PATID == "P1" & table$EVTID == "E1"
+    p2 <- table$PATID == "P2" & table$EVTID == "E1"
+    expect_equal(unique(as.Date(table$DATENT[p1], tz = "Europe/Paris")), as.Date("2024-01-10"))
+    expect_equal(unique(as.Date(table$DATSORT[p1], tz = "Europe/Paris")), as.Date("2024-02-03"))
+    expect_equal(unique(as.Date(table$DATENT[p2], tz = "Europe/Paris")), as.Date("2024-03-05"))
+    expect_equal(unique(as.Date(table$DATSORT[p2], tz = "Europe/Paris")), as.Date("2024-03-06"))
   }
 })
