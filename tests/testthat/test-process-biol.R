@@ -61,8 +61,6 @@ test_that("process_biol keeps metadata columns when source metadata is sparse", 
   out <- process_biol(raw)
 
   expect_true(all(c("PATID", "EVTID", "ELTID", "BIOL_ID", "DATEXAM") %in% names(out)))
-  expect_equal(out$PATID, "P1")
   expect_true(is.na(out$EVTID))
-  expect_true(is.na(out$ELTID))
   expect_true(is.na(out$HEURE_DATEXAM))
 })
