@@ -7,7 +7,7 @@
 #' @param data A data frame containing EDSAN identifiers.
 #' @param cols Character vector of identifier columns to count. When omitted,
 #'   available columns among `PATID`, `EVTID`, `ELTID`, `BIOL_ID`, `DOC_ID`,
-#'   and `PMSI_ID` are detected case-insensitively.
+#'   `PMSI_ID`, and `VIRO_ID` are detected case-insensitively.
 #'
 #' @return `NULL`, invisibly. The counts are printed to the console.
 #'
@@ -22,7 +22,7 @@
 #' @export
 count_idtriplets <- function(
   data,
-  cols = c("patid", "evtid", "eltid", "biol_id", "doc_id", "pmsi_id")
+  cols = c("patid", "evtid", "eltid", "biol_id", "doc_id", "pmsi_id", "viro_id")
 ) {
   data_colnames <- tolower(names(data))
 

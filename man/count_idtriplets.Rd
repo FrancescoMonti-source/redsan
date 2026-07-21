@@ -6,7 +6,7 @@
 \usage{
 count_idtriplets(
   data,
-  cols = c("patid", "evtid", "eltid", "biol_id", "doc_id", "pmsi_id")
+  cols = c("patid", "evtid", "eltid", "biol_id", "doc_id", "pmsi_id", "viro_id")
 )
 }
 \arguments{
@@ -14,7 +14,7 @@ count_idtriplets(
 
 \item{cols}{Character vector of identifier columns to count. When omitted,
 available columns among \code{PATID}, \code{EVTID}, \code{ELTID}, \code{BIOL_ID}, \code{DOC_ID},
-and \code{PMSI_ID} are detected case-insensitively.}
+\code{PMSI_ID}, and \code{VIRO_ID} are detected case-insensitively.}
 }
 \value{
 \code{NULL}, invisibly. The counts are printed to the console.

@@ -29,6 +29,7 @@ Current modules:
 - `pmsi`: stays, acts, and diagnoses, with stay intervals through `DATENT` and
   `DATSORT`
 - `biol`: biology results, point time through `DATEXAM`
+- `viro`: virology results, point time through `DATEPRELEV`
 
 ## Basic workflow
 

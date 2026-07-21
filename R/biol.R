@@ -1,4 +1,4 @@
-#' Prepare raw BIOL payload into per-exam result tables
+#' Prepare raw BIOL/VIRO payload into per-exam result tables
 #'
 #' Converts a list of BIOL API entries (lab exams) into a list of tibbles where
 #' each tibble contains one row per result in `RESULTATS`, with exam-level
@@ -40,7 +40,7 @@
 #' @importFrom dplyr bind_cols
 #' @keywords internal
 #' @noRd
-.biol_prepare <- function(data) {
+.biol_prepare <- function(data, id_col = "BIOL_ID", date_col = "DATEXAM", extra_meta = "ELTID") {
   # data: list of lab exams; each element has metadata + RESULTATS (data.frame)
   get_value <- function(entry, name) {
     value <- entry[[name]]
@@ -56,9 +56,8 @@
     meta <- tibble::tibble(
       PATID = get_value(entry, "PATID"),
       EVTID = get_value(entry, "EVTID"),
-      ELTID = get_value(entry, "ELTID"),
-      BIOL_ID = biol_id,
-      DATEXAM = get_value(entry, "DATEXAM"),
+      .SOURCE_ID = biol_id,
+      .SOURCE_DATE = get_value(entry, date_col),
       SEJUM = get_value(entry, "SEJUM"),
       SEJUF = get_value(entry, "SEJUF"),
       PATBD = get_value(entry, "PATBD"),
@@ -66,6 +65,15 @@
       PATSEX = get_value(entry, "PATSEX"),
       CSTE_LABO = get_value(entry, "CSTE_LABO")
     )
+
+    names(meta)[names(meta) == ".SOURCE_ID"] <- id_col
+    names(meta)[names(meta) == ".SOURCE_DATE"] <- date_col
+
+    for (col in rev(extra_meta)) {
+      if (!col %in% names(meta)) {
+        meta <- tibble::add_column(meta, !!col := get_value(entry, col), .after = "EVTID")
+      }
+    }
 
     # Ensure results is a tibble
     res_tbl <- tibble::as_tibble(results)
@@ -112,21 +120,21 @@
 #' @importFrom dplyr bind_rows
 #' @keywords internal
 #' @noRd
-.biol_results <- function(data) {
+.biol_results <- function(data, id_col = "BIOL_ID", date_col = "DATEXAM", extra_meta = "ELTID") {
   # Accept either raw list (API chunks) or already prepared list of tibbles
   if (is.list(data) && !is.data.frame(data)) {
-    rows <- .biol_prepare(data)
+    rows <- .biol_prepare(data, id_col = id_col, date_col = date_col, extra_meta = extra_meta)
     if (length(rows) == 0) return(tibble::tibble())
     df <- dplyr::bind_rows(rows)
   } else {
     df <- tibble::as_tibble(data)
   }
 
-  # Parse DATEXAM and compute HEURE_DATEXAM (only if time was explicit in raw string)
-  if ("DATEXAM" %in% names(df)) {
-    raw <- as.character(df$DATEXAM)
-    df$DATEXAM <- .pmsi_parse_datetime(raw)
-    df$HEURE_DATEXAM <- .pmsi_time_hms(df$DATEXAM, raw)
+  # Parse source date and compute HEURE_* (only if time was explicit in raw string)
+  if (date_col %in% names(df)) {
+    raw <- as.character(df[[date_col]])
+    df[[date_col]] <- .pmsi_parse_datetime(raw)
+    df[[paste0("HEURE_", date_col)]] <- .pmsi_time_hms(df[[date_col]], raw)
   }
 
   if ("PATAGE" %in% names(df)) {
@@ -168,4 +176,22 @@
 #' @export
 process_biol <- function(data) {
   .biol_results(data)
+}
+
+#' Process VIRO results
+#'
+#' Flattens VIRO results from the EDSaN API into a single tibble. VIRO shares
+#' the BIOL result shape but uses `VIRO_ID` for source traceability and
+#' `DATEPRELEV` as its source date.
+#'
+#' @param data List of VIRO API entries (raw exams with `RESULTATS`) or a
+#'   data.frame/tibble already in result form.
+#'
+#' @return A tibble with virology metadata columns and result columns. When
+#'   available, adds `HEURE_DATEPRELEV`. `PATAGE` and `NUMRES`, when present, are
+#'   numeric.
+#'
+#' @export
+process_viro <- function(data) {
+  .biol_results(data, id_col = "VIRO_ID", date_col = "DATEPRELEV", extra_meta = character())
 }
