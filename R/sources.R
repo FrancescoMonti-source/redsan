@@ -2,28 +2,30 @@
 
 .edsan_source_registry <- function() {
   tibble::tibble(
-    module = c("doceds", "pmsi", "pmsi", "pmsi", "biol"),
-    table = c("documents", "main", "actes", "diag", "results"),
-    grain = c("document", "stay", "acte", "diagnosis", "biology_result"),
+    module = c("doceds", "pmsi", "pmsi", "pmsi", "biol", "viro"),
+    table = c("documents", "main", "actes", "diag", "results", "results"),
+    grain = c("document", "stay", "acte", "diagnosis", "biology_result", "virology_result"),
     identifiers = list(
       c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID"),
-      c("PATID", "EVTID", "ELTID", "BIOL_ID")
+      c("PATID", "EVTID", "ELTID", "BIOL_ID"),
+      c("PATID", "EVTID", "VIRO_ID")
     ),
-    source_time_kind = c("point", "interval", "point", "interval", "point"),
-    source_time_start = c("RECDATE", "DATENT", "DATEACTE", "DATENT", "DATEXAM"),
-    source_time_end = c(NA_character_, "DATSORT", NA_character_, "DATSORT", NA_character_),
+    source_time_kind = c("point", "interval", "point", "interval", "point", "point"),
+    source_time_start = c("RECDATE", "DATENT", "DATEACTE", "DATENT", "DATEXAM", "DATEPRELEV"),
+    source_time_end = c(NA_character_, "DATSORT", NA_character_, "DATSORT", NA_character_, NA_character_),
     query_date_keys = list(
       "RECDATE",
       c("DATENT", "DATSORT"),
       c("DATENT", "DATSORT"),
       c("DATENT", "DATSORT"),
-      "DATEXAM"
+      "DATEXAM",
+      "DATEPRELEV"
     ),
-    default_batch_key = c("RECDATE", "DATENT", "DATENT", "DATENT", "DATEXAM"),
-    normalizer = c("process_doceds", "process_pmsi", "process_pmsi", "process_pmsi", "process_biol"),
+    default_batch_key = c("RECDATE", "DATENT", "DATENT", "DATENT", "DATEXAM", "DATEPRELEV"),
+    normalizer = c("process_doceds", "process_pmsi", "process_pmsi", "process_pmsi", "process_biol", "process_viro"),
     notes = c(
       "Clinical documents; RECTXT and RECTYPE are document payload fields.",
       paste(
@@ -36,7 +38,8 @@
         "Complete PMSI diagnosis table parsed from DALL; diagnoses inherit",
         "PATID + EVTID limits from the complete main table."
       ),
-      "Biology results; analyte/value/unit columns depend on the returned payload."
+      "Biology results; analyte/value/unit columns depend on the returned payload.",
+      "Virology results; BIOL-like payload with VIRO_ID traceability and DATEPRELEV point time."
     )
   )
 }
@@ -94,7 +97,7 @@
 #' uniqueness within normalized tables.
 #'
 #' @param module Optional module filter. Supported values are `"doceds"`,
-#'   `"pmsi"`, and `"biol"`.
+#'   `"pmsi"`, `"biol"`, and `"viro"`.
 #' @param table Optional normalized table filter, for example `"main"`,
 #'   `"actes"`, `"diag"`, or `"results"`.
 #'

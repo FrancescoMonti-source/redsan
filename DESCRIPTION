@@ -14,7 +14,7 @@ Author: Francesco Monti-source [aut, cre]
 Maintainer: Francesco Monti-source <58150610+FrancescoMonti-source@users.noreply.github.com>
 Description: Retrieves and normalizes EDSAN health data warehouse modules for
     downstream analysis. The package records module-level source contracts,
-    batches live API calls, and prepares PMSI and biology payloads into stable
+    batches live API calls, and prepares PMSI and biology/virology payloads into stable
     analysis tables while preserving native identifiers.
 License: file LICENSE
 Encoding: UTF-8

@@ -6,7 +6,7 @@
 \alias{redsan-package}
 \title{redsan: Retrieve and normalize EDSAN warehouse data}
 \description{
-Retrieves and normalizes EDSAN health data warehouse modules for downstream analysis. The package records module-level source contracts, batches live API calls, and prepares PMSI and biology payloads into stable analysis tables while preserving native identifiers.
+Retrieves and normalizes EDSAN health data warehouse modules for downstream analysis. The package records module-level source contracts, batches live API calls, and prepares PMSI and biology/virology payloads into stable analysis tables while preserving native identifiers.
 }
 \author{
 \strong{Maintainer}: Francesco Monti-source \email{58150610+FrancescoMonti-source@users.noreply.github.com}

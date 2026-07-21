@@ -161,10 +161,10 @@
     stop("Unsupported batch_key for pmsi")
   }
 
-  if (module == "biol") {
+  if (module %in% c("biol", "viro")) {
     b <- .edsan_extract_bounds(query[[batch_key]])
     if (is.null(b$lo) || is.null(b$hi) || b$lo > b$hi) {
-      stop("missing_time_window: biol requires ", batch_key, " bounds")
+      stop("missing_time_window: ", module, " requires ", batch_key, " bounds")
     }
     return(list(start = b$lo, end = b$hi, inferred = TRUE))
   }
@@ -561,7 +561,7 @@
     return(0L)
   }
 
-  if (module %in% c("pmsi", "biol")) {
+  if (module %in% c("pmsi", "biol", "viro")) {
     if (is.list(value) && !is.data.frame(value)) return(as.integer(length(value)))
   }
 
@@ -595,6 +595,7 @@
       process_pmsi(combined, source_policy = source_policy)
     },
     biol = process_biol(combined),
+    viro = process_viro(combined),
     combined
   )
 }
@@ -606,7 +607,7 @@
 #' batching keys are read from [edsan_sources()], so validation follows the same
 #' source contracts documented by the package.
 #'
-#' @param module EDSAN module to query: `"doceds"`, `"pmsi"`, or `"biol"`.
+#' @param module EDSAN module to query: `"doceds"`, `"pmsi"`, `"biol"`, or `"viro"`.
 #' @param what Endpoint shape to request. `"data"` returns module payloads;
 #'   `"idtriplets"` returns native identifier triplets unless extra `fields`
 #'   require the data endpoint.
@@ -622,7 +623,7 @@
 #' @param periods_overlap_days Non-negative number of days added to each period
 #'   end. Use only when the backend query needs overlapping windows.
 #' @param batch_key Date key used for time batching. Defaults by module:
-#'   `RECDATE` for `doceds`, `DATENT` for `pmsi`, and `DATEXAM` for `biol`.
+#'   `RECDATE` for `doceds`, `DATENT` for `pmsi`, `DATEXAM` for `biol`, and `DATEPRELEV` for `viro`.
 #' @param batch_ids_key Identifier key used for ID batching. If `NULL`, one of
 #'   `ELTID`, `EVTID`, or `PATID` is selected from `query` when present.
 #' @param max_in_ids Maximum number of input identifiers per ID chunk.
@@ -638,8 +639,8 @@
 #'   `RECTYPE`, `RECDATE`, `SEJUM`, `SEJUF`, and `RECTXT`.
 #' @param process If `TRUE` (default), a `what = "data"` payload for a module that
 #'   has a processor is normalized before it is returned: `doceds` through
-#'   [process_doceds()], `pmsi` through [process_pmsi()], and `biol` through
-#'   [process_biol()]. Set `FALSE` to return the
+#'   [process_doceds()], `pmsi` through [process_pmsi()], `biol` through
+#'   [process_biol()], and `viro` through [process_viro()]. Set `FALSE` to return the
 #'   raw payload unchanged -- the escape hatch for re-normalizing later with an
 #'   updated `redsan`, auditing the payload, or caching the raw. `idtriplets`
 #'   results pass through either way.
@@ -650,7 +651,7 @@
 #'
 #' @return By default (`process = TRUE`), a `what = "data"` call returns the
 #'   normalized tables: a `list(main, actes, diag)` for `pmsi`, and processed
-#'   tibbles for `biol` and `doceds`. With `process = FALSE`, or
+#'   tibbles for `biol`, `viro`, and `doceds`. With `process = FALSE`, or
 #'   for `what = "idtriplets"`, the raw data frame/list is returned instead. When
 #'   `return_audit = TRUE`, a list with `data` (the value just described) and
 #'   `audit`.
@@ -660,9 +661,10 @@
 #' - `doceds`: `RECDATE`
 #' - `pmsi`: `DATENT` and/or `DATSORT`
 #' - `biol`: `DATEXAM`
+#' - `viro`: `DATEPRELEV`
 #'
 #' Retrieval (batching, raw source fetch) and normalization ([process_doceds()],
-#' [process_pmsi()], [process_biol()]) are separate concerns -- the raw payload is the expensive,
+#' [process_pmsi()], [process_biol()], [process_viro()]) are separate concerns -- the raw payload is the expensive,
 #' cacheable artifact -- but because a `what = "data"` call almost always wants the
 #' analysis tables, `get_edsan()` chains the matching processor by default. Pass
 #' `process = FALSE` to keep the two steps apart and hold the raw payload.
@@ -706,7 +708,7 @@
 #'
 #' @export
 get_edsan <- function(
-    module = c("doceds", "pmsi", "biol"),
+    module = c("doceds", "pmsi", "biol", "viro"),
     what = c("data", "idtriplets"),
     query = list(),
     start_date = NULL,
