@@ -10,7 +10,7 @@ get_event_bundle(event_id, sources = "all")
 \item{event_id}{One non-missing EDSAN \code{EVTID}.}
 
 \item{sources}{EDSAN modules to retrieve. Use \code{"all"} (the default) for every
-module registered by \code{edsan_sources()}, or provide a character vector such
+module registered by \code{\link[=edsan_sources]{edsan_sources()}}, or provide a character vector such
 as \code{c("doceds", "biol")}.}
 }
 \value{
