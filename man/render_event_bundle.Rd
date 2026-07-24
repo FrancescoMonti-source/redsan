@@ -7,7 +7,7 @@
 render_event_bundle(bundle, sources = NULL, pretty = TRUE)
 }
 \arguments{
-\item{bundle}{An object returned by \code{\link[=get_event_bundle]{get_event_bundle()}}.}
+\item{bundle}{An object returned by \code{get_event_bundle()}.}
 
 \item{sources}{Sources already present in \code{bundle} to include. \code{NULL}
 (the default) or \code{"all"} includes every source in the bundle. A character
