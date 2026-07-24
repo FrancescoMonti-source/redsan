@@ -114,6 +114,28 @@ Printing the bundle reports compact row counts while leaving the normalized
 source objects unchanged. Retrieval is fail-fast: if one requested module
 fails, `get_event_bundle()` does not return a silently partial bundle.
 
+`render_event_bundle()` serializes the retrieved object to neutral JSON. By
+default every source already present in the bundle is rendered; callers may
+select whole retrieved sources without triggering new EDSAN calls.
+
+```r
+full_context <- render_event_bundle(bundle)
+
+compact_context <- render_event_bundle(
+  bundle,
+  pretty = FALSE
+)
+
+documents_and_biology <- render_event_bundle(
+  bundle,
+  sources = c("doceds", "biol")
+)
+```
+
+The renderer preserves all rows and columns of the selected sources. It does
+not decide which information is clinically relevant and does not construct a
+model-specific prompt.
+
 ## Privacy
 
 Request only the fields needed for the task. Keep patient-derived exports,
