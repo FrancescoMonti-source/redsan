@@ -1,24 +1,49 @@
-test_that("event bundle retrieves selected modules without reshaping them", {
+test_that("normalized sources are partitioned into ordered event bundles", {
+  sources <- list(
+    doceds = tibble::tibble(
+      EVTID = c("E2", "E1", "OTHER"),
+      ELTID = c("D2", "D1", "DX")
+    ),
+    pmsi = list(
+      main = tibble::tibble(EVTID = c("E1", "E2"), stay = c(1L, 2L)),
+      actes = tibble::tibble(EVTID = "E1", CODEACTE = "A1"),
+      diag = tibble::tibble()
+    ),
+    biol = tibble::tibble(EVTID = "E1", BIOL_ID = "B1")
+  )
+
+  bundles <- build_event_bundles(c("E2", "E1", "E3"), sources)
+
+  expect_identical(names(bundles), c("E2", "E1", "E3"))
+  expect_true(all(vapply(bundles, inherits, logical(1), "edsan_event_bundle")))
+  expect_identical(bundles$E2$sources$doceds$ELTID, "D2")
+  expect_identical(bundles$E1$sources$pmsi$actes$CODEACTE, "A1")
+  expect_identical(names(bundles$E1$sources$pmsi), c("main", "actes", "diag"))
+  expect_equal(nrow(bundles$E3$sources$doceds), 0L)
+  expect_equal(nrow(bundles$E3$sources$pmsi$main), 0L)
+  expect_equal(nrow(bundles$E3$sources$pmsi$diag), 0L)
+  expect_false(any(vapply(bundles, function(x) "OTHER" %in% x$sources$doceds$EVTID,
+                          logical(1))))
+
+  single <- build_event_bundle("E1", sources)
+  expect_identical(single$event_id, "E1")
+  expect_identical(single$sources, bundles$E1$sources)
+})
+
+test_that("batch retrieval calls each selected source once with all event ids", {
   calls <- list()
   fake_get_edsan <- function(module, what, query, process, ...) {
     calls[[length(calls) + 1L]] <<- list(
-      module = module,
-      what = what,
-      query = query,
-      process = process
+      module = module, what = what, query = query, process = process
     )
-
-    switch(
-      module,
-      doceds = tibble::tibble(EVTID = query$EVTID, ELTID = "D1"),
-      pmsi = list(
+    if (identical(module, "pmsi")) {
+      return(list(
         main = tibble::tibble(EVTID = query$EVTID),
-        actes = tibble::tibble(EVTID = query$EVTID, ELTID = "A1"),
-        diag = tibble::tibble(EVTID = query$EVTID, ELTID = "X1")
-      ),
-      biol = tibble::tibble(EVTID = query$EVTID, BIOL_ID = "B1"),
-      viro = tibble::tibble(EVTID = query$EVTID, VIRO_ID = "V1")
-    )
+        actes = tibble::tibble(EVTID = character()),
+        diag = tibble::tibble(EVTID = character())
+      ))
+    }
+    tibble::tibble(EVTID = query$EVTID)
   }
 
   testthat::local_mocked_bindings(
@@ -26,67 +51,45 @@ test_that("event bundle retrieves selected modules without reshaping them", {
     .package = "redsan"
   )
 
-  bundle <- get_event_bundle("E1", sources = c("doceds", "pmsi"))
+  bundles <- get_event_bundles(
+    c("E1", "E2"),
+    sources = c("doceds", "pmsi", "biol")
+  )
 
-  expect_s3_class(bundle, "edsan_event_bundle")
-  expect_identical(bundle$event_id, "E1")
-  expect_identical(names(bundle$sources), c("doceds", "pmsi"))
-  expect_identical(names(bundle$sources$pmsi), c("main", "actes", "diag"))
-  expect_true(inherits(bundle$created_at, "POSIXct"))
-  expect_length(calls, 2L)
-  expect_true(all(vapply(calls, function(x) identical(x$query, list(EVTID = "E1")), logical(1))))
+  expect_length(calls, 3L)
+  expect_identical(vapply(calls, `[[`, character(1), "module"),
+                   c("doceds", "pmsi", "biol"))
+  expect_true(all(vapply(calls, function(x) {
+    identical(x$query, list(EVTID = c("E1", "E2")))
+  }, logical(1))))
   expect_true(all(vapply(calls, function(x) identical(x$what, "data"), logical(1))))
   expect_true(all(vapply(calls, function(x) isTRUE(x$process), logical(1))))
+  expect_identical(names(bundles), c("E1", "E2"))
+
+  calls <- list()
+  single <- get_event_bundle("E1", sources = "doceds")
+  expect_s3_class(single, "edsan_event_bundle")
+  expect_identical(single$event_id, "E1")
+  expect_length(calls, 1L)
 })
 
-test_that("event bundle expands all from the source registry", {
-  modules <- character()
-  testthat::local_mocked_bindings(
-    get_edsan = function(module, ...) {
-      modules <<- c(modules, module)
-      tibble::tibble()
-    },
-    .package = "redsan"
-  )
-
-  bundle <- get_event_bundle("E1")
-
-  expect_identical(names(bundle$sources), unique(edsan_sources()$module))
-  expect_identical(modules, unique(edsan_sources()$module))
-})
-
-test_that("event bundle rejects invalid identifiers and unknown sources", {
-  expect_error(get_event_bundle(character()), "one non-missing EVTID", fixed = TRUE)
-  expect_error(get_event_bundle(NA_character_), "one non-missing EVTID", fixed = TRUE)
-  expect_error(get_event_bundle(""), "one non-missing EVTID", fixed = TRUE)
+test_that("invalid identifiers and malformed sources fail clearly", {
+  expect_error(build_event_bundles(character(), list(doceds = tibble::tibble())),
+               "non-empty character vector", fixed = TRUE)
+  expect_error(build_event_bundles(c("E1", "E1"), list(doceds = tibble::tibble())),
+               "duplicate EVTID", fixed = TRUE)
+  expect_error(build_event_bundle(c("E1", "E2"), list(doceds = tibble::tibble())),
+               "exactly one EVTID", fixed = TRUE)
   expect_error(
-    get_event_bundle("E1", sources = "bact"),
-    "Unknown EDSAN source(s): bact",
+    build_event_bundle("E1", list(doceds = tibble::tibble(value = 1L))),
+    "must contain an EVTID column",
     fixed = TRUE
   )
-})
-
-test_that("event bundle print is compact and preserves the object", {
-  bundle <- structure(
-    list(
-      event_id = "E1",
-      sources = list(
-        doceds = tibble::tibble(ELTID = c("D1", "D2")),
-        pmsi = list(
-          main = tibble::tibble(EVTID = "E1"),
-          actes = tibble::tibble(),
-          diag = tibble::tibble(ELTID = c("X1", "X2"))
-        )
-      ),
-      created_at = Sys.time()
-    ),
-    class = c("edsan_event_bundle", "list")
+  expect_error(
+    build_event_bundle("E1", list(pmsi = list(main = tibble::tibble()))),
+    "main, actes, and diag",
+    fixed = TRUE
   )
-
-  output <- capture.output(returned <- print(bundle))
-
-  expect_match(output[[1]], "EDSaN event bundle: E1", fixed = TRUE)
-  expect_true(any(grepl("doceds: 2 rows", output, fixed = TRUE)))
-  expect_true(any(grepl("pmsi: main=1, actes=0, diag=2", output, fixed = TRUE)))
-  expect_identical(returned, bundle)
+  expect_error(get_event_bundles("E1", sources = "bact"),
+               "Unknown EDSAN source(s): bact", fixed = TRUE)
 })
