@@ -36,4 +36,5 @@ bundle <- get_event_bundle(
   sources = c("doceds", "pmsi", "biol")
 )
 }
+
 }
