@@ -88,6 +88,32 @@ raw_biol <- get_edsan(
 biology <- process_biol(raw_biol)
 ```
 
+## Event bundles
+
+`get_event_bundle()` retrieves the normalized output of several modules for one
+`EVTID` without selecting rows or fields within those sources. By default it
+uses every module in `edsan_sources()`; callers may instead request whole
+modules explicitly.
+
+```r
+bundle <- get_event_bundle("123456789")
+
+bundle <- get_event_bundle(
+  "123456789",
+  sources = c("doceds", "pmsi", "biol")
+)
+
+bundle$sources$doceds
+bundle$sources$pmsi$main
+bundle$sources$pmsi$actes
+bundle$sources$pmsi$diag
+bundle$sources$biol
+```
+
+Printing the bundle reports compact row counts while leaving the normalized
+source objects unchanged. Retrieval is fail-fast: if one requested module
+fails, `get_event_bundle()` does not return a silently partial bundle.
+
 ## Privacy
 
 Request only the fields needed for the task. Keep patient-derived exports,
