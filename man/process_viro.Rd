@@ -11,20 +11,12 @@ process_viro(data)
 data.frame/tibble already in result form.}
 }
 \value{
-A tibble with exam metadata columns and lab result columns. When
+A tibble with virology metadata columns and result columns. When
 available, adds \code{HEURE_DATEPRELEV}. \code{PATAGE} and \code{NUMRES}, when present, are
-numeric. Qualitative result fields such as \code{STRRES} are preserved.
+numeric.
 }
 \description{
-Flattens VIRO lab results from the EDSaN API into a single tibble.
-If \code{DATEPRELEV} is present, it is parsed into \code{POSIXct} and \code{HEURE_DATEPRELEV}
-(\code{hms}) is derived only when an explicit time is present in the raw string.
-}
-\examples{
-raw <- list(list(
-  PATID="P1", EVTID="E1", DATEPRELEV="2020-01-01 08:30",
-  RESULTATS=data.frame(ANALYTE="Hb", VALEUR="13.2")
-))
-process_viro(raw)
-
+Flattens VIRO results from the EDSaN API into a single tibble. VIRO shares
+the BIOL result shape but uses \code{VIRO_ID} for source traceability and
+\code{DATEPRELEV} as its source date.
 }
