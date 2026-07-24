@@ -5,7 +5,7 @@
 \title{Retrieve EDSAN data with adaptive batching}
 \usage{
 get_edsan(
-  module = c("doceds", "pmsi", "biol"),
+  module = c("doceds", "pmsi", "biol", "viro"),
   what = c("data", "idtriplets"),
   query = list(),
   start_date = NULL,
@@ -76,9 +76,8 @@ defaults to \code{PATID}, \code{EVTID}, \code{ELTID}, \code{PATAGE}, \code{PATSE
 
 \item{process}{If \code{TRUE} (default), a \code{what = "data"} payload for a module that
 has a processor is normalized before it is returned: \code{doceds} through
-\code{\link[=process_doceds]{process_doceds()}}, \code{pmsi} through \code{\link[=process_pmsi]{process_pmsi()}}, and \code{biol} through
-\code{\link[=process_biol]{process_biol()}}, and \code{viro} through
-\code{\link[=process_viro]{process_viro()}}. Set \code{FALSE} to return the
+\code{\link[=process_doceds]{process_doceds()}}, \code{pmsi} through \code{\link[=process_pmsi]{process_pmsi()}}, \code{biol} through
+\code{\link[=process_biol]{process_biol()}}, and \code{viro} through \code{\link[=process_viro]{process_viro()}}. Set \code{FALSE} to return the
 raw payload unchanged -- the escape hatch for re-normalizing later with an
 updated \code{redsan}, auditing the payload, or caching the raw. \code{idtriplets}
 results pass through either way.}
