@@ -1,9 +1,12 @@
 # Event bundle retrieval and construction -------------------------------------
 
 .validate_event_ids <- function(event_ids, argument = "event_ids") {
-  if (!is.character(event_ids) || length(event_ids) == 0L || anyNA(event_ids) ||
-      any(!nzchar(trimws(event_ids)))) {
-    stop("`", argument, "` must be a non-empty character vector of EVTID values.",
+  if (!(is.character(event_ids) || is.numeric(event_ids)) || length(event_ids) == 0L) {
+    stop("`", argument, "` must contain one or more EVTID values.", call. = FALSE)
+  }
+  event_ids <- as.character(event_ids)
+  if (anyNA(event_ids) || any(!nzchar(trimws(event_ids)))) {
+    stop("`", argument, "` must contain one or more non-missing EVTID values.",
          call. = FALSE)
   }
   if (anyDuplicated(event_ids)) {
@@ -95,7 +98,7 @@
 #' retrieval is performed and no rows or columns are selected beyond the event
 #' boundary. PMSI retains its `main`, `actes`, and `diag` tables.
 #'
-#' @param event_ids Non-empty character vector of unique EDSAN `EVTID` values.
+#' @param event_ids Non-empty vector of unique EDSAN `EVTID` values.
 #' @param sources Named list of normalized EDSAN source objects, for example
 #'   `list(doceds = documents, pmsi = pmsi, biol = biology)`.
 #'
@@ -137,7 +140,7 @@ build_event_bundle <- function(event_id, sources) {
 #' `EVTID` values, then delegates local partitioning to [build_event_bundles()].
 #' `get_edsan()` remains responsible for any technical ID batching.
 #'
-#' @param event_ids Non-empty character vector of unique EDSAN `EVTID` values.
+#' @param event_ids Non-empty vector of unique EDSAN `EVTID` values.
 #' @param sources EDSAN modules to retrieve. Use `"all"` (the default) for every
 #'   module registered by [edsan_sources()], or provide a character vector.
 #'
