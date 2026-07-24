@@ -28,6 +28,9 @@ test_that("normalized sources are partitioned into ordered event bundles", {
   single <- build_event_bundle("E1", sources)
   expect_identical(single$event_id, "E1")
   expect_identical(single$sources, bundles$E1$sources)
+
+  numeric <- build_event_bundle(1, list(doceds = tibble::tibble(EVTID = "1")))
+  expect_identical(numeric$event_id, "1")
 })
 
 test_that("batch retrieval calls each selected source once with all event ids", {
@@ -75,7 +78,7 @@ test_that("batch retrieval calls each selected source once with all event ids", 
 
 test_that("invalid identifiers and malformed sources fail clearly", {
   expect_error(build_event_bundles(character(), list(doceds = tibble::tibble())),
-               "non-empty character vector", fixed = TRUE)
+               "one or more EVTID values", fixed = TRUE)
   expect_error(build_event_bundles(c("E1", "E1"), list(doceds = tibble::tibble())),
                "duplicate EVTID", fixed = TRUE)
   expect_error(build_event_bundle(c("E1", "E2"), list(doceds = tibble::tibble())),
