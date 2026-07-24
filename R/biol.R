@@ -71,7 +71,14 @@
 
     for (col in rev(extra_meta)) {
       if (!col %in% names(meta)) {
-        meta <- tibble::add_column(meta, !!col := get_value(entry, col), .after = "EVTID")
+        existing_names <- names(meta)
+        evtid_position <- match("EVTID", existing_names)
+        meta[[col]] <- get_value(entry, col)
+        meta <- meta[c(
+          existing_names[seq_len(evtid_position)],
+          col,
+          existing_names[-seq_len(evtid_position)]
+        )]
       }
     }
 
