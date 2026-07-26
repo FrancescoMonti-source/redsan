@@ -44,6 +44,61 @@
   )
 }
 
+.edsan_identifier_names <- function(module, table = NULL) {
+  sources <- .edsan_source_registry()
+  keep <- sources$module %in% module
+  if (!is.null(table)) {
+    keep <- keep & sources$table %in% table
+  }
+  unique(unlist(sources$identifiers[keep], use.names = FALSE))
+}
+
+.edsan_as_identifier <- function(x) {
+  if (is.character(x)) {
+    return(x)
+  }
+  if (is.factor(x) || inherits(x, "integer64")) {
+    return(as.character(x))
+  }
+  if (is.numeric(x) && !inherits(x, c("Date", "POSIXt"))) {
+    return(vapply(
+      x,
+      function(value) {
+        if (is.na(value)) {
+          return(NA_character_)
+        }
+        format(
+          value,
+          scientific = FALSE,
+          trim = TRUE,
+          drop0trailing = TRUE,
+          digits = 15L
+        )
+      },
+      character(1)
+    ))
+  }
+  as.character(x)
+}
+
+.edsan_normalize_identifier_columns <- function(data, module, table = NULL) {
+  identifiers <- intersect(
+    .edsan_identifier_names(module, table),
+    names(data)
+  )
+  for (identifier in identifiers) {
+    data[[identifier]] <- .edsan_as_identifier(data[[identifier]])
+  }
+  data
+}
+
+.edsan_normalize_identifier_fields <- function(data, identifiers) {
+  for (identifier in intersect(identifiers, names(data))) {
+    data[[identifier]] <- .edsan_as_identifier(data[[identifier]])
+  }
+  data
+}
+
 .edsan_supported_modules <- function() {
   unique(.edsan_source_registry()$module)
 }
@@ -94,7 +149,9 @@
 #' Across EDSAN modules, each `ELTID` belongs to exactly one `EVTID`, and each
 #' `EVTID` belongs to exactly one `PATID`. These relationships describe document
 #' provenance; additional source-row coordinates may still be required for row
-#' uniqueness within normalized tables.
+#' uniqueness within normalized tables. Public module normalizers return every
+#' identifier declared by this registry as character. Character input is
+#' preserved exactly; numeric input is rendered without scientific notation.
 #'
 #' @param module Optional module filter. Supported values are `"doceds"`,
 #'   `"pmsi"`, `"biol"`, and `"viro"`.

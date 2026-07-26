@@ -42,9 +42,13 @@
 #' @noRd
 .biol_prepare <- function(data, id_col = "BIOL_ID", date_col = "DATEXAM", extra_meta = "ELTID") {
   # data: list of lab exams; each element has metadata + RESULTATS (data.frame)
+  identifiers <- c("PATID", "EVTID", id_col, extra_meta)
   get_value <- function(entry, name) {
     value <- entry[[name]]
     if (is.null(value) || length(value) == 0) return(NA_character_)
+    if (name %in% identifiers) {
+      return(.edsan_as_identifier(value)[[1]])
+    }
     as.character(value)[[1]]
   }
 
@@ -56,7 +60,7 @@
     meta <- tibble::tibble(
       PATID = get_value(entry, "PATID"),
       EVTID = get_value(entry, "EVTID"),
-      .SOURCE_ID = biol_id,
+      .SOURCE_ID = .edsan_as_identifier(biol_id)[[1]],
       .SOURCE_DATE = get_value(entry, date_col),
       SEJUM = get_value(entry, "SEJUM"),
       SEJUF = get_value(entry, "SEJUF"),
@@ -182,7 +186,11 @@
 #'
 #' @export
 process_biol <- function(data) {
-  .biol_results(data)
+  .edsan_normalize_identifier_columns(
+    .biol_results(data),
+    "biol",
+    "results"
+  )
 }
 
 #' Process VIRO results
@@ -200,5 +208,14 @@ process_biol <- function(data) {
 #'
 #' @export
 process_viro <- function(data) {
-  .biol_results(data, id_col = "VIRO_ID", date_col = "DATEPRELEV", extra_meta = character())
+  .edsan_normalize_identifier_columns(
+    .biol_results(
+      data,
+      id_col = "VIRO_ID",
+      date_col = "DATEPRELEV",
+      extra_meta = character()
+    ),
+    "viro",
+    "results"
+  )
 }

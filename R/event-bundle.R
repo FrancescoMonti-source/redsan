@@ -4,7 +4,7 @@
   if (!(is.character(event_ids) || is.numeric(event_ids)) || length(event_ids) == 0L) {
     stop("`", argument, "` must contain one or more EVTID values.", call. = FALSE)
   }
-  event_ids <- as.character(event_ids)
+  event_ids <- .edsan_as_identifier(event_ids)
   if (anyNA(event_ids) || any(!nzchar(trimws(event_ids)))) {
     stop("`", argument, "` must contain one or more non-missing EVTID values.",
          call. = FALSE)
@@ -63,7 +63,7 @@
     stop("Non-empty source table `", label, "` must contain an EVTID column.",
          call. = FALSE)
   }
-  x[as.character(x$EVTID) == event_id, , drop = FALSE]
+  x[.edsan_as_identifier(x$EVTID) == event_id, , drop = FALSE]
 }
 
 .slice_event_source <- function(source, event_id, source_name) {

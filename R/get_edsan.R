@@ -367,7 +367,7 @@
 
 .edsan_split_id_string <- function(x) {
   x <- x %||% character()
-  x <- as.character(x)
+  x <- .edsan_as_identifier(x)
   x <- x[!is.na(x) & nzchar(x)]
   if (length(x) == 0) return(character())
 

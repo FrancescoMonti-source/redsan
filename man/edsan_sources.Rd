@@ -26,7 +26,9 @@ Clinical concepts and study-specific measurement rules belong downstream.
 Across EDSAN modules, each \code{ELTID} belongs to exactly one \code{EVTID}, and each
 \code{EVTID} belongs to exactly one \code{PATID}. These relationships describe document
 provenance; additional source-row coordinates may still be required for row
-uniqueness within normalized tables.
+uniqueness within normalized tables. Public module normalizers return every
+identifier declared by this registry as character. Character input is
+preserved exactly; numeric input is rendered without scientific notation.
 }
 \examples{
 edsan_sources()

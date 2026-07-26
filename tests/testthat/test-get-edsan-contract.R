@@ -56,3 +56,31 @@ test_that("get_edsan forwards PMSI source_policy to normalization", {
   expect_identical(default$main$ELTID, "L2")
   expect_identical(all_sources$main$ELTID, c("L1", "L2"))
 })
+
+test_that("numeric identifier queries keep their non-scientific form", {
+  # Rationale: retrieval contract. An opaque identifier must reach EDSAN with
+  # the same lexical value used by normalized tables and event bundles.
+  observed_query <- NULL
+  testthat::local_mocked_bindings(
+    .edsan_call = function(module, query, what, fields = NULL, ...) {
+      observed_query <<- query
+      list(
+        ok = TRUE,
+        value = data.frame(
+          PATID = numeric(),
+          EVTID = numeric(),
+          ELTID = numeric()
+        ),
+        error = NULL
+      )
+    },
+    .package = "redsan"
+  )
+
+  get_edsan(
+    "doceds",
+    query = list(EVTID = c(100000, 200000))
+  )
+
+  expect_identical(observed_query$EVTID, "100000 OR 200000")
+})

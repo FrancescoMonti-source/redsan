@@ -29,8 +29,17 @@ test_that("normalized sources are partitioned into ordered event bundles", {
   expect_identical(single$event_id, "E1")
   expect_identical(single$sources, bundles$E1$sources)
 
-  numeric <- build_event_bundle(1, list(doceds = tibble::tibble(EVTID = "1")))
-  expect_identical(numeric$event_id, "1")
+  numeric <- build_event_bundle(
+    100000,
+    list(doceds = tibble::tibble(EVTID = 100000, ELTID = 200000))
+  )
+  expect_identical(
+    list(
+      event_id = numeric$event_id,
+      source_rows = nrow(numeric$sources$doceds)
+    ),
+    list(event_id = "100000", source_rows = 1L)
+  )
 })
 
 test_that("batch retrieval calls each selected source once with all event ids", {

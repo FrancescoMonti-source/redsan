@@ -49,7 +49,9 @@
     ))
   }
 
+  identifiers <- .edsan_identifier_names("pmsi", "main")
   clean_data <- lapply(data, function(x) {
+    x <- .edsan_normalize_identifier_fields(x, identifiers)
     flat <- unlist(x, recursive = TRUE)
     flat <- lapply(flat, function(v) {
       if (is.null(v) || length(v) == 0) {
@@ -521,8 +523,8 @@ process_pmsi <- function(data, source_policy = c("c_over_dw", "all")) {
   }
 
   list(
-    main  = main,
-    actes = actes,
-    diag  = diag
+    main = .edsan_normalize_identifier_columns(main, "pmsi", "main"),
+    actes = .edsan_normalize_identifier_columns(actes, "pmsi", "actes"),
+    diag = .edsan_normalize_identifier_columns(diag, "pmsi", "diag")
   )
 }

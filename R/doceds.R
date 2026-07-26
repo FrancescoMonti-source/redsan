@@ -34,5 +34,5 @@ process_doceds <- function(data) {
     out$PATAGE <- suppressWarnings(as.numeric(as.character(out$PATAGE)))
   }
 
-  out
+  .edsan_normalize_identifier_columns(out, "doceds", "documents")
 }

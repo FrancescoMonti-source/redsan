@@ -1,5 +1,7 @@
 # redsan 0.2.0
 
+- Normalize registered source identifiers as character without scientific
+  notation, including event-bundle and identifier-query inputs.
 - Make `C`-over-`DW` the default PMSI `main` source policy while deriving
   `actes` and `diag` event limits from the complete normalized `main` first.
 - Add `source_policy = "all"` to `process_pmsi()` and `get_edsan()` for callers
