@@ -1,9 +1,10 @@
 #' Map header-like structure in document text
 #'
 #' Splits document text into lines and identifies short uppercase or
-#' colon-terminated lines as header candidates. The function returns both
-#' normalized candidate labels and their document-level sequences. It does not
-#' assign clinical meaning to any label.
+#' colon-terminated lines as header candidates. Candidate labels are normalized
+#' for accents, case, whitespace, and a trailing colon. The function returns
+#' both normalized labels and their document-level sequences. It does not assign
+#' clinical meaning to any label.
 #'
 #' @param data A data frame containing document text.
 #' @param text_col Name of the column containing document text.
@@ -14,6 +15,8 @@
 #'   `PATID`, `EVTID`, `id_col`, `RECDATE`, `RECTYPE`, `SEJUM`, and `SEJUF`.
 #' @param max_line_chars Maximum length of a line to consider as a candidate.
 #' @param min_header_chars Minimum length of a normalized candidate label.
+#' @param min_docs Minimum number of distinct documents in which a normalized
+#'   candidate must appear.
 #' @param n_examples Maximum number of distinct raw variants retained in the
 #'   `examples` column.
 #' @param noise_pattern Optional regular expression applied after the minimum
@@ -23,8 +26,8 @@
 #'   * `lines`: one row per source-text line, including the requested metadata;
 #'   * `candidate_hits`: candidate labels observed in each document;
 #'   * `candidate_lines_raw`: candidate frequencies and raw `examples`;
-#'   * `candidate_lines`: candidates after `min_header_chars` and optional
-#'     `noise_pattern` filtering;
+#'   * `candidate_lines`: candidates after `min_header_chars`, `min_docs`, and
+#'     optional `noise_pattern` filtering;
 #'   * `header_hits`: line-level occurrences of filtered candidates;
 #'   * `doc_signatures`: candidate sequence for each document;
 #'   * `signature_counts`: frequency of each document-level sequence.
@@ -56,6 +59,7 @@ map_header_structure <- function(
   ),
   max_line_chars = 100L,
   min_header_chars = 5L,
+  min_docs = 1L,
   n_examples = 5L,
   noise_pattern = NULL
 ) {
@@ -114,6 +118,16 @@ map_header_structure <- function(
   }
 
   if (
+    length(min_docs) != 1L ||
+      !is.numeric(min_docs) ||
+      is.na(min_docs) ||
+      min_docs < 1 ||
+      min_docs != floor(min_docs)
+  ) {
+    stop("`min_docs` must be one positive integer.", call. = FALSE)
+  }
+
+  if (
     length(n_examples) != 1L ||
       !is.numeric(n_examples) ||
       is.na(n_examples) ||
@@ -134,6 +148,7 @@ map_header_structure <- function(
 
   max_line_chars <- as.integer(max_line_chars)
   min_header_chars <- as.integer(min_header_chars)
+  min_docs <- as.integer(min_docs)
   n_examples <- as.integer(n_examples)
   source_cols <- unique(c(metadata_cols, id_col, text_col))
 
@@ -169,7 +184,8 @@ map_header_structure <- function(
           stringr::str_squish(.data$line_clean),
           "Latin-ASCII"
         )
-      )
+      ),
+      line_key = stringr::str_remove(.data$line_key, "[[:space:]]*:$")
     )
 
   candidate_hits <- line_tbl %>%
@@ -199,7 +215,10 @@ map_header_structure <- function(
     dplyr::arrange(dplyr::desc(.data$n_docs), .data$line_key)
 
   candidate_lines <- candidate_lines_raw %>%
-    dplyr::filter(nchar(.data$line_key) >= min_header_chars)
+    dplyr::filter(
+      nchar(.data$line_key) >= min_header_chars,
+      .data$n_docs >= min_docs
+    )
   if (!is.null(noise_pattern)) {
     candidate_lines <- candidate_lines %>%
       dplyr::filter(!stringr::str_detect(.data$line_key, noise_pattern))
@@ -209,13 +228,26 @@ map_header_structure <- function(
     dplyr::semi_join(candidate_lines, by = "line_key") %>%
     dplyr::arrange(.data$doc_id, .data$line_no)
 
-  doc_signatures <- header_hits %>%
+  document_index <- line_tbl %>%
     dplyr::group_by(.data$doc_id) %>%
     dplyr::summarise(
       dplyr::across(dplyr::all_of(metadata_cols), dplyr::first),
+      .groups = "drop"
+    )
+
+  hit_signatures <- header_hits %>%
+    dplyr::group_by(.data$doc_id) %>%
+    dplyr::summarise(
       header_sequence = stringr::str_c(.data$line_key, collapse = " > "),
       n_header_hits = dplyr::n(),
       .groups = "drop"
+    )
+
+  doc_signatures <- document_index %>%
+    dplyr::left_join(hit_signatures, by = "doc_id") %>%
+    dplyr::mutate(
+      header_sequence = dplyr::coalesce(.data$header_sequence, ""),
+      n_header_hits = dplyr::coalesce(.data$n_header_hits, 0L)
     )
 
   signature_counts <- doc_signatures %>%

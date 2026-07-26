@@ -12,6 +12,7 @@ map_header_structure(
     "SEJUF"), names(data)),
   max_line_chars = 100L,
   min_header_chars = 5L,
+  min_docs = 1L,
   n_examples = 5L,
   noise_pattern = NULL
 )
@@ -32,6 +33,9 @@ available DOCEDS provenance and context columns are retained:
 
 \item{min_header_chars}{Minimum length of a normalized candidate label.}
 
+\item{min_docs}{Minimum number of distinct documents in which a normalized
+candidate must appear.}
+
 \item{n_examples}{Maximum number of distinct raw variants retained in the
 \code{examples} column.}
 
@@ -44,8 +48,8 @@ A list with:
 \item \code{lines}: one row per source-text line, including the requested metadata;
 \item \code{candidate_hits}: candidate labels observed in each document;
 \item \code{candidate_lines_raw}: candidate frequencies and raw \code{examples};
-\item \code{candidate_lines}: candidates after \code{min_header_chars} and optional
-\code{noise_pattern} filtering;
+\item \code{candidate_lines}: candidates after \code{min_header_chars}, \code{min_docs}, and
+optional \code{noise_pattern} filtering;
 \item \code{header_hits}: line-level occurrences of filtered candidates;
 \item \code{doc_signatures}: candidate sequence for each document;
 \item \code{signature_counts}: frequency of each document-level sequence.
@@ -53,9 +57,10 @@ A list with:
 }
 \description{
 Splits document text into lines and identifies short uppercase or
-colon-terminated lines as header candidates. The function returns both
-normalized candidate labels and their document-level sequences. It does not
-assign clinical meaning to any label.
+colon-terminated lines as header candidates. Candidate labels are normalized
+for accents, case, whitespace, and a trailing colon. The function returns
+both normalized labels and their document-level sequences. It does not assign
+clinical meaning to any label.
 }
 \examples{
 documents <- tibble::tibble(
