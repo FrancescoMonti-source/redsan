@@ -26,6 +26,7 @@ Imports:
     magrittr,
     purrr,
     rlang,
+    stringi,
     stringr,
     tibble,
     tidyr
