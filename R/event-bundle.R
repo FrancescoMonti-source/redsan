@@ -75,7 +75,7 @@
     }
     return(lapply(required, function(table) {
       .slice_event_table(source[[table]], event_id, paste0("pmsi$", table))
-    }) |> stats::setNames(required))
+    }) %>% stats::setNames(required))
   }
 
   .slice_event_table(source, event_id, source_name)
