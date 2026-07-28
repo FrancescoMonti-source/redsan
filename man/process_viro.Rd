@@ -20,3 +20,12 @@ Flattens VIRO results from the EDSaN API into a single tibble. VIRO shares
 the BIOL result shape but uses \code{VIRO_ID} for source traceability and
 \code{DATEPRELEV} as its source date.
 }
+\examples{
+raw <- list(list(
+  PATID = "P1", EVTID = "E1",
+  DATEPRELEV = "2024-01-01 08:30",
+  RESULTATS = data.frame(ANALYTE = "PCR", STRRES = "NEGATIF")
+))
+process_viro(raw)
+
+}

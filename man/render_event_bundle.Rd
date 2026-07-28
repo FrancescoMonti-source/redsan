@@ -7,14 +7,14 @@
 render_event_bundle(bundle, sources = NULL, pretty = TRUE)
 }
 \arguments{
-\item{bundle}{An object returned by \code{get_event_bundle()}.}
+\item{bundle}{An object returned by \code{\link[=get_event_bundle]{get_event_bundle()}}.}
 
-\item{sources}{Sources already present in \code{bundle} to include. \code{NULL}
-(the default) or \code{"all"} includes every source in the bundle. A character
-vector selects whole sources without filtering their contents.}
+\item{sources}{Sources already present in \code{bundle} to include. \code{NULL} (the
+default) or \code{"all"} includes every source in the bundle. A character vector
+selects whole sources without filtering their contents.}
 
-\item{pretty}{Whether to indent the JSON for readability. Set \code{FALSE} for
-a more compact representation.}
+\item{pretty}{Whether to indent the JSON for readability. Set \code{FALSE} for a
+more compact representation.}
 }
 \value{
 One JSON character string containing \code{event_id}, \code{created_at}, and

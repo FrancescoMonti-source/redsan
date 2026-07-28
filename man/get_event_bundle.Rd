@@ -10,23 +10,21 @@ get_event_bundle(event_id, sources = "all")
 \item{event_id}{One non-missing EDSAN \code{EVTID}.}
 
 \item{sources}{EDSAN modules to retrieve. Use \code{"all"} (the default) for every
-module registered by \code{\link[=edsan_sources]{edsan_sources()}}, or provide a character vector such
-as \code{c("doceds", "biol")}.}
+registered module, or provide a character vector.}
 }
 \value{
-An object of class \code{edsan_event_bundle}, implemented as a named list
-with \code{event_id}, \code{sources}, and \code{created_at} entries.
+One \code{edsan_event_bundle}: a list with \code{event_id}, \code{sources}, and
+\code{created_at} entries. PMSI remains a list with \code{main}, \code{actes}, and \code{diag};
+DOCEDS, BIOL, and VIRO remain normalized tibbles.
 }
 \description{
-Builds a source-complete representation of one EDSAN event by querying each
-selected module with the same \code{EVTID}. The bundle preserves each module's
-normalized return shape: \code{pmsi} remains a list of \code{main}, \code{actes}, and \code{diag}
-tables, while \code{doceds}, \code{biol}, and \code{viro} remain normalized tibbles.
+Singular convenience wrapper around \code{\link[=get_event_bundles]{get_event_bundles()}}. It retrieves each
+selected module for one \code{EVTID} and returns the bundle directly rather than
+inside a named collection.
 }
 \details{
-Retrieval is fail-fast. If any requested source cannot be retrieved, no
-partial bundle is returned. Empty source results are retained as empty
-normalized tables.
+Retrieval is fail-fast. If any selected source cannot be retrieved, no
+partial bundle is returned. Empty normalized source tables are retained.
 }
 \examples{
 \dontrun{

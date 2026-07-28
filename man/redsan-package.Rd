@@ -6,10 +6,69 @@
 \alias{redsan-package}
 \title{redsan: Retrieve and normalize EDSAN warehouse data}
 \description{
-Retrieves and normalizes EDSAN health data warehouse modules for downstream analysis. The package records module-level source contracts, batches live API calls, and prepares PMSI and biology/virology payloads into stable analysis tables while preserving native identifiers.
+\code{redsan} is the source-access and normalization layer for the EDSAN data
+warehouse. It records the source contract of each supported module, retrieves
+source payloads with adaptive batching, and converts them to stable R tables
+while preserving native identifiers and source time fields.
+}
+\section{Start with the source registry}{
+
+Call \code{\link[=edsan_sources]{edsan_sources()}} to inspect the modules and normalized tables supported
+by the installed package. The registry describes row grain, identifiers,
+query date keys, batching keys, and whether source time is a point or an
+interval. It is a registry of the sources implemented by \code{redsan}, not an
+exhaustive catalogue of EDSAN.
+}
+
+\section{Retrieve and normalize}{
+
+\code{\link[=get_edsan]{get_edsan()}} is the main retrieval entry point. It batches requests by source
+time and native identifiers when needed. By default, it also applies the
+module normalizer:
+\itemize{
+\item \code{\link[=process_doceds]{process_doceds()}} for documents;
+\item \code{\link[=process_pmsi]{process_pmsi()}} for PMSI stays, actes, and diagnoses;
+\item \code{\link[=process_biol]{process_biol()}} for biology results;
+\item \code{\link[=process_viro]{process_viro()}} for virology results.
+}
+
+Set \code{process = FALSE} in \code{\link[=get_edsan]{get_edsan()}} when the raw response is the artifact
+to retain or normalize later.
+}
+
+\section{Work at event level}{
+
+\code{\link[=get_event_bundle]{get_event_bundle()}} and \code{\link[=get_event_bundles]{get_event_bundles()}} retrieve several normalized
+modules for one or more \code{EVTID} values. When the normalized sources are
+already available locally, use \code{\link[=build_event_bundle]{build_event_bundle()}} or
+\code{\link[=build_event_bundles]{build_event_bundles()}} to partition them without another EDSAN request.
+\code{\link[=render_event_bundle]{render_event_bundle()}} serializes a bundle to neutral JSON without selecting
+clinical content.
+}
+
+\section{Source and downstream responsibilities}{
+
+\code{redsan} owns source mechanics: retrieval, batching, parsing, normalized table
+shape, identifiers, and source time fields. Clinical concepts, cohort rules,
+measurements, and model-specific selection belong in downstream projects.
+No function in this package should be treated as assigning clinical meaning
+merely from the shape of a source table.
+
+Live retrieval requires the optional EDSAN client package \code{d2imr} in the
+calling environment. Normalization, registry inspection, local bundle
+building, and rendering do not require a live EDSAN connection.
+}
+
+\seealso{
+\code{\link[=edsan_sources]{edsan_sources()}}, \code{\link[=get_edsan]{get_edsan()}}, \code{\link[=get_event_bundle]{get_event_bundle()}}
 }
 \author{
 \strong{Maintainer}: Francesco Monti-source \email{58150610+FrancescoMonti-source@users.noreply.github.com}
+
+Authors:
+\itemize{
+  \item Francesco Monti-source \email{58150610+FrancescoMonti-source@users.noreply.github.com}
+}
 
 }
 \keyword{internal}

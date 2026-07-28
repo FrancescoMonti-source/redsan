@@ -206,6 +206,14 @@ process_biol <- function(data) {
 #'   available, adds `HEURE_DATEPRELEV`. `PATAGE` and `NUMRES`, when present, are
 #'   numeric.
 #'
+#' @examples
+#' raw <- list(list(
+#'   PATID = "P1", EVTID = "E1",
+#'   DATEPRELEV = "2024-01-01 08:30",
+#'   RESULTATS = data.frame(ANALYTE = "PCR", STRRES = "NEGATIF")
+#' ))
+#' process_viro(raw)
+#'
 #' @export
 process_viro <- function(data) {
   .edsan_normalize_identifier_columns(
