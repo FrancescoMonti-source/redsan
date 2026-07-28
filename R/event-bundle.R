@@ -104,7 +104,35 @@
 #'
 #' @return `build_event_bundles()` returns a named list, in requested event order,
 #'   containing one `edsan_event_bundle` per `EVTID`. `build_event_bundle()`
-#'   returns the single bundle directly.
+#'   returns the single bundle directly. Each bundle is a list with:
+#'   * `event_id`: the requested `EVTID`, stored as character;
+#'   * `sources`: the named normalized source objects restricted to that event;
+#'   * `created_at`: the common bundle creation time.
+#'
+#' @details
+#' Every table being partitioned must contain `EVTID`, including each of the
+#' `main`, `actes`, and `diag` PMSI tables. Empty tables are retained. All rows
+#' and columns belonging to the requested event are preserved.
+#'
+#' @examples
+#' sources <- list(
+#'   doceds = tibble::tibble(
+#'     EVTID = c("E1", "E2"),
+#'     ELTID = c("D1", "D2"),
+#'     RECTXT = c("First document", "Second document")
+#'   ),
+#'   biol = tibble::tibble(
+#'     EVTID = c("E1", "E2"),
+#'     BIOL_ID = c("B1", "B2"),
+#'     NUMRES = c(12.3, 9.8)
+#'   )
+#' )
+#'
+#' bundles <- build_event_bundles(c("E2", "E1"), sources)
+#' names(bundles)
+#' bundles[["E1"]]
+#'
+#' one_bundle <- build_event_bundle("E1", sources)
 #'
 #' @export
 build_event_bundles <- function(event_ids, sources) {
@@ -147,7 +175,18 @@ build_event_bundle <- function(event_id, sources) {
 #' @return A named list of `edsan_event_bundle` objects in requested event order.
 #'
 #' @details Retrieval is fail-fast. If any requested source cannot be retrieved,
-#' no partial bundle collection is returned. Empty source results are retained.
+#' no partial bundle collection is returned. Each selected module is retrieved
+#' once for the complete `event_ids` vector and then partitioned locally. Empty
+#' source results are retained in every affected bundle.
+#'
+#' @examples
+#' \dontrun{
+#' bundles <- get_event_bundles(
+#'   c("123456789", "987654321"),
+#'   sources = c("doceds", "pmsi", "biol")
+#' )
+#' bundles[["123456789"]]
+#' }
 #'
 #' @export
 get_event_bundles <- function(event_ids, sources = "all") {
@@ -169,13 +208,30 @@ get_event_bundles <- function(event_ids, sources = "all") {
 
 #' Retrieve normalized EDSAN sources for one event
 #'
-#' Singular convenience wrapper around [get_event_bundles()].
+#' Singular convenience wrapper around [get_event_bundles()]. It retrieves each
+#' selected module for one `EVTID` and returns the bundle directly rather than
+#' inside a named collection.
 #'
 #' @param event_id One non-missing EDSAN `EVTID`.
 #' @param sources EDSAN modules to retrieve. Use `"all"` (the default) for every
 #'   registered module, or provide a character vector.
 #'
-#' @return One object of class `edsan_event_bundle`.
+#' @return One `edsan_event_bundle`: a list with `event_id`, `sources`, and
+#'   `created_at` entries. PMSI remains a list with `main`, `actes`, and `diag`;
+#'   DOCEDS, BIOL, and VIRO remain normalized tibbles.
+#'
+#' @details
+#' Retrieval is fail-fast. If any selected source cannot be retrieved, no
+#' partial bundle is returned. Empty normalized source tables are retained.
+#'
+#' @examples
+#' \dontrun{
+#' bundle <- get_event_bundle("123456789")
+#' bundle <- get_event_bundle(
+#'   "123456789",
+#'   sources = c("doceds", "pmsi", "biol")
+#' )
+#' }
 #'
 #' @export
 get_event_bundle <- function(event_id, sources = "all") {
@@ -197,6 +253,16 @@ get_event_bundle <- function(event_id, sources = "all") {
   NA_integer_
 }
 
+#' Print an EDSAN event bundle
+#'
+#' Displays the event identifier and row counts for each normalized source.
+#'
+#' @param x An `edsan_event_bundle`.
+#' @param ... Additional arguments, currently unused.
+#'
+#' @return `x`, invisibly.
+#'
+#' @method print edsan_event_bundle
 #' @export
 print.edsan_event_bundle <- function(x, ...) {
   cat("EDSaN event bundle: ", x$event_id, "\n", sep = "")
