@@ -36,6 +36,17 @@ Set \code{process = FALSE} in \code{\link[=get_edsan]{get_edsan()}} when the raw
 to retain or normalize later.
 }
 
+\section{Use reference mappings}{
+
+\code{\link[=edsan_references]{edsan_references()}} lists the code mappings distributed with the package.
+\code{\link[=label_pmsi]{label_pmsi()}} adds the packaged CIM-10 and CCAM/CDAM labels to normalized
+PMSI objects and can be applied to older artifacts. \code{\link[=process_pmsi]{process_pmsi()}} reuses
+it so new normalized outputs are labelled automatically.
+\code{\link[=edsan_reference]{edsan_reference()}} returns a normalized mapping for other explicit joins.
+Enrichment preserves native codes and row grain; unmatched codes receive a
+missing label.
+}
+
 \section{Work at event level}{
 
 \code{\link[=get_event_bundle]{get_event_bundle()}} and \code{\link[=get_event_bundles]{get_event_bundles()}} retrieve several normalized
@@ -60,7 +71,8 @@ building, and rendering do not require a live EDSAN connection.
 }
 
 \seealso{
-\code{\link[=edsan_sources]{edsan_sources()}}, \code{\link[=get_edsan]{get_edsan()}}, \code{\link[=get_event_bundle]{get_event_bundle()}}
+\code{\link[=edsan_sources]{edsan_sources()}}, \code{\link[=edsan_references]{edsan_references()}}, \code{\link[=label_pmsi]{label_pmsi()}}, \code{\link[=get_edsan]{get_edsan()}},
+\code{\link[=get_event_bundle]{get_event_bundle()}}
 }
 \author{
 \strong{Maintainer}: Francesco Monti-source \email{58150610+FrancescoMonti-source@users.noreply.github.com}

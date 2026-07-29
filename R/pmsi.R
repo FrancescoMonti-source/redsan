@@ -361,7 +361,8 @@ prefer_pmsi_src_c_over_dw <- function(main) {
       "DATENT", "HEURE_DATENT", "DATSORT", "HEURE_DATSORT",
       "SEJDUR", "SEJUM", "SEJUF"
     )),
-    dplyr::contains("ACTE"), dplyr::contains("UFPRO"), dplyr::contains("UFDEM")) %>%
+    dplyr::contains("ACTE"), dplyr::contains("UFPRO"),
+    dplyr::contains("UFDEM"), dplyr::contains("NOMENCLATURE")) %>%
     tidyr::pivot_longer(
       cols = c(
         dplyr::contains("CODEACTE"),
@@ -460,8 +461,10 @@ prefer_pmsi_src_c_over_dw <- function(main) {
 #' Flattens PMSI stay payloads and returns three tables:
 #' \describe{
 #'   \item{`main`}{the normalized PMSI main table after the selected source policy}
-#'   \item{`actes`}{actes in long format (one row per acte)}
-#'   \item{`diag`}{diagnoses derived from `DALL` (one row per token)}
+#'   \item{`actes`}{actes in long format (one row per acte), with the matching
+#'   CCAM/CDAM `CODEACTE_LABEL` when available}
+#'   \item{`diag`}{diagnoses derived from `DALL` (one row per token), with the
+#'   matching CIM-10 `CODE_LABEL` when available}
 #' }
 #'
 #' `DATENT`, `DATSORT`, and acte-level `DATEACTE` are parsed to `POSIXct` and
@@ -522,9 +525,111 @@ process_pmsi <- function(data, source_policy = c("c_over_dw", "all")) {
     complete_main
   }
 
-  list(
-    main = .edsan_normalize_identifier_columns(main, "pmsi", "main"),
-    actes = .edsan_normalize_identifier_columns(actes, "pmsi", "actes"),
-    diag = .edsan_normalize_identifier_columns(diag, "pmsi", "diag")
+  label_pmsi(
+    list(
+      main = .edsan_normalize_identifier_columns(main, "pmsi", "main"),
+      actes = .edsan_normalize_identifier_columns(actes, "pmsi", "actes"),
+      diag = .edsan_normalize_identifier_columns(diag, "pmsi", "diag")
+    )
   )
+}
+
+#' Add reference labels to normalized PMSI tables
+#'
+#' Enriches normalized PMSI `actes` and `diag` tables with the reference labels
+#' distributed with `redsan`. It can be applied to older artifacts;
+#' [process_pmsi()] uses the same function for new outputs. The `main` table is
+#' returned unchanged.
+#'
+#' Acts are matched to the combined CCAM/CDAM reference by
+#' `NOMENCLATURE + CODEACTE`, producing `CODEACTE_LABEL`. Diagnoses are matched
+#' to the CIM-10 reference by `diag = CODE`, producing `CODE_LABEL`. Joins are
+#' exact, preserve every PMSI row, and leave unmatched labels as `NA`. Existing
+#' `CODEACTE_LABEL` and `CODE_LABEL` columns are refreshed from the packaged
+#' references.
+#' Older artifacts without `NOMENCLATURE` retain their acts with missing
+#' nomenclature and procedure labels.
+#'
+#' @param pmsi A list containing the `main`, `actes`, and `diag` data frames,
+#'   normally returned by [process_pmsi()].
+#'
+#' @return The input PMSI list with `CODEACTE_LABEL` added to `actes` and
+#'   `CODE_LABEL` added to `diag`. All other tables, columns, and rows are
+#'   preserved.
+#'
+#' @examples
+#' raw <- list(list(
+#'   PATID = "P1",
+#'   EVTID = "E1",
+#'   ELTID = "L1",
+#'   DATENT = "2024-01-01",
+#'   DATSORT = "2024-01-02",
+#'   CODEACTE1 = "JKFA023",
+#'   NOMENCLATURE1 = "CCAM",
+#'   DALL = "01:E46"
+#' ))
+#' normalized <- process_pmsi(raw)
+#' labelled <- label_pmsi(normalized)
+#' labelled$actes[c("NOMENCLATURE", "CODEACTE", "CODEACTE_LABEL")]
+#' labelled$diag[c("diag", "CODE_LABEL")]
+#'
+#' @export
+label_pmsi <- function(pmsi) {
+  required_tables <- c("main", "actes", "diag")
+
+  if (!is.list(pmsi) || !all(required_tables %in% names(pmsi))) {
+    stop(
+      "`pmsi` must be a list containing main, actes, and diag tables.",
+      call. = FALSE
+    )
+  }
+
+  invalid_tables <- required_tables[
+    !vapply(pmsi[required_tables], is.data.frame, logical(1))
+  ]
+  if (length(invalid_tables) > 0L) {
+    stop(
+      "PMSI table(s) must be data frames: ",
+      paste(invalid_tables, collapse = ", "), ".",
+      call. = FALSE
+    )
+  }
+
+  required_columns <- list(
+    actes = "CODEACTE",
+    diag = "diag"
+  )
+  for (table_name in names(required_columns)) {
+    missing_columns <- setdiff(
+      required_columns[[table_name]],
+      names(pmsi[[table_name]])
+    )
+    if (length(missing_columns) > 0L) {
+      stop(
+        "PMSI table `", table_name, "` is missing required column(s): ",
+        paste(missing_columns, collapse = ", "), ".",
+        call. = FALSE
+      )
+    }
+  }
+
+  if (!"NOMENCLATURE" %in% names(pmsi$actes)) {
+    pmsi$actes$NOMENCLATURE <- NA_character_
+  }
+
+  actes_reference <- edsan_reference("actes")
+  cim10_reference <- edsan_reference("cim10")
+
+  pmsi$actes <- pmsi$actes %>%
+    dplyr::select(-dplyr::any_of("CODEACTE_LABEL")) %>%
+    dplyr::left_join(
+      actes_reference,
+      by = c("NOMENCLATURE", "CODEACTE")
+    )
+
+  pmsi$diag <- pmsi$diag %>%
+    dplyr::select(-dplyr::any_of("CODE_LABEL")) %>%
+    dplyr::left_join(cim10_reference, by = c("diag" = "CODE"))
+
+  pmsi
 }

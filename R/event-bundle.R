@@ -15,25 +15,25 @@
   event_ids
 }
 
-.resolve_event_bundle_modules <- function(sources) {
+.resolve_event_bundle_modules <- function(modules) {
   available <- .edsan_supported_modules()
-  if (identical(sources, "all")) return(available)
+  if (identical(modules, "all")) return(available)
 
-  if (!is.character(sources) || length(sources) == 0L || anyNA(sources) ||
-      any(!nzchar(sources))) {
-    stop("`sources` must be \"all\" or a non-empty character vector.", call. = FALSE)
+  if (!is.character(modules) || length(modules) == 0L || anyNA(modules) ||
+      any(!nzchar(modules))) {
+    stop("`modules` must be \"all\" or a non-empty character vector.", call. = FALSE)
   }
 
-  sources <- unique(sources)
-  unknown <- setdiff(sources, available)
+  modules <- unique(modules)
+  unknown <- setdiff(modules, available)
   if (length(unknown) > 0L) {
     stop(
-      "Unknown EDSAN source(s): ", paste(unknown, collapse = ", "),
-      ". Available sources: ", paste(available, collapse = ", "), ".",
+      "Unknown EDSAN module(s): ", paste(unknown, collapse = ", "),
+      ". Available modules: ", paste(available, collapse = ", "), ".",
       call. = FALSE
     )
   }
-  sources
+  modules
 }
 
 .validate_event_bundle_sources <- function(sources) {
@@ -169,29 +169,29 @@ build_event_bundle <- function(event_id, sources) {
 #' `get_edsan()` remains responsible for any technical ID batching.
 #'
 #' @param event_ids Non-empty vector of unique EDSAN `EVTID` values.
-#' @param sources EDSAN modules to retrieve. Use `"all"` (the default) for every
+#' @param modules EDSAN modules to retrieve. Use `"all"` (the default) for every
 #'   module registered by [edsan_sources()], or provide a character vector.
 #'
 #' @return A named list of `edsan_event_bundle` objects in requested event order.
 #'
-#' @details Retrieval is fail-fast. If any requested source cannot be retrieved,
+#' @details Retrieval is fail-fast. If any requested module cannot be retrieved,
 #' no partial bundle collection is returned. Each selected module is retrieved
 #' once for the complete `event_ids` vector and then partitioned locally. Empty
-#' source results are retained in every affected bundle.
+#' normalized module results are retained in every affected bundle.
 #'
 #' @examples
 #' \dontrun{
 #' bundles <- get_event_bundles(
 #'   c("123456789", "987654321"),
-#'   sources = c("doceds", "pmsi", "biol")
+#'   modules = c("doceds", "pmsi", "biol")
 #' )
 #' bundles[["123456789"]]
 #' }
 #'
 #' @export
-get_event_bundles <- function(event_ids, sources = "all") {
+get_event_bundles <- function(event_ids, modules = "all") {
   event_ids <- .validate_event_ids(event_ids)
-  modules <- .resolve_event_bundle_modules(sources)
+  modules <- .resolve_event_bundle_modules(modules)
 
   retrieved <- stats::setNames(vector("list", length(modules)), modules)
   for (module in modules) {
@@ -213,7 +213,7 @@ get_event_bundles <- function(event_ids, sources = "all") {
 #' inside a named collection.
 #'
 #' @param event_id One non-missing EDSAN `EVTID`.
-#' @param sources EDSAN modules to retrieve. Use `"all"` (the default) for every
+#' @param modules EDSAN modules to retrieve. Use `"all"` (the default) for every
 #'   registered module, or provide a character vector.
 #'
 #' @return One `edsan_event_bundle`: a list with `event_id`, `sources`, and
@@ -221,25 +221,25 @@ get_event_bundles <- function(event_ids, sources = "all") {
 #'   DOCEDS, BIOL, and VIRO remain normalized tibbles.
 #'
 #' @details
-#' Retrieval is fail-fast. If any selected source cannot be retrieved, no
-#' partial bundle is returned. Empty normalized source tables are retained.
+#' Retrieval is fail-fast. If any selected module cannot be retrieved, no
+#' partial bundle is returned. Empty normalized module tables are retained.
 #'
 #' @examples
 #' \dontrun{
 #' bundle <- get_event_bundle("123456789")
 #' bundle <- get_event_bundle(
 #'   "123456789",
-#'   sources = c("doceds", "pmsi", "biol")
+#'   modules = c("doceds", "pmsi", "biol")
 #' )
 #' }
 #'
 #' @export
-get_event_bundle <- function(event_id, sources = "all") {
+get_event_bundle <- function(event_id, modules = "all") {
   event_id <- .validate_event_ids(event_id, "event_id")
   if (length(event_id) != 1L) {
     stop("`event_id` must contain exactly one EVTID.", call. = FALSE)
   }
-  get_event_bundles(event_id, sources)[[1L]]
+  get_event_bundles(event_id, modules)[[1L]]
 }
 
 .event_bundle_count <- function(x) {

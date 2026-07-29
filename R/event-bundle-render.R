@@ -51,7 +51,9 @@
 #' preserves every row and column of each selected source and performs no new
 #' EDSAN retrieval or clinical selection.
 #'
-#' @param bundle An object returned by [get_event_bundle()].
+#' @param bundle An `edsan_event_bundle` returned by [get_event_bundle()],
+#'   [build_event_bundle()], or extracted from the collection returned by their
+#'   plural counterparts.
 #' @param sources Sources already present in `bundle` to include. `NULL` (the
 #'   default) or `"all"` includes every source in the bundle. A character vector
 #'   selects whole sources without filtering their contents.

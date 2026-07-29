@@ -62,7 +62,10 @@ pmsi_all_sources <- process_pmsi(raw_pmsi, source_policy = "all")
 the fallback otherwise. `source_policy = "all"` retains every normalized
 `main` row. Event limits inherited by `actes` and `diag` are always derived
 from the complete `main` before that policy is applied; the two detail tables
-are not source-filtered.
+are not source-filtered. `process_pmsi()` reuses `label_pmsi()` to add the
+matching CIM-10 `CODE_LABEL` to `diag` and CCAM/CDAM `CODEACTE_LABEL` to
+`actes`. Original codes and rows are preserved; unknown codes receive a
+missing label.
 
 The same choice is available without breaking the retrieval flow:
 
@@ -88,19 +91,56 @@ raw_biol <- get_edsan(
 biology <- process_biol(raw_biol)
 ```
 
+## Reference mappings
+
+`edsan_references()` lists the mappings distributed with the package.
+`edsan_reference()` returns one normalized mapping as a tibble. `process_pmsi()`
+calls `label_pmsi()` automatically; the same function can enrich older
+normalized artifacts without replacing their source codes.
+
+```r
+edsan_references()
+
+labelled_pmsi <- label_pmsi(pmsi)
+labelled_pmsi$diag
+labelled_pmsi$actes
+
+bio <- edsan_reference("bio")
+biology_labelled <- dplyr::left_join(
+  biology,
+  bio,
+  by = "TYPEANA"
+)
+```
+
+`label_pmsi()` uses `diag = CODE` for CIM-10 and
+`NOMENCLATURE + CODEACTE` for the combined CCAM/CDAM reference. Unmatched codes
+are retained with an `NA` label. The underlying references remain available
+for custom joins:
+
+```r
+actes_ref <- edsan_reference("actes")
+actes_labelled <- dplyr::left_join(
+  pmsi$actes,
+  actes_ref,
+  by = c("NOMENCLATURE", "CODEACTE")
+)
+```
+
 ## Event bundles
 
 `get_event_bundle()` retrieves the normalized output of several modules for one
-`EVTID` without selecting rows or fields within those sources. By default it
-uses every module in `edsan_sources()`; callers may instead request whole
-modules explicitly.
+`EVTID`. Each module follows its normal `get_edsan()` retrieval and field
+defaults; the bundle layer adds no clinical or content filtering after
+normalization. By default it uses every module in `edsan_sources()`; callers
+may instead request modules explicitly.
 
 ```r
 bundle <- get_event_bundle("123456789")
 
 bundle <- get_event_bundle(
   "123456789",
-  sources = c("doceds", "pmsi", "biol")
+  modules = c("doceds", "pmsi", "biol")
 )
 
 bundle$sources$doceds

@@ -9,3 +9,4 @@
 ^\.gitignore$
 ^\.gitattributes$
 ^\.agents$
+^inst/extdata/reference/.*\.bak$

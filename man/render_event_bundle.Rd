@@ -7,7 +7,9 @@
 render_event_bundle(bundle, sources = NULL, pretty = TRUE)
 }
 \arguments{
-\item{bundle}{An object returned by \code{\link[=get_event_bundle]{get_event_bundle()}}.}
+\item{bundle}{An \code{edsan_event_bundle} returned by \code{\link[=get_event_bundle]{get_event_bundle()}},
+\code{\link[=build_event_bundle]{build_event_bundle()}}, or extracted from the collection returned by their
+plural counterparts.}
 
 \item{sources}{Sources already present in \code{bundle} to include. \code{NULL} (the
 default) or \code{"all"} includes every source in the bundle. A character vector

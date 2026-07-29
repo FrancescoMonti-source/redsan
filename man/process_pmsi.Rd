@@ -21,8 +21,10 @@ A list with tibbles \code{main}, \code{actes}, and \code{diag}.
 Flattens PMSI stay payloads and returns three tables:
 \describe{
 \item{\code{main}}{the normalized PMSI main table after the selected source policy}
-\item{\code{actes}}{actes in long format (one row per acte)}
-\item{\code{diag}}{diagnoses derived from \code{DALL} (one row per token)}
+\item{\code{actes}}{actes in long format (one row per acte), with the matching
+CCAM/CDAM \code{CODEACTE_LABEL} when available}
+\item{\code{diag}}{diagnoses derived from \code{DALL} (one row per token), with the
+matching CIM-10 \code{CODE_LABEL} when available}
 }
 }
 \details{

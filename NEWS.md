@@ -1,3 +1,14 @@
+# redsan 0.3.0
+
+- Add `edsan_references()` and `edsan_reference()` for the code mappings
+  distributed with the package.
+- Add `label_pmsi()` to enrich normalized diagnoses with CIM-10 labels and acts
+  with nomenclature-aware CCAM/CDAM labels. `process_pmsi()` reuses it for new
+  normalized outputs, while older artifacts can call it directly.
+- Rename the module selector of `get_event_bundle()` and
+  `get_event_bundles()` from `sources` to `modules`; `sources` continues to
+  mean normalized payloads in bundle construction and rendering.
+
 # redsan 0.2.0
 
 - Normalize registered source identifiers as character without scientific

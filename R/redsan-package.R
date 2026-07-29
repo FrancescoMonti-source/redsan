@@ -25,6 +25,15 @@
 #' Set `process = FALSE` in [get_edsan()] when the raw response is the artifact
 #' to retain or normalize later.
 #'
+#' @section Use reference mappings:
+#' [edsan_references()] lists the code mappings distributed with the package.
+#' [label_pmsi()] adds the packaged CIM-10 and CCAM/CDAM labels to normalized
+#' PMSI objects and can be applied to older artifacts. [process_pmsi()] reuses
+#' it so new normalized outputs are labelled automatically.
+#' [edsan_reference()] returns a normalized mapping for other explicit joins.
+#' Enrichment preserves native codes and row grain; unmatched codes receive a
+#' missing label.
+#'
 #' @section Work at event level:
 #' [get_event_bundle()] and [get_event_bundles()] retrieve several normalized
 #' modules for one or more `EVTID` values. When the normalized sources are
@@ -45,7 +54,8 @@
 #' building, and rendering do not require a live EDSAN connection.
 #'
 #' @seealso
-#' [edsan_sources()], [get_edsan()], [get_event_bundle()]
+#' [edsan_sources()], [edsan_references()], [label_pmsi()], [get_edsan()],
+#' [get_event_bundle()]
 #'
 #' @keywords internal
 #' @importFrom magrittr %>%

@@ -4,12 +4,12 @@
 \alias{get_event_bundle}
 \title{Retrieve normalized EDSAN sources for one event}
 \usage{
-get_event_bundle(event_id, sources = "all")
+get_event_bundle(event_id, modules = "all")
 }
 \arguments{
 \item{event_id}{One non-missing EDSAN \code{EVTID}.}
 
-\item{sources}{EDSAN modules to retrieve. Use \code{"all"} (the default) for every
+\item{modules}{EDSAN modules to retrieve. Use \code{"all"} (the default) for every
 registered module, or provide a character vector.}
 }
 \value{
@@ -23,15 +23,15 @@ selected module for one \code{EVTID} and returns the bundle directly rather than
 inside a named collection.
 }
 \details{
-Retrieval is fail-fast. If any selected source cannot be retrieved, no
-partial bundle is returned. Empty normalized source tables are retained.
+Retrieval is fail-fast. If any selected module cannot be retrieved, no
+partial bundle is returned. Empty normalized module tables are retained.
 }
 \examples{
 \dontrun{
 bundle <- get_event_bundle("123456789")
 bundle <- get_event_bundle(
   "123456789",
-  sources = c("doceds", "pmsi", "biol")
+  modules = c("doceds", "pmsi", "biol")
 )
 }
 

@@ -1,7 +1,7 @@
 Package: redsan
 Type: Package
 Title: Retrieve and Normalize EDSAN Warehouse Data
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person(
       given = "Francesco",

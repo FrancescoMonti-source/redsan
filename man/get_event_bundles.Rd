@@ -4,12 +4,12 @@
 \alias{get_event_bundles}
 \title{Retrieve normalized EDSAN sources for several events}
 \usage{
-get_event_bundles(event_ids, sources = "all")
+get_event_bundles(event_ids, modules = "all")
 }
 \arguments{
 \item{event_ids}{Non-empty vector of unique EDSAN \code{EVTID} values.}
 
-\item{sources}{EDSAN modules to retrieve. Use \code{"all"} (the default) for every
+\item{modules}{EDSAN modules to retrieve. Use \code{"all"} (the default) for every
 module registered by \code{\link[=edsan_sources]{edsan_sources()}}, or provide a character vector.}
 }
 \value{
@@ -21,16 +21,16 @@ Retrieves each selected EDSAN module once for the complete set of requested
 \code{get_edsan()} remains responsible for any technical ID batching.
 }
 \details{
-Retrieval is fail-fast. If any requested source cannot be retrieved,
+Retrieval is fail-fast. If any requested module cannot be retrieved,
 no partial bundle collection is returned. Each selected module is retrieved
 once for the complete \code{event_ids} vector and then partitioned locally. Empty
-source results are retained in every affected bundle.
+normalized module results are retained in every affected bundle.
 }
 \examples{
 \dontrun{
 bundles <- get_event_bundles(
   c("123456789", "987654321"),
-  sources = c("doceds", "pmsi", "biol")
+  modules = c("doceds", "pmsi", "biol")
 )
 bundles[["123456789"]]
 }
