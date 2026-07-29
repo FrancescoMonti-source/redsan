@@ -180,17 +180,65 @@
 #' raw <- list(list(
 #'   PATID="P1", EVTID="E1", ELTID="L1",
 #'   DATEXAM="2020-01-01 08:30",
-#'   RESULTATS=data.frame(ANALYTE="Hb", VALEUR="13.2")
+#'   RESULTATS=data.frame(TYPEANA="K.K", NUMRES=4.2)
 #' ))
 #' process_biol(raw)
 #'
 #' @export
 process_biol <- function(data) {
-  .edsan_normalize_identifier_columns(
-    .biol_results(data),
-    "biol",
-    "results"
+  label_biol(
+    .edsan_normalize_identifier_columns(
+      .biol_results(data),
+      "biol",
+      "results"
+    )
   )
+}
+
+#' Add reference labels to normalized biology results
+#'
+#' Enriches normalized biology rows with the analyte labels distributed with
+#' `redsan`. It can be applied to older artifacts; [process_biol()] uses the
+#' same function for new outputs.
+#'
+#' Results are matched to the biology reference by `TYPEANA`, producing
+#' `TYPEANA_LABEL`. The join is exact, preserves every biology row and leaves
+#' unmatched labels as `NA`. An existing `TYPEANA_LABEL` column is refreshed
+#' from the packaged reference.
+#'
+#' @param biology A normalized biology data frame containing `TYPEANA`, normally
+#'   returned by [process_biol()].
+#'
+#' @return The input biology data frame with `TYPEANA_LABEL` added. All other
+#'   columns and rows are preserved.
+#'
+#' @examples
+#' biology <- data.frame(
+#'   TYPEANA = c("K.K", "FAIT_MAISON"),
+#'   NUMRES = c(4.2, 1)
+#' )
+#' labelled <- label_biol(biology)
+#' labelled[c("TYPEANA", "TYPEANA_LABEL")]
+#'
+#' @export
+label_biol <- function(biology) {
+  if (!is.data.frame(biology)) {
+    stop("`biology` must be a data frame.", call. = FALSE)
+  }
+  if (!"TYPEANA" %in% names(biology)) {
+    if (!nrow(biology)) {
+      biology$TYPEANA <- character()
+    } else {
+      stop(
+        "`biology` is missing required column: TYPEANA.",
+        call. = FALSE
+      )
+    }
+  }
+
+  biology %>%
+    dplyr::select(-dplyr::any_of("TYPEANA_LABEL")) %>%
+    dplyr::left_join(edsan_reference("bio"), by = "TYPEANA")
 }
 
 #' Process VIRO results

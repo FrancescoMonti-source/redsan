@@ -24,7 +24,7 @@ If \code{DATEXAM} is present, it is parsed into \code{POSIXct} and \code{HEURE_D
 raw <- list(list(
   PATID="P1", EVTID="E1", ELTID="L1",
   DATEXAM="2020-01-01 08:30",
-  RESULTATS=data.frame(ANALYTE="Hb", VALEUR="13.2")
+  RESULTATS=data.frame(TYPEANA="K.K", NUMRES=4.2)
 ))
 process_biol(raw)
 

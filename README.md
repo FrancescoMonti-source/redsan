@@ -91,12 +91,17 @@ raw_biol <- get_edsan(
 biology <- process_biol(raw_biol)
 ```
 
+`process_biol()` reuses `label_biol()` to add the matching
+`TYPEANA_LABEL`. Original analyte codes and rows are preserved; unknown codes
+receive a missing label.
+
 ## Reference mappings
 
 `edsan_references()` lists the mappings distributed with the package.
-`edsan_reference()` returns one normalized mapping as a tibble. `process_pmsi()`
-calls `label_pmsi()` automatically; the same function can enrich older
-normalized artifacts without replacing their source codes.
+`edsan_reference()` returns one normalized mapping as a tibble.
+`process_pmsi()` and `process_biol()` call their labelling helpers
+automatically; the same helpers can enrich older normalized artifacts without
+replacing their source codes.
 
 ```r
 edsan_references()
@@ -105,15 +110,11 @@ labelled_pmsi <- label_pmsi(pmsi)
 labelled_pmsi$diag
 labelled_pmsi$actes
 
-bio <- edsan_reference("bio")
-biology_labelled <- dplyr::left_join(
-  biology,
-  bio,
-  by = "TYPEANA"
-)
+biology_labelled <- label_biol(biology)
 ```
 
-`label_pmsi()` uses `diag = CODE` for CIM-10 and
+`label_biol()` uses `TYPEANA` for the biology reference. `label_pmsi()` uses
+`diag = CODE` for CIM-10 and
 `NOMENCLATURE + CODEACTE` for the combined CCAM/CDAM reference. Unmatched codes
 are retained with an `NA` label. The underlying references remain available
 for custom joins:

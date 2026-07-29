@@ -30,9 +30,10 @@
 #' [label_pmsi()] adds the packaged CIM-10 and CCAM/CDAM labels to normalized
 #' PMSI objects and can be applied to older artifacts. [process_pmsi()] reuses
 #' it so new normalized outputs are labelled automatically.
-#' [edsan_reference()] returns a normalized mapping for other explicit joins.
-#' Enrichment preserves native codes and row grain; unmatched codes receive a
-#' missing label.
+#' [label_biol()] similarly adds packaged analyte labels to normalized biology
+#' rows, and [process_biol()] reuses it for new outputs. [edsan_reference()]
+#' returns any normalized mapping for explicit joins. Enrichment preserves
+#' native codes and row grain; unmatched codes receive a missing label.
 #'
 #' @section Work at event level:
 #' [get_event_bundle()] and [get_event_bundles()] retrieve several normalized
@@ -54,8 +55,8 @@
 #' building, and rendering do not require a live EDSAN connection.
 #'
 #' @seealso
-#' [edsan_sources()], [edsan_references()], [label_pmsi()], [get_edsan()],
-#' [get_event_bundle()]
+#' [edsan_sources()], [edsan_references()], [label_pmsi()], [label_biol()],
+#' [get_edsan()], [get_event_bundle()]
 #'
 #' @keywords internal
 #' @importFrom magrittr %>%
