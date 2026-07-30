@@ -27,7 +27,6 @@ test_that("the derived acts reference keeps one row per nomenclature and code", 
       nrow(edsan_reference(name))
     }, integer(1))
   )
-  # A code shared by two nomenclatures stays unique only through the pair.
   expect_identical(
     anyDuplicated(paste(actes$NOMENCLATURE, actes$CODEACTE, sep = "|")),
     0L
@@ -48,11 +47,22 @@ test_that("bacteriology and biology analytes stay separate references", {
   shared <- intersect(bio$TYPEANA, bact$TYPEANA)
 
   expect_identical(names(bact), names(bio))
-  # The overlap is real and carries module-specific labels, so merging the two
-  # would silently pick one module's wording for the other.
   expect_gt(length(shared), 0L)
   expect_false(identical(
     bio$TYPEANA_LABEL[match(shared, bio$TYPEANA)],
     bact$TYPEANA_LABEL[match(shared, bact$TYPEANA)]
   ))
+})
+
+test_that("the local PMSI unit bridge is one row per SEJUF", {
+  ref <- edsan_reference("uf2umpmsi")
+
+  expect_identical(names(ref), c("SEJUF", "SEJUM", "UM_PMSI"))
+  expect_identical(nrow(ref), 203L)
+  expect_identical(anyDuplicated(ref$SEJUF), 0L)
+  expect_identical(length(unique(ref$UM_PMSI)), 199L)
+  expect_identical(
+    ref$UM_PMSI[match(c("5522", "5622", "5623", "6245"), ref$SEJUF)],
+    c("5530", "5618", "5619", "6241")
+  )
 })
