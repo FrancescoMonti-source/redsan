@@ -13,21 +13,33 @@
 #' @export
 edsan_references <- function() {
   tibble::tibble(
-    name = c("actes", "bio", "ccam", "cdam", "cim10", "uf", "uf2um", "um"),
+    name = c(
+      "actes", "bact", "bio", "ccam", "cdam", "cim10", "csarr", "ghm",
+      "modeent", "modesort", "ngap", "rectypes", "uf", "uf2um", "um"
+    ),
     scope = c(
-      "derived", "edsan", "national", "national",
-      "national", "local", "local", "local"
+      "derived", "edsan", "edsan", "national", "national",
+      "national", "national", "national", "national", "national",
+      "national", "local", "local", "local", "local"
     ),
     key = c(
-      "NOMENCLATURE + CODEACTE", "TYPEANA", "CODEACTE", "CODEACTE",
-      "CODE", "SEJUF", "SEJUF", "SEJUM"
+      "NOMENCLATURE + CODEACTE", "TYPEANA", "TYPEANA", "CODEACTE", "CODEACTE",
+      "CODE", "CODEACTE", "GHM", "MODEENT", "MODESORT",
+      "CODEACTE", "RECTYPE", "SEJUF", "SEJUF", "SEJUM"
     ),
     description = c(
-      "Combined CCAM and CDAM acts with explicit nomenclature",
+      "Combined CCAM, CDAM, CSARR, and NGAP acts with explicit nomenclature",
+      "Bacteriology analyte codes",
       "Biology analyte codes",
       "CCAM procedure codes",
       "CDAM procedure codes",
       "CIM-10 diagnosis codes",
+      "CSARR rehabilitation procedure codes",
+      "GHM diagnosis-related groups",
+      "PMSI admission modes",
+      "PMSI discharge modes",
+      "NGAP procedure codes",
+      "Document type codes",
       "Functional unit codes",
       "Functional-unit to medical-unit mapping",
       "Medical unit codes"
@@ -38,10 +50,17 @@ edsan_references <- function() {
 .edsan_reference_columns <- function(name) {
   switch(
     name,
+    bact = c("TYPEANA", "TYPEANA_LABEL"),
     bio = c("TYPEANA", "TYPEANA_LABEL"),
     ccam = c("CODEACTE", "CODEACTE_LABEL"),
     cdam = c("CODEACTE", "CODEACTE_LABEL"),
     cim10 = c("CODE", "CODE_LABEL"),
+    csarr = c("CODEACTE", "CODEACTE_LABEL"),
+    ghm = c("GHM", "GHM_LABEL"),
+    modeent = c("MODEENT", "MODEENT_LABEL"),
+    modesort = c("MODESORT", "MODESORT_LABEL"),
+    ngap = c("CODEACTE", "CODEACTE_LABEL"),
+    rectypes = c("RECTYPE", "RECTYPE_LABEL"),
     uf = c("SEJUF", "SEJUF_LABEL"),
     uf2um = c("SEJUF", "SEJUM"),
     um = c("SEJUM", "SEJUM_LABEL")
@@ -103,15 +122,27 @@ edsan_references <- function() {
 #' Returns one normalized reference table. Reference keys must be unique.
 #' Native codes are kept as character, including leading zeroes.
 #'
-#' `actes` is derived from the separate `ccam` and `cdam` references and adds a
-#' `nomenclature` column. It is not stored as an independent source of truth.
+#' `actes` is derived from the separate `ccam`, `cdam`, `csarr`, and `ngap`
+#' references and adds a `NOMENCLATURE` column. It is not stored as an
+#' independent source of truth. The same `CODEACTE` may exist in more than one
+#' nomenclature, which is why the combined key includes `NOMENCLATURE`.
+#'
+#' `bact` covers the bacteriology analytes of the EDSAN `bact` module and is kept
+#' separate from `bio`: some `TYPEANA` codes appear in both with a different
+#' label, and only the module the rows come from settles which one applies.
+#'
+#' A reference may carry a missing label for a code that the source system leaves
+#' undocumented, as several `rectypes` entries do. Codes are never dropped for
+#' that reason.
 #'
 #' @param name One reference name listed by [edsan_references()].
 #'
-#' @return A tibble preserving native reference headers: `TYPEANA` for biology,
-#'   `CODEACTE` for acts, `CODE` for CIM-10, and `SEJUF` / `SEJUM` for
-#'   organizational mappings. Label columns use the corresponding `_LABEL`
-#'   suffix. The derived `actes` reference adds `NOMENCLATURE`.
+#' @return A tibble preserving native reference headers: `TYPEANA` for biology
+#'   and bacteriology, `CODEACTE` for acts, `CODE` for CIM-10, `GHM` for
+#'   diagnosis-related groups, `MODEENT` / `MODESORT` for PMSI stay modes,
+#'   `RECTYPE` for document types, and `SEJUF` / `SEJUM` for organizational
+#'   mappings. Label columns use the corresponding `_LABEL` suffix. The derived
+#'   `actes` reference adds `NOMENCLATURE`.
 #'
 #' @examples
 #' cim10 <- edsan_reference("cim10")
@@ -137,13 +168,19 @@ edsan_reference <- function(name) {
   }
 
   if (identical(name, "actes")) {
-    ccam <- .edsan_read_reference("ccam")
-    ccam$NOMENCLATURE <- "CCAM"
-    cdam <- .edsan_read_reference("cdam")
-    cdam$NOMENCLATURE <- "CDAM"
+    # One act nomenclature per stored reference. A code may exist in several of
+    # them, so `NOMENCLATURE` is what keeps the combined key unique and is why
+    # `label_pmsi()` joins on both columns.
+    nomenclatures <- c(ccam = "CCAM", cdam = "CDAM", csarr = "CSARR",
+                       ngap = "NGAP")
+    combined <- lapply(names(nomenclatures), function(reference) {
+      out <- .edsan_read_reference(reference)
+      out$NOMENCLATURE <- nomenclatures[[reference]]
+      out
+    })
 
     return(dplyr::select(
-      dplyr::bind_rows(ccam, cdam),
+      dplyr::bind_rows(combined),
       dplyr::all_of(c("NOMENCLATURE", "CODEACTE", "CODEACTE_LABEL"))
     ))
   }

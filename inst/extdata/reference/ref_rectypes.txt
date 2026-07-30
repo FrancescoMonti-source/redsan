@@ -1,0 +1,296 @@
+RECTYPE;RECTYPE_LABEL
+@;
+AJ;Action Juridique Std
+AJ02;Protection de justice
+AJ03;Sauvegarde de justice
+ANEPHVSL;Certificat transport
+ASSDIV;Texte DIVERS dossier MIDAS
+ASS_FIC_INDIV;Fiche signalétique individuelle
+ASSOC;Modèles des textes dossier MIDAS
+CARDETT;CR Echocardiographie
+CARDPM1;Compte-rendu de pace maker
+CARDPM1UVE;Compte-rendu de pace maker
+CARDPM2;Compte-rendu de pace maker
+CARDVO2;CR VO2MAX
+CASA;Compte Rendu Acte
+CASAPARQ;CASA PARQUET
+CCARDECHO;Compte-rendu d'échocardiographie
+CCARD_SORTIE;Conclusion de sortie REA CARD
+CGH;Cytg CGH
+CONTERGMG;courrier au medecin traitant - patient contact ERG
+CONTERGPAT;patient contact ERG - courrier patient
+CONTERGTRANS;patient contact ERG - courrier pour transfert
+CRAAA;Compte-rendu d'acte
+CRAABanc;Compte-rendu d'acte
+CRAAB;Compte-rendu d'acte
+CRAAD;Compte-rendu d'acte v1
+CRAADSAUVE;Compte-rendu d'acte
+CRACCT1;Compte-rendu d'accouchement 1
+CRACCT2;Compte-rendu d'accouchement 2
+CRACCT3;Compte-rendu d'accouchement 3
+CRACCT4;Compte-rendu d'accouchement 4
+CRACJRAD;Courrier Principal Acte Radio STJulien
+CRARESRADP;Compte-rendu radio v1
+CRARESRADS;Compte-rendu radio
+CRCOURT1;Compte-rendu initial court
+CRDICNUMTP;CR Type  pour CR Acte sous dictée numérique
+CRDICNUM1;CR Consultation (DN)
+CR_EMED;CR_EMED
+CRHAC;Compte-rendu de séjour
+CRHAD;Compte-rendu de séjour
+CRHAE;Compte-rendu de séjour
+CRHAF;Compte-rendu de séjour
+CRHAG;Compte-rendu de séjour
+CRHAH;Compte-rendu de séjour
+CRHAI;Compte-rendu de séjour
+CRHAJ;Compte-rendu de séjour
+CRHAK;Compte-rendu de séjour v1.
+CRHAKO;Compte-rendu de séjour.
+CRHAKSAUVE;Compte-rendu de séjour.
+CRHCOURT1;Compte-rendu initial court
+CRH2AA;Compte-rendu de séjour (aa)
+CRH2AA2;Compte-rendu de séjour
+CRH2AB;Lettre de liaison à la sortie du patient
+CRH2ABold;Compte-rendu de séjour
+CRH2ABSAUVE;Compte-rendu de séjour
+CRO;Compte-rendu opératoire
+CRO2;CRO
+CRO2old;Compte-rendu opératoire
+CRO3;Compte Rendu Bloc Opératoire
+CRPROGETP;Synthèse du programme d'éducation thérapeutique
+CRRAD;Compte-rendu radio 
+CRRADP1;Compte-rendu Radio Pédiatrie
+CRRADP1UVE;Compte-rendu Radio Pédiatrie
+CRRADP2;Compte-rendu Radio Pédiatrie (i1)
+CRRADP2UVE;Compte-rendu Radio Pédiatrie (i)
+CRRADP3;Compte-rendu Radio Pédiatrie (i)
+CRSTAFF;CR de STAFF de SERVICE
+CRURGE;Compte-rendu passage URGENCES
+CR2AAD;Compte-rendu d'acte v2
+CR2AAE;Compte-rendu d'acte
+CR2AAERR;Compte-rendu d'acte
+CR2AAERR2;mauvais cpt acte
+CR2AAESAUVE;Compte-rendu d'acte
+CR2AAE2;Compte-rendu d'acte
+CR2AAF;Compte-rendu d'acte
+CR2AAFSAVE;Compte-rendu d'acte
+CR2AATP;Test champ MAJ
+CTDEFAUT;Courrier type par defaut
+CTDEFAUTUVE;Courrier type par defaut
+CTPRIVE;CT PRIVE
+CTPUBACT;CT PUBLIC NIVEAU ACTE
+CTPUB;CT PUBLIC
+CTPUBSEJ;CT PUBLIC NIVEAU SEJOUR
+CV;Condition de vie Std
+CV202;demande AMCS
+CV218;frais transport
+CV310;demande APA
+CV311;prestation de Compensation
+CV312;PAP Hospitalisation
+CYTGANEUF;cpte-rendu ANEUVYSION FILLE
+CYTGANEUG;cpte-rendu ANEUVYSION GARCON
+CYTGBB;Suivi bébé
+CYTGBEUREN;cpte-rendu WILLIAMS BEUREN
+CYTGCR;cpte-rendu standard CYTOGENETIQUE 1
+CYTGCRI;cpte-rendu SYNDROME CRI DU CHAT
+CYTGCRSAUV;Sauv Cytgcr
+CYTGCRSTD;Compte-Rendu Std Cytogenetique
+CYTGCRSTDN;New cytgcrstd
+CYTGCRV2;cpte-rendu standard CYTOGENETIQUE
+CYTGCRV3;cpte-rendu standard CYTG
+CYTGCRYO;cpte-rendu de cryoconservation
+CYTGDIGEOR;cpte-rendu DI-GEORGE CYTOGENETIQUE
+CYTGFP1;feuille de paillasse CYTOGENETIQUE
+CYTGPRADER;cpte-rendu WILLI PRADER
+CYTGSMITH;cpte-rendu SMITH CYTOGENETIQUE
+CYTGVYSIS;cpte-rendu VYSIS
+CYTGWOLF;cpte-rendu WOLF HIRSCHHORN
+CYTG1P36;cpte-rendu SONDE 1P36
+CYTOARTI;FP ARTICULATIONS
+CYTOCONCLU;CR DE LA CYTOLOGIE
+CYTO;CR DE CYTO/HISTOLOGIE
+CYTOCV;FP CYTOLOGIE CERVICO-VAGINALE
+CYTODEV;CR DE CYTOLOGIE
+CYTODEV2;CR DE CYTOLOGIE V2
+CYTOGANG;FP GANGLIONS
+CYTOLBA;FP LAVAGE BRONCHO-ALVELOLAIRE
+CYTOLCR;FP LCR
+CYTORESP;FP APPAREIL RESPIRATOIRE
+CYTOSERE;FP SEREUSES
+CYTOTEST;CR CYTOLOGIE 
+CYTOTHYR;FP THYROIDE
+CYTOURIN;FP URINES
+CYTO1;courrier-type acte de Cytologie
+CYTO2;CR acte de cytologie (v2)
+DA;Demande Administrative Std
+DA103;exonération ticket modérateur
+DA106;congé de longue maladie
+DA107;indemintés journalières
+DA108;Demande carte handicapé
+DA112;AEEH
+DA117;Action sépécifique étranger
+DA118;demande d entente préalable
+DA119;demande de dérogation d age
+DA123;CMU de base
+DA124;CMU complémentaire
+DA125;déclaration maladie contagieuse
+DA127;aide départ complémentaire santé
+DA129;fiche de liaison sociale
+DA131;allocation adultes handicapés
+DA132;alloc journ présence parentale
+DA134;demande d orientation
+DA135;Demande Acte de naissance
+DA136;demande complément ressources
+DA142;proposition RDV grossesse
+DA143;emploi et formation prof
+DA144;qualité travailleur handicapé
+DA147;fiche SAMU
+DA148;Recherche Intérêt Familles
+DA151;UMAS Hygiène
+DEFAULT;DEFAULT
+DEMSPAL;Demande de PEC de SOINS PALLIATIFS
+DFP;Demande aide financiere ponctuelle Std 
+DFP01;aide financiere exceptionelle
+DFP02;aide financiere cancer
+DFP06;aide financiere tuberculose
+DFP32;télévision gratuite
+DIGE CPRE;Compte rendu CPRE
+DIGECHIMIO;Compte-rendu chimiothérapie
+DIGECHIMIO2;Compte rendu Chimiothérapie
+DIGECHIMIO3;Compte rendu de Chimiothérapie.
+DIGECHIMIO4;Chimio Dige
+DIGEECHOEND;Compte rendu echo endoscopie
+DIGEENDOB1;Compte rendu endoscopie basse
+DIGEENDOH2;Compte rendu endoscopie haute
+DIGENUT1;Courrier Sortie nutrition
+DIGENUT2;Ordonnance nutrition
+DIGENUT3;Courrier prestataire nutrition
+DIGEPROCTO;Compte rendu proctologie
+EEFFORTAUVE;Compte-rendu épreuve d'effort
+EEFFORT;Compte-rendu épreuve d effort
+EVAL;Compte-rendu Evaluation Gériatrique
+GERIAPPEL;fiche APPEL PLATEFORME TELEPHONIQUE
+GERICSMEMI;Consultation Mémoire Initiale
+GERICSMEMS;Consultation Mémoire Suivi
+GERIEVAL6;CR évaluation gériatrique
+GERIEVAL7;CR Evaluation Gériatrique
+GERIMMS;MMSE
+GERIPSY;Evaluation Neuropsychologique
+GERISYNTH_sauve;Synthèse Evaluation Gérontologique
+GERISYNTH;Synthèse Evaluation Gérontologique
+HOLTER;Compte-rendu de Holter
+HOLTERSAUVE;Compte-rendu de Holter
+HOLTER2;Compte-rendu de Holter (b)
+HOLTER3;Compte-rendu de Holter (c)
+INFOPAT;Informations Patient
+LDL2024;Lettre de Liaison 2024
+LETLIAIS;Lettre de liaison
+LETLIAISON2;lettre de liaison (sortie)
+LETLIAIS1;Lettre de liaison (sortie)
+MLEGCASA;Compte rendu MLEG
+NDSPAPPEL;Fiche d'appel Soins Palliatifs
+NEUCSIPO;CR SIPO NEUROCHIRURGIE
+NEUCSIPO2;CR SIPO NEUROCHIRURGIE
+NNATCRS1;Compte-rendu de sortie (néonat)
+OBSCER8J;Certificat du 8ème jour
+OBSCRACC;Compte-rendu d' accouchement
+OBSCRACCold;Compte-rendu d' accouchement
+OBSTACC;CR fin de séjour SDC / ACC
+OBSTORDANES;Ordonnance bilan anesthésie
+OBSTORDSDC;Ordonnance de suites de couches
+OBSTORDSDCX;Ordonnance SDC (A4)
+OBSTUGP;CR de fin de séjour UGP
+ORDOACT;Ordonnance
+ORDOIMP;Impression ordonnance hors patient
+ORDONACTE;Ordonnance
+ORDONACTE1;Ordonnance
+ORDONACTE2;Ordonnance - BT
+ORDON1;Ordonnance
+ORDON2;Ordonnance test macro distante
+ORDON4;Ordonnance
+ORDON5;Ordonnance
+ORDON6;Ordonnance
+ORDON7;ordonnance - BT
+ORDON8;ordonnance_sejour_bon_transport_lourd
+ORTHOL;CR de LIAISON  ORTHO
+PATESTC2R;Test PA CR
+PATSANSALV;Echelle de douleur enfant SAN SALVADOUR
+PEDCINFO;Informations Patient Chir Ped
+PEDCONT;PEDCONT
+PEDCRIP1;Ecrit relatif au recueil d'une I.P. en pédiatrie
+PEDCSIPO;CR SIPO CHIRURGIE PEDIATRIE
+PEDEENDOBA;Compte-rendu coloscopie
+PEDEENDOBS;Compte-rendu coloscopie
+PEDEENDOHA;Compte-rendu FOGD
+PEDEENDOHS;Compte-rendu gastroscopie
+PEDSUIVCONS;Suivi de consultation pédiatrique
+PMT;PMT
+PNM1CHIMIO;CR CHIM
+PNM1CHIMIO2;Compte rendu chimiothérapie Pneumo HCN
+PNM1CHIMIO4;Chimio Pnm1
+PNM2BRONCHO;Schéma broncoscopie
+PNM2GRAPH1;Tracés polysomnographiques
+PROJA;Annulation projet de sortie
+PROJ;Projet de sortie
+PROJREAC;Réactivation projet de sortie 
+PROJ04;demande de logement
+RADIEXTRAVAS2003;Formulaire extravasation
+RADIEXTRAV;Formulaire extravasation
+RADIEXTRAV2;Formulaire extravasation (V2)
+RDVPATIENT;Tableau des RDV futurs du PATIENT
+REACCARDPO;REACCARDPO
+REACECHO;Compte-rendu d'échocardiographie
+REACSIPO3;Compte-rendu REAC SIPO
+REACSIPO4;CR de REAC SIPO
+RECAPAT;Recap doss pat
+RECAPA2;Impression codes patients
+TAAAA_old;Texte associé acte
+TAAAAOOOO;Texte associé acte
+TAAAASAUVE;Texte associé acte
+TAAAA;Texte associé acte v1
+TAAAA5;sauvegarde non virusséTexte associé acte
+TAA2AA_old;Texte associé d acte
+TAA2AAold;Texte associé d acte
+TAA2AAoold;Texte associé d acte
+TAA2AAo2805;Texte associé d acte
+TAA2AA_perime;Texte associé d acte
+TAA2AASAUVE;Texte associé d acte
+TAA2AA;Texte associé d acte
+TAA2AA0404;Texte associé d acte
+TAA2AA0605;Texte associé d acte
+TAA2AA2810;Texte associé d acte
+TAA2AA2904;Texte associé d acte
+TAA2AA3004;Texte associé d acte
+TASAASAUVE;Texte associé séjour
+TASAA;Texte associé séjour v1
+TASRESAUVE;Impression résumé de séjour
+TASRES;Impression résumé de séjour
+TAS2AASAUVE;Texte associé de séjour
+TAS2AA;Texte associé de séjour
+TAS2AA1403;Texte associé de séjour
+TAS2AA2005;Texte associé de séjour
+TAS2AA2403;Texte associé de séjour
+TAS2AA2503;Texte associé de séjour
+TAS2AA2605;Texte associé de séjour
+TAS2AA2705;Texte associé de séjour
+TAS2AA3005;Texte associé de séjour
+testng;test ng
+testNG;test nicolas
+TESTPA;TEST PA
+TEST2;testng2
+USCPOREA;USCPO REA CCARD
+WTest;Test PM
+2007ACJRAD;Compte-rendu radio St Julien
+ICCATC;Transmission ciblée ICCA
+XWAYTC;Transmission Ciblée XWAY
+A100_OLECRPPAL;
+DAVINCI;
+DIANE;
+DICT;
+OPROOM;
+PDFCRACTE2;
+SIGEN;
+SINED;
+SOFTALMO;
+TU;
+XWAY;

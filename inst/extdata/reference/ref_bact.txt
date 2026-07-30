@@ -1,0 +1,2358 @@
+TYPEANA;TYPEANA_LABEL
+ACI_COM.ACI_COM1;COMMENTAIRES ATB ACI - Technique
+ACI_COM.ACI_COM2;COMMENTAIRES ATB ACI - Com libre
+ACI_COM.ACI_COM3;COMMENTAIRES ATB ACI - BLSE
+ACI_COM.ACI_COM4;COMMENTAIRES ATB ACI - CARBA
+AERC_COM.AERC_COM1;COMMENTAIRES ATB AERC - Technique
+AERC_COM.AERC_COM2;COMMENTAIRES ATB AERC - Com libre
+AERM_COM.AERM_COM1;COMMENTAIRES ATB AEROMONAS - Technique
+AERM_COM.AERM_COM2;COMMENTAIRES ATB AEROMONAS - Com libre
+AKN.AKN1;AMIKACINE - SIR
+AKN.AKN2;AMIKACINE - CMI
+AKN.AKN3;AMIKACINE - Diamètre
+AMCA.AMCA1;AUGMENTIN AUTRES CONTEXTES - SIR
+AMCA.AMCA2;AUGMENTIN AUTRES CONTEXTES - CMI
+AMCA.AMCA3;AUGMENTIN AUTRES CONTEXTES - Diamètre
+AMCC.AMCC1;AUGMENTIN CYSTITE - SIR
+AMCC.AMCC2;AUGMENTIN CYSTITE - CMI
+AMCC.AMCC3;AUGMENTIN CYSTITE - Diamètre
+AMCFIX.AMCFIX1;ASSO AUGMENTIN/CEFIXIME - SIR
+AMCFIX.AMCFIX2;ASSO AUGMENTIN/CEFIXIME - CMI
+AMC30.AMC301;AUGMENTIN - SIR
+AMC30.AMC302;AUGMENTIN - CMI
+AMC30.AMC303;AUGMENTIN - Diamètre
+AMP10.AMP101;AMOXICILLINE / AMPICILLINE - SIR
+AMP10.AMP102;AMOXICILLINE / AMPICILLINE - CMI 
+AMP10.AMP103;AMOXICILLINE / AMPICILLINE - Diamètre
+AMX.AMX1;AMOXICILLINE - SIR
+AMX.AMX2;AMOXICILLINE - CMI
+AMX.AMX3;AMOXICILLINE - Diamètre
+AMXM.AMXM1;AMOX MENINGITE - SIR
+AMXM.AMXM2;AMOX MENINGITE - CMI
+AMXM.AMXM3;AMOX MENINGITE - Diamètre
+AMXVO.AMXVO1;AMOX VO - SIR
+AMXVO.AMXVO2;AMOX VO - CMI
+AMXVO.AMXVO3;AMOX VO - Diamètre
+AM3.AM31;AMPI AUTRES CONTEXTES - SIR
+AM3.AM32;AMPI AUTRES CONTEXTES - CMI
+AM3.AM33;AMPI AUTRES CONTEXTES - Diamètre
+AM4.AM41;AMPI PNEUMONIES - SIR
+AM4.AM42;AMPI PNEUMONIES - CMI
+AM4.AM43;AMPI PNEUMONIES - Diamètre
+ANA_COM.ANA_COM1;COMMENTAIRES ATB ANA - Technique
+ANA_COM.ANA_COM2;COMMENTAIRES ATB ANA - Com libre
+ANI_MY.ANI_MY_CMI;Anidulafungine (AN) - CMI
+ANI_MY.ANI_MY_FAC;Anidulafungine (AN) - Facturation
+ANI_MY.ANI_MY_SIR;Anidulafungine (AN) - SIR
+API2.API21;AMPICILLINE/AMOXICILLINE  - SIR
+API2.API22;AMPICILLINE/AMOXICILLINE  - CMI
+API2.API23;AMPICILLINE/AMOXICILLINE  - Diamètre
+AP_MY.AP_MY_CMI;Amphotéricine B (AP) - CMI
+AP_MY.AP_MY_FAC;Amphotéricine B (AP) - Facturation
+AP_MY.AP_MY_SIR;Amphotéricine B (AP) - SIR
+ATBT.ATBT1;Technique ATB - Résultat
+ATM.ATM1;AZTREONAM - SIR
+ATM.ATM2;AZTREONAM - CMI
+ATM.ATM3;AZTREONAM - Diamètre
+ATMCAZA.ATMCAZA1;ASSO AZTRE/CAZA - SIR
+ATMCAZA.ATMCAZA2;ASSO AZTRE/CAZA - CMI
+AUG3.AUG31;AUGMENTIN - SIR
+AUG3.AUG32;AUGMENTIN - CMI
+AUG3.AUG33;AUGMENTIN - Diamètre
+AZM.AZM1;AZITRHOMYCINE - SIR
+AZM.AZM2;AZITRHOMYCINE - CMI
+AZM.AZM3;AZITRHOMYCINE - Diamètre
+BAC_COM.BAC_COM1;COMMENTAIRES ATB BAC - Technique
+BAC_COM.BAC_COM2;COMMENTAIRES ATB BAC - Com libre
+BAC_COM.BAC_COM3;COMMENTAIRES ATB BAC - NXND R INACTIVE
+BGABMR_R.BGABMR_R1;RECHERCHE AUTRES BMR - Technique
+BGABMR_R.BGABMR_R2;RECHERCHE AUTRES BMR - Résultat
+BGABRI_R.BGABRI_R1;RECHERCHE ABRI - Technique
+BGABRI_R.BGABRI_R2;RECHERCHE ABRI - Résultat
+BGACT.BGACT2;Rech ACTINO NOCARDIA - Résultat
+BG_ADNALB.BG_ADNALB_CT;PCR Albumine - Albumine Ct
+BG_ADNALB.BG_ADNALB_RES;PCR Albumine - Albumine Ct
+BG_ADNALB.BG_ALB_CT;PCR Albumine - Albumine Ct
+BG_ADNALB.BG_ALB_RES;PCR Albumine - Albumine Résultat
+BG_ADNBA.BG_ADNBA_COM;PCR Bacillus anthracis - Commentaire
+BG_ADNBA.BG_ADNBA_CT;PCR Bacillus anthracis - Ct
+BG_ADNBA.BG_ADNBA_CTS;PCR Bacillus anthracis - Ct souche
+BG_ADNBA.BG_ADNBA_NAT;PCR Bacillus anthracis - Nature de prélèvement
+BG_ADNBA.BG_ADNBA_PVT;PCR Bacillus anthracis - Nature pvt calculée
+BG_ADNBA.BG_ADNBA_RES;PCR Bacillus anthracis - Résultat
+BG_ADNBA.BG_ADNBA_ST;PCR Bacillus anthracis - Statut
+BG_ADNBA.BG_ADNBA_TEC;PCR Bacillus anthracis - Technique
+BG_ADNBAC.BG_ADNBAC_COM;Recherche ADN bactérien - Commentaire
+BG_ADNBAC.BG_ADNBAC_CT;Recherche ADN bactérien - Ct
+BG_ADNBAC.BG_ADNBAC_CTS;Recherche ADN bactérien - Ct souche
+BG_ADNBAC.BG_ADNBAC_NAT;Recherche ADN bactérien - Nature de prélèvement
+BG_ADNBAC.BG_ADNBAC_RES;Recherche ADN bactérien - Résultat
+BG_ADNBAC.BG_ADNBAC_ST;Recherche ADN bactérien - Statut
+BG_ADNBAC.BG_ADNBAC_TEC;Recherche ADN bactérien - Technique
+BG_ADNBAR.BG_ADNBAR_COM;PCR Bartonella sp - Commentaire
+BG_ADNBAR.BG_ADNBAR_CT;PCR Bartonella sp - Ct
+BG_ADNBAR.BG_ADNBAR_CTS;PCR Bartonella sp - Ct souche
+BG_ADNBAR.BG_ADNBAR_NAT;PCR Bartonella sp - Nature de prélèvement
+BG_ADNBAR.BG_ADNBAR_PVT;PCR Bartonella sp - Nature pvt calculée
+BG_ADNBAR.BG_ADNBAR_RES;PCR Bartonella sp - Résultat
+BG_ADNBAR.BG_ADNBAR_ST;PCR Bartonella sp - Statut
+BG_ADNBAR.BG_ADNBAR_TEC;PCR Bartonella sp - Technique
+BG_ADNBH.BG_ADNBH_COM;PCR Bordetella holmesii - Commentaire
+BG_ADNBH.BG_ADNBH_CT;PCR Bordetella holmesii - ADNBH Ct
+BG_ADNBH.BG_ADNBH_CTS;PCR Bordetella holmesii - ADNBH Ct souche
+BG_ADNBH.BG_ADNBH_NAT;PCR Bordetella holmesii - Nature de prélèvement
+BG_ADNBH.BG_ADNBH_PVT;PCR Bordetella holmesii - Nature pvt calculée
+BG_ADNBH.BG_ADNBH_RES;PCR Bordetella holmesii - Résultat
+BG_ADNBH.BG_ADNBH_ST;PCR Bordetella holmesii - Statut
+BG_ADNBH.BG_ADNBH_TEC;PCR Bordetella holmesii - Technique
+BG_ADNBM.BG_ADNBM_COM;PCR Burkholderia mallei et pseudomallei - Commentaire
+BG_ADNBM.BG_ADNBM_CT;PCR Burkholderia mallei et pseudomallei - Ct
+BG_ADNBM.BG_ADNBM_CTS;PCR Burkholderia mallei et pseudomallei - Ct souche
+BG_ADNBM.BG_ADNBM_NAT;PCR Burkholderia mallei et pseudomallei - Nature de prélèvement
+BG_ADNBM.BG_ADNBM_PVT;PCR Burkholderia mallei et pseudomallei - Nature pvt calculée
+BG_ADNBM.BG_ADNBM_RES;PCR Burkholderia mallei et pseudomallei - Résultat
+BG_ADNBM.BG_ADNBM_ST;PCR Burkholderia mallei et pseudomallei - Statut
+BG_ADNBM.BG_ADNBM_TEC;PCR Burkholderia mallei et pseudomallei - Technique
+BG_ADNBP.BG_ADNBP_COM;PCR Bordetella pertussis - Commentaire
+BG_ADNBP.BG_ADNBP_CT;PCR Bordetella pertussis - ADNBP Ct
+BG_ADNBP.BG_ADNBP_CTS;PCR Bordetella pertussis - ADNBP Ct souche
+BG_ADNBP.BG_ADNBP_NAT;PCR Bordetella pertussis - Nature de prélèvement
+BG_ADNBP.BG_ADNBP_PVT;PCR Bordetella pertussis - Nature pvt calculée
+BG_ADNBP.BG_ADNBP_RES;PCR Bordetella pertussis - Résultat
+BG_ADNBP.BG_ADNBP_ST;PCR Bordetella pertussis - Statut
+BG_ADNBP.BG_ADNBP_TEC;PCR Bordetella pertussis - Technique
+BG_ADNCB.BG_ADNCB_COM;PCR Coxiella burnetii - Commentaire
+BG_ADNCB.BG_ADNCB_CT;PCR Coxiella burnetii - Ct
+BG_ADNCB.BG_ADNCB_CTS;PCR Coxiella burnetii - Ct souche
+BG_ADNCB.BG_ADNCB_NAT;PCR Coxiella burnetii - Nature de prélèvement
+BG_ADNCB.BG_ADNCB_PVT;PCR Coxiella burnetii - Nature pvt calculée
+BG_ADNCB.BG_ADNCB_RES;PCR Coxiella burnetii - Résultat
+BG_ADNCB.BG_ADNCB_ST;PCR Coxiella burnetii - Statut
+BG_ADNCB.BG_ADNCB_TEC;PCR Coxiella burnetii - Technique
+BG_ADNCD.BG_ADNCD_COM;Recherche d'ADN de C. diff sur plvt - Commentaire
+BG_ADNCD.BG_ADNCD_CT_GDH;Recherche d'ADN de C. diff sur plvt - Ct Gdh
+BG_ADNCD.BG_ADNCD_CT_TCDB;Recherche d'ADN de C. diff sur plvt - Ct tcdB 2014
+BG_ADNCD.BG_ADNCD_NAT;Recherche d'ADN de C. diff sur plvt - Nature de prélèvement
+BG_ADNCD.BG_ADNCD_PVT;Recherche d'ADN de C. diff sur plvt - Nature pvt calculée
+BG_ADNCD.BG_ADNCD_RES_GDH;Recherche d'ADN de C. diff sur plvt - Résultat Gdh
+BG_ADNCD.BG_ADNCD_RES_TCDB;Recherche d'ADN de C. diff sur plvt - Résultat tcdB 2014
+BG_ADNCD.BG_ADNCD_TEC;Recherche d'ADN de C. diff sur plvt - Technique
+BG_ADNCOX.BG_ADNCOX_CR;PCR Coxiella - Compte-rendu
+BG_ADNCOX.BG_ADNCOX_ENV;PCR Coxiella - Envoyée le 
+BG_ADNCOX.BG_ADNCOX_LAB;PCR Coxiella - PCR réalisée par
+BG_ADNCOX.BG_ADNCOX__NAT;PCR Coxiella - Nature de prélèvement
+BG_ADNCOX.BG_ADNCOX_PVT;PCR Coxiella - Nature pvt calculée
+BG_ADNCOX.BG_ADNCOX_RES;PCR Coxiella - Résultat
+BG_ADNCOX.BG_ADNCOX_RET;PCR Coxiella - Résultat reçu le 
+BG_ADNCOX.BG_ADNCOX_ST;PCR Coxiella - Statut
+BG_ADNCP.BG_ADNCP_CT;PCR Chlamydia pneumoniae - Ct
+BG_ADNCP.BG_ADNCP_RES;PCR Chlamydia pneumoniae - Résultat
+BG_ADNCP.BG_ADNCP_TEC;PCR Chlamydia pneumoniae - Technique
+BG_ADNEAE.BG_ADNEAE_COM;PCR EAE - Commentaire
+BG_ADNEAE.BG_ADNEAE_CT;PCR EAE - Ct
+BG_ADNEAE.BG_ADNEAE_CTS;PCR EAE - Ct souche
+BG_ADNEAE.BG_ADNEAE_NAT;PCR EAE - Nature de prélèvement
+BG_ADNEAE.BG_ADNEAE_RES;PCR EAE - Résultat
+BG_ADNEAE.BG_ADNEAE_ST;PCR EAE - Statut
+BG_ADNEAE.BG_ADNEAE_TEC;PCR EAE - Technique
+BG_ADNEXB.BG_ADNEXB_COM;Recherche du gène de l'exfoliatine B - Commentaire
+BG_ADNEXB.BG_ADNEXB_CT;Recherche du gène de l'exfoliatine B - Ct
+BG_ADNEXB.BG_ADNEXB_CTS;Recherche du gène de l'exfoliatine B - Ct souche
+BG_ADNEXB.BG_ADNEXB_NAT;Recherche du gène de l'exfoliatine B - Nature de prélèvement
+BG_ADNEXB.BG_ADNEXB_PVT;Recherche du gène de l'exfoliatine B - Nature pvt calculée
+BG_ADNEXB.BG_ADNEXB_RES;Recherche du gène de l'exfoliatine B - Résultat
+BG_ADNEXB.BG_ADNEXB_ST;Recherche du gène de l'exfoliatine B - Statut
+BG_ADNEXB.BG_ADNEXB_TEC;Recherche du gène de l'exfoliatine B - Technique
+BG_ADNFT.BG_ADNFT_COM;PCR Francisella tularensis - Commentaire
+BG_ADNFT.BG_ADNFT_CT;PCR Francisella tularensis - Ct
+BG_ADNFT.BG_ADNFT_CTS;PCR Francisella tularensis - Ct souche
+BG_ADNFT.BG_ADNFT_NAT;PCR Francisella tularensis - Prélèvement
+BG_ADNFT.BG_ADNFT_PVT;PCR Francisella tularensis - Nature pvt calculée
+BG_ADNFT.BG_ADNFT_RES;PCR Francisella tularensis - Résultat
+BG_ADNFT.BG_ADNFT_ST;PCR Francisella tularensis - Statut
+BG_ADNFT.BG_ADNFT_TEC;PCR Francisella tularensis - Technique
+BG_ADNGON.BG_ADNGON_COM;PCR Neisseria gonorrhoeae - Commentaire
+BG_ADNGON.BG_ADNGON_NAT;PCR Neisseria gonorrhoeae - Nature
+BG_ADNGON.BG_ADNGONO_CT;PCR Neisseria gonorrhoeae - opA Ct
+BG_ADNGON.BG_ADNGONO_CTS;PCR Neisseria gonorrhoeae - opA Ct souche
+BG_ADNGON.BG_ADNGONP_CT;PCR Neisseria gonorrhoeae - porA Ct
+BG_ADNGON.BG_ADNGONP_CTS;PCR Neisseria gonorrhoeae - porA Ct souche
+BG_ADNGON.BG_ADNGON_PVT;PCR Neisseria gonorrhoeae - Nature pvt calculée
+BG_ADNGON.BG_ADNGON_RES;PCR Neisseria gonorrhoeae - Résultat
+BG_ADNGON.BG_ADNGON_ST;PCR Neisseria gonorrhoeae - Statut
+BG_ADNGON.BG_ADNGON_TEC;PCR Neisseria gonorrhoeae - Technique
+BG_ADNK.BG_ADNK_COM;PCR Kingella kingae - Commentaire
+BG_ADNK.BG_ADNK_CT;PCR Kingella kingae - Ct
+BG_ADNK.BG_ADNK_CTS;PCR Kingella kingae - Ct souche
+BG_ADNK.BG_ADNK_NAT;PCR Kingella kingae - Nature de prélèvement
+BG_ADNK.BG_ADNK_PVT;PCR Kingella kingae - Nature pvt caculée
+BG_ADNK.BG_ADNK_RES;PCR Kingella kingae - Résultat
+BG_ADNK.BG_ADNK_ST;PCR Kingella kingae - Statut
+BG_ADNK.BG_ADNK_TEC;PCR Kingella kingae - Technique
+BG_ADNL.BG_ADNL_COM;PCR Listeria monocytogenes - Commentaire
+BG_ADNL.BG_ADNL_CT;PCR Listeria monocytogenes - Ct
+BG_ADNL.BG_ADNL_CTS;PCR Listeria monocytogenes - Ct souche
+BG_ADNL.BG_ADNL_NAT;PCR Listeria monocytogenes - Nature de prélèvement
+BG_ADNL.BG_ADNL_PVT;PCR Listeria monocytogenes - Nature pvt calculée
+BG_ADNL.BG_ADNL_RES;PCR Listeria monocytogenes - Résultat
+BG_ADNL.BG_ADNL_ST;PCR Listeria monocytogenes - Statut
+BG_ADNL.BG_ADNL_TEC;PCR Listeria monocytogenes - Technique
+BG_ADNLEP.BG_ADNLEP_COM;PCR Leptospira sp - Commentaire
+BG_ADNLEP.BG_ADNLEPLF_CT;PCR Leptospira sp - LFB Ct
+BG_ADNLEP.BG_ADNLEPLF_CTS;PCR Leptospira sp - LFB Ct souche
+BG_ADNLEP.BG_ADNLEPLI_CT;PCR Leptospira sp - LipL Ct
+BG_ADNLEP.BG_ADNLEPLI_CTS;PCR Leptospira sp - LipL Ct souche
+BG_ADNLEP.BG_ADNLEP_NAT;PCR Leptospira sp - Nature de prélèvement
+BG_ADNLEP.BG_ADNLEP_PVT;PCR Leptospira sp - Nature pvt calculée
+BG_ADNLEP.BG_ADNLEP_RES;PCR Leptospira sp - Résultat
+BG_ADNLEP.BG_ADNLEP_ST;PCR Leptospira sp - Statut
+BG_ADNLEP.BG_ADNLEP_TEC;PCR Leptospira sp - Technique
+BG_ADNLEPN.BG_ADNLEPN_COM;PCR Legionella pneumophila - Commentaire
+BG_ADNLEPN.BG_ADNLEPN_CT;PCR Legionella pneumophila - Ct
+BG_ADNLEPN.BG_ADNLEPN_CTS;PCR Legionella pneumophila - Ct souche
+BG_ADNLEPN.BG_ADNLEPN_RES;PCR Legionella pneumophila - Résultat
+BG_ADNLEPN.BG_ADNLEPN_ST;PCR Legionella pneumophila - Statut
+BG_ADNLEPN.BG_ADNLEPN_TEC;PCR Legionella pneumophila - Technique
+BG_ADNLESP.BG_ADNLESP_COM;PCR Legionella sp - Commentaire
+BG_ADNLESP.BG_ADNLESP_CT;PCR Legionella sp - Ct
+BG_ADNLESP.BG_ADNLESP_CTS;PCR Legionella sp - Ct souche
+BG_ADNLESP.BG_ADNLESP_RES;PCR Legionella sp - Résultat
+BG_ADNLESP.BG_ADNLESP_ST;PCR Legionella sp - Statut
+BG_ADNLESP.BG_ADNLESP_TEC;PCR Legionella sp - Technique
+BG_ADNLPV.BG_ADNLPV_COM;Recherche du gène LPV  - Commentaire
+BG_ADNLPV.BG_ADNLPV_CT;Recherche du gène LPV  - Ct
+BG_ADNLPV.BG_ADNLPV_CTS;Recherche du gène LPV  - Ct souche
+BG_ADNLPV.BG_ADNLPV_NAT;Recherche du gène LPV  - Nature de prélèvement
+BG_ADNLPV.BG_ADNLPV_RES;Recherche du gène LPV  - Résultat
+BG_ADNLPV.BG_ADNLPV_ST;Recherche du gène LPV  - Statut
+BG_ADNLPV.BG_ADNLPV_TEC;Recherche du gène LPV  - Technique
+BG_ADNLYT.BG_ADNLYT_COM;PCR Pneumo lytA - Commentaire
+BG_ADNLYT.BG_ADNLYT_CT;PCR Pneumo lytA - Ct
+BG_ADNLYT.BG_ADNLYT_CTS;PCR Pneumo lytA - Ct souche
+BG_ADNLYT.BG_ADNLYT_NAT;PCR Pneumo lytA - Nature de prélèvement
+BG_ADNLYT.BG_ADNLYT_PVT;PCR Pneumo lytA - Nature pvt calculée
+BG_ADNLYT.BG_ADNLYT_RES;PCR Pneumo lytA - Résultat
+BG_ADNLYT.BG_ADNLYT_TEC;PCR Pneumo lytA - Technique
+BG_ADNM.BG_ADNM_COM;PCR Neisseria meningitidis - Commentaire
+BG_ADNM.BG_ADNM_CT;PCR Neisseria meningitidis - Ct
+BG_ADNM.BG_ADNM_CTS;PCR Neisseria meningitidis - Ct souche
+BG_ADNM.BG_ADNM_NAT;PCR Neisseria meningitidis - Nature de prélèvement
+BG_ADNM.BG_ADNM_PVT;PCR Neisseria meningitidis - Nature pvt calculée
+BG_ADNM.BG_ADNM_RES;PCR Neisseria meningitidis - Résultat
+BG_ADNM.BG_ADNM_ST;PCR Neisseria meningitidis - Statut
+BG_ADNM.BG_ADNM_TEC;PCR Neisseria meningitidis - Technique
+BG_ADNMEC.BG_ADNMEC_COM;Recherche du gène mecA  - Commentaire
+BG_ADNMEC.BG_ADNMEC_CT;Recherche du gène mecA  - Ct
+BG_ADNMEC.BG_ADNMEC_CTS;Recherche du gène mecA  - Ct souche
+BG_ADNMEC.BG_ADNMEC_NAT;Recherche du gène mecA  - Nature de prélèvement
+BG_ADNMEC.BG_ADNMEC_PVT;Recherche du gène mecA  - Nature pvt calculée
+BG_ADNMEC.BG_ADNMEC_RES;Recherche du gène mecA  - Résultat
+BG_ADNMEC.BG_ADNMEC_ST;Recherche du gène mecA  - Statut
+BG_ADNMEC.BG_ADNMEC_TEC;Recherche du gène mecA  - Technique
+BG_ADNMECC.BG_ADNMECC_COM;Recherche du gène mecC  - Commentaire
+BG_ADNMECC.BG_ADNMECC_CT;Recherche du gène mecC  - Ct
+BG_ADNMECC.BG_ADNMECC_CTS;Recherche du gène mecC  - Ct souche
+BG_ADNMECC.BG_ADNMECC_NAT;Recherche du gène mecC  - Nature de prélèvement
+BG_ADNMECC.BG_ADNMECC_PVT;Recherche du gène mecC  - Nature pvt calculée
+BG_ADNMECC.BG_ADNMECC_RES;Recherche du gène mecC  - Résultat
+BG_ADNMECC.BG_ADNMECC_ST;Recherche du gène mecC  - Statut
+BG_ADNMECC.BG_ADNMECC_TEC;Recherche du gène mecC  - Technique
+BG_ADNMGEN.BG_ADNMGEN_COM;PCR Mycoplasma genitalium - Commentaire
+BG_ADNMGEN.BG_ADNMGEN_CT;PCR Mycoplasma genitalium - Ct
+BG_ADNMGEN.BG_ADNMGEN_CTS;PCR Mycoplasma genitalium - Ct souche
+BG_ADNMGEN.BG_ADNMGEN_NAT;PCR Mycoplasma genitalium - Nature de prélèvement
+BG_ADNMGEN.BG_ADNMGEN_RES;PCR Mycoplasma genitalium - Résultat
+BG_ADNMGEN.BG_ADNMGEN_ST;PCR Mycoplasma genitalium - Statut
+BG_ADNMGEN.BG_ADNMGEN_TEC;PCR Mycoplasma genitalium - Technique
+BG_ADNMP.BG_ADNMP_CT;PCR Mycoplasma pneumoniae - Ct
+BG_ADNMP.BG_ADNMP_RES;PCR Mycoplasma pneumoniae - Résultat
+BG_ADNMP.BG_ADNMP_ST;PCR Mycoplasma pneumoniae - Statut
+BG_ADNMP.BG_ADNMP_TEC;PCR Mycoplasma pneumoniae - Technique
+BG_ADNPANC.BG_ADNPANC_COM;PCR pan chlam - Commentaire
+BG_ADNPANC.BG_ADNPANC_CT;PCR pan chlam - Ct
+BG_ADNPANC.BG_ADNPANC_CTS;PCR pan chlam - Ct souche
+BG_ADNPANC.BG_ADNPANC_NAT;PCR pan chlam - Nature de prélèvement
+BG_ADNPANC.BG_ADNPANC_PVT;PCR pan chlam - Nature pvt calculée
+BG_ADNPANC.BG_ADNPANC_RES;PCR pan chlam - Résultat
+BG_ADNPANC.BG_ADNPANC_ST;PCR pan chlam - Statut
+BG_ADNPANC.BG_ADNPANC_TEC;PCR pan chlam - Technique
+BG_ADNP.BG_ADNP_COM;PCR Pneumocoque - Commentaire
+BG_ADNP.BG_ADNP_CT;PCR Pneumocoque - Ct
+BG_ADNP.BG_ADNP_CTS;PCR Pneumocoque - Ct souche
+BG_ADNP.BG_ADNP_NAT;PCR Pneumocoque - Nature de prélèvement
+BG_ADNP.BG_ADNP_PVT;PCR Pneumocoque - Nature pvt calculée
+BG_ADNP.BG_ADNP_RES;PCR Pneumocoque - Résultat
+BG_ADNP.BG_ADNP_ST;PCR Pneumocoque - Statut
+BG_ADNP.BG_ADNP_TEC;PCR Pneumocoque - Technique
+BG_ADNPORA.BG_ADNPORA_COM;PCR Meningo porA - Commentaire
+BG_ADNPORA.BG_ADNPORA_CT;PCR Meningo porA - Ct
+BG_ADNPORA.BG_ADNPORA_CTS;PCR Meningo porA - Ct souche
+BG_ADNPORA.BG_ADNPORA_NAT;PCR Meningo porA - Nature de prélèvement
+BG_ADNPORA.BG_ADNPORA_PVT;PCR Meningo porA - Nature pvt calculée
+BG_ADNPORA.BG_ADNPORA_RES;PCR Meningo porA - Résultat
+BG_ADNPORA.BG_ADNPORA_TEC;PCR Meningo porA - Technique
+BG_ADNPTX.BG_ADNPTX_CT;PCR PTXS1 - ADNPTX CT
+BG_ADNPTX.BG_ADNPTX_CTS;PCR PTXS1 - ADNPTX CT souche
+BG_ADNPTX.BG_ADNPTX_RES;PCR PTXS1 - ADNPTX Résultat
+BG_ADNPYO.BG_ADNPYO_COM;PCR Pseudomonas aeruginosa - Commentaire
+BG_ADNPYO.BG_ADNPYO_CT;PCR Pseudomonas aeruginosa - Ct
+BG_ADNPYO.BG_ADNPYO_CTS;PCR Pseudomonas aeruginosa - Ct souche
+BG_ADNPYO.BG_ADNPYO_NAT;PCR Pseudomonas aeruginosa - Nature de prélèvement
+BG_ADNPYO.BG_ADNPYO_PVT;PCR Pseudomonas aeruginosa - Nature pvt calculée
+BG_ADNPYO.BG_ADNPYO_RES;PCR Pseudomonas aeruginosa - Résultat
+BG_ADNPYO.BG_ADNPYO_ST;PCR Pseudomonas aeruginosa - Statut
+BG_ADNPYO.BG_ADNPYO_TEC;PCR Pseudomonas aeruginosa - Technique
+BG_ADNRIC.BG_ADNRIC_CR;PCR Rickettsies - Compte-rendu
+BG_ADNRIC.BG_ADNRIC_ENV;PCR Rickettsies - Envoyée le 
+BG_ADNRIC.BG_ADNRIC_LAB;PCR Rickettsies - PCR réalisée par
+BG_ADNRIC.BG_ADNRIC__NAT;PCR Rickettsies - Nature de prélèvement
+BG_ADNRIC.BG_ADNRIC_RES;PCR Rickettsies - Résultat
+BG_ADNRIC.BG_ADNRIC_RET;PCR Rickettsies - Résultat reçu le 
+BG_ADNRIC.BG_ADNRIC_ST;PCR Rickettsies - Nature de prélèvement
+BG_ADNSB.BG_ADNSB_COM;PCR Streptococcus agalactiae - Commentaire
+BG_ADNSB.BG_ADNSB_CT;PCR Streptococcus agalactiae - Ct
+BG_ADNSB.BG_ADNSB_CTS;PCR Streptococcus agalactiae - Ct souche
+BG_ADNSB.BG_ADNSB_NAT;PCR Streptococcus agalactiae - Nature de prélèvement
+BG_ADNSB.BG_ADNSB_PVT;PCR Streptococcus agalactiae - Nature pvt calculée
+BG_ADNSB.BG_ADNSB_RES;PCR Streptococcus agalactiae - Résultat
+BG_ADNSB.BG_ADNSB_ST;PCR Streptococcus agalactiae - Statut
+BG_ADNSB.BG_ADNSB_TEC;PCR Streptococcus agalactiae - Technique
+BG_ADNSTA.BG_ADNSTA_COM;PCR Staphylococcus aureus - Commentaire
+BG_ADNSTA.BG_ADNSTA_CT;PCR Staphylococcus aureus - Ct
+BG_ADNSTA.BG_ADNSTA_CTS;PCR Staphylococcus aureus - Ct souche
+BG_ADNSTA.BG_ADNSTA_NAT;PCR Staphylococcus aureus - Nature de prélèvement
+BG_ADNSTA.BG_ADNSTA_PVT;PCR Staphylococcus aureus - Nature pvt calculée
+BG_ADNSTA.BG_ADNSTA_RES;PCR Staphylococcus aureus - Résultat
+BG_ADNSTA.BG_ADNSTA_ST;PCR Staphylococcus aureus - Statut
+BG_ADNSTA.BG_ADNSTA_TEC;PCR Staphylococcus aureus - Technique
+BG_ADNSTL.BG_ADNSTL_COM;PCR Staphylococcus lugdunensis - Commentaire
+BG_ADNSTL.BG_ADNSTL_CT;PCR Staphylococcus lugdunensis - Ct
+BG_ADNSTL.BG_ADNSTL_CTS;PCR Staphylococcus lugdunensis - Ct souche
+BG_ADNSTL.BG_ADNSTL_NAT;PCR Staphylococcus lugdunensis - Nature de prélèvement
+BG_ADNSTL.BG_ADNSTL_PVT;PCR Staphylococcus lugdunensis - Nature pvt calculée
+BG_ADNSTL.BG_ADNSTL_RES;PCR Staphylococcus lugdunensis - Résultat
+BG_ADNSTL.BG_ADNSTL_ST;PCR Staphylococcus lugdunensis - Statut
+BG_ADNSTL.BG_ADNSTL_TEC;PCR Staphylococcus lugdunensis - Technique
+BG_ADNSTX.BG_ADNSTX_COM;Recherche des gènes stx - Commentaire
+BG_ADNSTX.BG_ADNSTX_NAT;Recherche des gènes stx - Nature de prélèvement
+BG_ADNSTX.BG_ADNSTX_PVT;Recherche des gènes stx - Nature pvt calculée
+BG_ADNSTX.BG_ADNSTX_RES;Recherche des gènes stx - Résultat
+BG_ADNSTX.BG_ADNSTX_ST;Recherche des gènes stx - Statut
+BG_ADNSTX.BG_ADNSTX_TEC;Recherche des gènes stx - Technique
+BG_ADNSTX.BG_ADNSTX1_CT;Recherche des gènes stx - STX1 Ct
+BG_ADNSTX.BG_ADNSTX1_CTS;Recherche des gènes stx - STX1 Ct souche
+BG_ADNSTX.BG_ADNSTX2_CT;Recherche des gènes stx - STX2 Ct
+BG_ADNSTX.BG_ADNSTX2_CTS;Recherche des gènes stx - STX2 Ct souche
+BG_ADNSYP.BG_ADNSYP_CR;PCR Syphilis - Compte-rendu
+BG_ADNSYP.BG_ADNSYP_ENV;PCR Syphilis - Envoyée le 
+BG_ADNSYP.BG_ADNSYP_LAB;PCR Syphilis - PCR réalisée par
+BG_ADNSYP.BG_ADNSYP__NAT;PCR Syphilis - Nature de prélèvement
+BG_ADNSYP.BG_ADNSYP_PVT;PCR Syphilis - Nature pvt calculée
+BG_ADNSYP.BG_ADNSYP_RES;PCR Syphilis - Résultat
+BG_ADNSYP.BG_ADNSYP_RET;PCR Syphilis - Résultat reçu le 
+BG_ADNSYP.BG_ADNSYP_ST;PCR Syphilis - Statut
+BG_ADNTP.BG_ADNTP_COM;PCR Treponema pallidum - Commentaire
+BG_ADNTP.BG_ADNTP_CT;PCR Treponema pallidum - Ct
+BG_ADNTP.BG_ADNTP_CTS;PCR Treponema pallidum - Ct souche
+BG_ADNTP.BG_ADNTP_NAT;PCR Treponema pallidum - Nature de prélèvement
+BG_ADNTP.BG_ADNTP_PVT;PCR Treponema pallidum - Nature pvt calculée
+BG_ADNTP.BG_ADNTP_RES;PCR Treponema pallidum - Résultat
+BG_ADNTP.BG_ADNTP_ST;PCR Treponema pallidum - Statut
+BG_ADNTP.BG_ADNTP_TEC;PCR Treponema pallidum - Technique
+BG_ADNTSS.BG_ADNTSS_COM;Recherche du gène tsst-1 - Commentaire
+BG_ADNTSS.BG_ADNTSS_CT;Recherche du gène tsst-1 - Ct
+BG_ADNTSS.BG_ADNTSS_CTS;Recherche du gène tsst-1 - Ct souche
+BG_ADNTSS.BG_ADNTSS_NAT;Recherche du gène tsst-1 - Nature de prélèvement
+BG_ADNTSS.BG_ADNTSS_RES;Recherche du gène tsst-1 - Résultat
+BG_ADNTSS.BG_ADNTSS_ST;Recherche du gène tsst-1 - Statut
+BG_ADNTSS.BG_ADNTSS_TEC;Recherche du gène tsst-1 - Technique
+BG_ADNWHI.BG_ADNWHI_COM;PCR T.whipplei - Commentaire
+BG_ADNWHI.BG_ADNWHI_NAT;PCR T.whipplei - Nature de prélèvement
+BG_ADNWHI.BG_ADNWHI_PVT;PCR T.whipplei - Nature pvt calculée
+BG_ADNWHI.BG_ADNWHI_RES;PCR T.whipplei - Résultat
+BG_ADNWHI.BG_ADNWHI_ST;PCR T.whipplei - Statut
+BG_ADNWHI.BG_ADNWHI_TEC;PCR T.whipplei - Technique
+BG_ADNWHI.BG_ADNWHI2_CT;PCR T.whipplei - Twhi2 Ct
+BG_ADNWHI.BG_ADNWHI3_CT;PCR T.whipplei - Twhi3 Ct
+BG_ADNYP.BG_ADNYP_COM;PCR Yersinia pestis - Commentaire
+BG_ADNYP.BG_ADNYP_CT;PCR Yersinia pestis - Ct
+BG_ADNYP.BG_ADNYP_CTS;PCR Yersinia pestis - Ct souche
+BG_ADNYP.BG_ADNYP_NAT;PCR Yersinia pestis - Prélèvement
+BG_ADNYP.BG_ADNYP_PVT;PCR Yersinia pestis - Nature pvt calculée
+BG_ADNYP.BG_ADNYP_RES;PCR Yersinia pestis - Résultat
+BG_ADNYP.BG_ADNYP_ST;PCR Yersinia pestis - Statut
+BG_ADNYP.BG_ADNYP_TEC;PCR Yersinia pestis - Technique
+BG_ADN16.BG_ADN16_COM;PCR 16S - Commentaire
+BG_ADN16.BG_ADN16_CT;PCR 16S - Ct V3
+BG_ADN16.BG_ADN16_NAT;PCR 16S - Nature de prélèvement
+BG_ADN16.BG_ADN16_PVT;PCR 16S - Nature pvt calculée
+BG_ADN16.BG_ADN16_REP;PCR 16S - Réponse 16S
+BG_ADN16.BG_ADN16_RES;PCR 16S - Résultat
+BG_ADN16.BG_ADN16_ST;PCR 16S - Statut
+BG_ADN16.BG_ADN16_TEC;PCR 16S - Technique
+BG_ADN16.BG_ADN16V3_CT;PCR 16S - Ct V1-V3
+BG_ADN16.BG_ADN16_V3S;PCR 16S - V1-V3 séquence
+BG_ADN16.BG_ADN16_V3TM;PCR 16S - Tm V3
+BG_ADN16.BG_ADN16V6_CT;PCR 16S - Ct V6
+BG_ADN16.BG_ADN16_V6S;PCR 16S - V6 séquence
+BG_ADN16.BG_ADN16_V6TM;PCR 16S - Tm V6
+BGALERTBMR.BGALERTBMR1;ALERTE BMR - ALERTE BMR
+BGARECH.BGARECH1;AUTRE RECHERCHE - Info sur la recherche demandée
+BGARECH.BGARECH2;AUTRE RECHERCHE - Résultat
+BGARECH.BGARECH3;AUTRE RECHERCHE - Résultat texte libre
+BGASP.BGASP1;ASPECT - ASPECT
+BGASPU.BGASPU1;ASPECT URINE - ASPECT URINE
+BGASPU.BGASPU2;ASPECT URINE - Déclenchement Fiche
+BGATBEC.BGATBEC1;Commentaire - Commentaire
+BGBACT.BGBACT1;BACTERIURIE - Technique
+BGBACT.BGBACT2;BACTERIURIE - Résultat
+BGBACT.BGBACT3;BACTERIURIE - Résultat
+BG.BG1;BOITES GARDEES - BOITES GARDEES
+BGBLSE_ED.BGBLSE_ED1;EDITION RSLT BLSE - Technique
+BGBLSE_ED.BGBLSE_ED2;EDITION RSLT BLSE - Résultat
+BGBLSE_R.BGBLSE_R1;RECHERCHE BLSE - Technique
+BGBLSE_R.BGBLSE_R2;RECHERCHE BLSE - Résultat
+BGCARBA_ED.BGCARBA_ED1;EDITION RESULTAT CARBA - Technique
+BGCARBA_ED.BGCARBA_ED2;EDITION RESULTAT CARBA - Résultat
+BGCARBAENZ.BGCARBAENZ1;RECH CARBA PAR METHODE ENZYMATIQUE - Technique
+BGCARBAENZ.BGCARBAENZ2;RECH CARBA PAR METHODE ENZYMATIQUE - Nbre de souches testées
+BGCARBAE_R.BGCARBAE_R1;RESULTAT CARBA PAR METHODE ENZYMATIQUE - Fait sur : 
+BGCARBAE_R.BGCARBAE_R2;RESULTAT CARBA PAR METHODE ENZYMATIQUE - Résultat
+BGCARBAE_R.BGCARBAE_R3;RESULTAT CARBA PAR METHODE ENZYMATIQUE - Commentaires :
+BGCARBAI.BGCARBAI1;RECH DE CARBA PAR METHODE IMMUNOLOGIQUE - Technique
+BGCARBAI.BGCARBAI2;RECH DE CARBA PAR METHODE IMMUNOLOGIQUE - Nbre de souches testées
+BGCARBAI_R.BGCARBAI_R1;RESULTAT CARBA PAR METHODE IMMUNOLOGIQUE - Fait sur : 
+BGCARBAI_R.BGCARBAI_R2;RESULTAT CARBA PAR METHODE IMMUNOLOGIQUE - Nég/Pos
+BGCARBAI_R.BGCARBAI_R3;RESULTAT CARBA PAR METHODE IMMUNOLOGIQUE - Commentaires :
+BGCARBAI_R.BGCARBAI_R4;RESULTAT CARBA PAR METHODE IMMUNOLOGIQUE - Résultat rendu :
+BGCARBAI_R.BGCARBAI_R5;RESULTAT CARBA PAR METHODE IMMUNOLOGIQUE - Résultat  :
+BGCARBA_R.BGCARBA_R1;RECHERCHE CARBA - Technique
+BGCARBA_R.BGCARBA_R2;RECHERCHE CARBA - Résultat
+BG_CAR_COM.BG_CAR_COM;Commentaire Carba - Carba Commentaire
+BGCMIEC.BGCMIEC1;CMI(S) EN COURS - Commentaire
+BGCOM.BGCOM1;COMMENTAIRES - Com libre
+BGCOMM_NE.BGCOMM_NE1;COMMENTAIRES NON EDITABLES - COMMENTAIRES NON EDITABLES
+BGCONC.BGCONC1;CONCLUSION PV - Résultat
+BGCONC.BGCONC2;CONCLUSION PV - Commentaire libre
+BGCONCCQ.BGCONCCQ1;CONCLUSION CQ - CONCLUSION CQ
+BGCOND.BGCOND1;CONDITIONNEMENT - Conditionnement
+BGCOND.BGCOND2;CONDITIONNEMENT - Commentaire
+BGCONDU.BGCONDU1;CONDITIONNEMENT URINE - CONDITIONNEMENT URINE
+BGCONDU.BGCONDU2;CONDITIONNEMENT URINE - Commentaire
+BGCONGELS.BGCONGELS1;CONGELATION SOUCHE - Souche congelée le :
+BGCONGP.BGCONGP1;EMPLACEMENT CONGEL PVT - EMPLACEMENT CONGEL PVT
+BGCONS.BGCONS_BG;CONSERVATION SOUCHE - Boites gardées
+BGCONS.BGCONS_SC;CONSERVATION SOUCHE - Souche congelée
+BGCQICA10.BGCQICA101;CULTURE PRELUD 10 - Technique
+BGCQICA10.BGCQICA102;CULTURE PRELUD 10 - Gélose :
+BGCQICA10.BGCQICA103;CULTURE PRELUD 10 - Lot n° : 
+BGCQICA10.BGCQICA105;CULTURE PRELUD 10 - Résultat par UFC :
+BGCQICA10.BGCQICA106;CULTURE PRELUD 10 - Résultat par mL : 
+BGCQICA10.BGCQICA107;CULTURE PRELUD 10 - Date de péremption :
+BGCQICA100.BGCQICA1001;CULTURE PRELUD 100 - Technique
+BGCQICA100.BGCQICA1002;CULTURE PRELUD 100 - Gélose :
+BGCQICA100.BGCQICA1003;CULTURE PRELUD 100 - Lot n° : 
+BGCQICA100.BGCQICA1005;CULTURE PRELUD 100 - Résultat par UFC :
+BGCQICA100.BGCQICA1006;CULTURE PRELUD 100 - Résultat par mL : 
+BGCQICA100.BGCQICA1008;CULTURE PRELUD 100 - Date de péremption :
+BGCQICM.BGCQICM1;CULTURE MANUELLE - Technique
+BGCQICM.BGCQICM2;CULTURE MANUELLE - Gélose :
+BGCQICM.BGCQICM3;CULTURE MANUELLE - Lot n° : 
+BGCQICM.BGCQICM5;CULTURE MANUELLE - Résultat par UFC :
+BGCQICM.BGCQICM6;CULTURE MANUELLE - Résultat par mL : 
+BGCQICM.BGCQICM8;CULTURE MANUELLE - Date de péremption :
+BGCQICONCL.BGCQICONCL1;CONCLUSION  - Résultat :
+BGCQICONCL.BGCQICONCL2;CONCLUSION  - Commentaire :
+BGCQIRE.BGCQIRE1;CQI RENOUVELE - Renouvelé le :
+BGCQIRE.BGCQIRE2;CQI RENOUVELE - sur n° :
+BGCQIRE.BGCQIRE3;CQI RENOUVELE - Résultat calculé 
+BGCRIS.BGCRIS1;CRISTAUX - Technique
+BGCRIS.BGCRIS2;CRISTAUX - Résultat
+BGCRIS.BGCRIS3;CRISTAUX - Résultat
+BGCULTAE.BGCULTAE1;Résultat ou nbre de germes - Technique
+BGCULTAE.BGCULTAE2;Résultat ou nbre de germes - Résultat ou nbre de germes
+BGCULTANA.BGCULTANA1;Résultat ou nbre de germes - Technique
+BGCULTANA.BGCULTANA2;Résultat ou nbre de germes - Résultat ou nbre de germes
+BGCULTANAG.BGCULTANAG1;Résultat ou nbre de germes - Technique
+BGCULTANAG.BGCULTANAG2;Résultat ou nbre de germes - Résultat ou nbre de germes
+BG_CULTCD.BG_CULTCD_COM;Culture C.difficile - Commentaire
+BG_CULTCD.BG_CULTCD_REP;Culture C.difficile - Culture C.diff
+BG_CULTCD.BG_CULTCD_TEC;Culture C.difficile - Technique
+BGCULTMYC.BGCULTMYC1;CULTURE MYCOPLASMES - Technique
+BGCULTMYC.BGCULTMYC2;CULTURE MYCOPLASMES - Nb germes
+BGCULTS.BGCULTS1;CULTURE SOUCHE - Nombre de morphotypes visualisés sur l'échantillon
+BGCULTS.BGCULTS2;CULTURE SOUCHE - Remarque :
+BGCYTMUCO.BGCYTMUCO1;POLY/CHAMPS - Polynucléaires/champs
+BGCYTMUCO.BGCYTMUCO2;POLY/CHAMPS - Technique
+BGCYTS.BGCYTS1;EXAMEN MICROSCOPIQUE/COPRO - Polynucléaires
+BGCYTS.BGCYTS2;EXAMEN MICROSCOPIQUE/COPRO - Hématies
+BGCYTS.BGCYTS3;EXAMEN MICROSCOPIQUE/COPRO - Technique
+BGCYTS.BGCYTS4;EXAMEN MICROSCOPIQUE/COPRO - Résultat 
+BGDC.BGDC1;DECLENCHEMENT  - DECLENCHEMENT 
+BGDCULT.BGDCULT1;Déclenchement culture - Déclenchement culture
+BGDCULTU.BGDCULTU1;Déclenchement culture Urine - Déclenchement 
+BGDELAI18.BGDELAI181;DELAI 18H - DELAI =
+BGDELAI18.BGDELAI182;DELAI 18H - Commentaire
+BGDELAI2.BGDELAI21;DELAI 2H - DELAI =
+BGDELAI2.BGDELAI22;DELAI 2H - Commentaire
+BGDIPH_R.BGDIPH_R1;RECHERCHE DE CORYNEB DIPHTHERIAE - Technique
+BGDIPH_R.BGDIPH_R2;RECHERCHE DE CORYNEB DIPHTHERIAE - Résultat
+BGEDBCR.BGEDBCR1;ED CRACHAT - Résultat
+BGEDBCR.BGEDBCR2;ED CRACHAT - Technique
+BGED.BGED1;EXAMEN DIRECT  - Technique
+BGED.BGED2;EXAMEN DIRECT  - Commentaires
+BGED.BGED3;EXAMEN DIRECT  - Commentaires
+BGED.BGED4;EXAMEN DIRECT  - Résultat
+BGEDL.BGEDL1;EXAMEN DIRECT (pour liquide avec formule) - Technique
+BGEDL.BGEDL4;EXAMEN DIRECT (pour liquide avec formule) - Résultat
+BGEDPOSB.BGEDPOSB1;ED DETAIL - Polynucléaires :
+BGEDPOSB.BGEDPOSB2;ED DETAIL - Morphologie observée
+BGEDPOSB.BGEDPOSB3;ED DETAIL - Morphologie observée
+BGEDPOSB.BGEDPOSB4;ED DETAIL - Protocole PID
+BGEDPOS.BGEDPOS1;Morphologie observée - Morphologie observée
+BGEDPV.BGEDPV1;EX DIRECT PV - Technique
+BGEDPV.BGEDPV2;EX DIRECT PV - Polynucléaires
+BGEDPV.BGEDPV3;EX DIRECT PV - Hématies
+BGEDPV.BGEDPV4;EX DIRECT PV - Résultat
+BGEDPV.BGEDPV5;EX DIRECT PV - Cellules
+BGEEQCBR.BGEEQCBR1;CULTURE - Technique
+BGEEQCBR.BGEEQCBR2;CULTURE - Nbre de germes
+BGEEQCQ.BGEEQCQ1;RESULTATS - Résultat par UFC :
+BGEEQCQ.BGEEQCQ2;RESULTATS - Résultat par mL :
+BGEEQCQ.BGEEQCQ3;RESULTATS - Identification
+BGEEQCQ.BGEEQCQ4;RESULTATS - Technique
+BGEEQCQ.BGEEQCQ5;RESULTATS - Antibiogramme
+BGEEQCR.BGEEQCR1;CULTURES - Technique
+BGEEQCR.BGEEQCR2;CULTURES - Nbre de germes
+BGEEQCSQ.BGEEQCSQ1;RESULTATS CULTURE - Résultat par UFC :
+BGEEQCSQ.BGEEQCSQ2;RESULTATS CULTURE - Résultat semi-quantitatif :
+BGEEQCSQ.BGEEQCSQ3;RESULTATS CULTURE - Identification
+BGEEQCSQ.BGEEQCSQ4;RESULTATS CULTURE - Technique
+BGEEQCSQ.BGEEQCSQ5;RESULTATS CULTURE - Antibiogramme
+BGEEQEDR.BGEEQEDR1;RESULTATS ED - Technique
+BGEEQEDR.BGEEQEDR2;RESULTATS ED - Morphologie observée
+BGEEQEDR.BGEEQEDR3;RESULTATS ED - Commentaires 
+BGEEQN1_1.BGEEQN1_11;NUMERATION  - Technique
+BGEEQN1_1.BGEEQN1_12;NUMERATION  - Leucocytes mm3 / valeur brute
+BGEEQN1_1.BGEEQN1_13;NUMERATION  - Leucocytes par mL
+BGEEQN1_1.BGEEQN1_14;NUMERATION  - Hématies par mm3 (valeur brute)
+BGEEQN1_1.BGEEQN1_15;NUMERATION  - Hématies par mL
+BGEEQSR.BGEEQSR1;RESULTAT SOUCHE - Technique
+BGEEQSRSLT.BGEEQSRSLT1;RESULTATS SOUCHE - Identification
+BGEEQSRSLT.BGEEQSRSLT2;RESULTATS SOUCHE - Technique
+BGEEQSRSLT.BGEEQSRSLT3;RESULTATS SOUCHE - Antibiogramme
+BGEOSINO.BGEOSINO1;RECHERCHE EOSINO - Technique
+BGEOSINO.BGEOSINO2;RECHERCHE EOSINO - Résultat
+BG_ERIC.BG_ERIC_ERIC;PCR Génotypage ERIC REP - PCR ERIC
+BG_ERIC.BG_ERIC_REP;PCR Génotypage ERIC REP - PCR REP
+BG_ERIC.BG_ERIC_RES;PCR Génotypage ERIC REP - Résultat
+BG_ERIC.BG_ERIC_TEC;PCR Génotypage ERIC REP - Technique
+BGERV_ED.BGERV_ED1;EDITION RESULTAT ERV  - Technique
+BGERV_ED.BGERV_ED2;EDITION RESULTAT ERV  - Résultat
+BGERV_R.BGERV_R1;RECHERCHE ERV - Technique
+BGERV_R.BGERV_R2;RECHERCHE ERV - Résultat
+BGFA_C.BGFA_C1;Nombre de germes - Technique
+BGFA_C.BGFA_C2;Nombre de germes - Nombre de germes
+BG_FACOMB.BG_FACOMB_ST;FilmArray Commentaire Bacterio - Statut
+BG_FACOMB.BG_FACOMB1;FilmArray Commentaire Bacterio - commentaire
+BG_FACOMB.BG_FACOMB2;FilmArray Commentaire Bacterio - Liste pathogène
+BGFACQ.BGFACQ1;FLACON AE CQ - Technique
+BGFACQ.BGFACQ2;FLACON AE CQ - Code barre manuel
+BGFACQ.BGFACQ3;FLACON AE CQ - Lot n° : 
+BGFACQ.BGFACQ4;FLACON AE CQ - Date de péremption : 
+BGFACQ.BGFACQ5;FLACON AE CQ - Croissance
+BGFACQ.BGFACQ6;FLACON AE CQ - Délai détection
+BGFACQN.BGFACQN1;FLACON CQ NEG - Résultat Flacon Neg
+BG_FACTU01.BG_FACTU01;Facturation PCR 16S - Facturation PCR
+BG_FACTU02.BG_FACTU02;Facturation PCR SCHE - Facturation PCR
+BG_FACTU03.BG_FACTU03;Facturation PCR BP - Facturation PCR
+BG_FACTU04.BG_FACTU04;Facturation 16S Seq - Facturation PCR
+BG_FACTU05.BG_FACTU05;Facturation ID Seq - Facturation PCR
+BG_FACTU06.BG_FACTU06;Facturation Carba GX - Facturation PCR
+BG_FACTU07.BG_FACTU07;Facturation carba VIM - Facturation PCR
+BG_FACTU08.BG_FACTU08;Facturation carba KPC - Facturation PCR
+BG_FACTU09.BG_FACTU09;Facturation carba OXA23 - Facturation PCR
+BG_FACTU10.BG_FACTU10;Facturation carba OXA48 - Facturation PCR
+BG_FACTU11.BG_FACTU11;Facturation carba NDM - Facturation PCR
+BG_FACTU12.BG_FACTU12;Facturation carba IMP - Facturation PCR
+BG_FACTU14.BG_FACTU14;Facturation CD - Facturation PCR
+BG_FACTU15.BG_FACTU15;Facturation ERIC - Facturation PCR
+BG_FACTU16.BG_FACTU16;Facturation Cult C.diff - Facturation PCR
+BG_FACTU20.BG_FACTU20;Facturation ADNBA - Facturation PCR
+BG_FACTU21.BG_FACTU21;Facturation ADNBAR - Facturation PCR
+BG_FACTU22.BG_FACTU22;Facturation ADNBM - Facturation PCR
+BG_FACTU23.BG_FACTU23;Facturation ADNBP - Facturation PCR
+BG_FACTU24.BG_FACTU24;Facturation ADNCP - Facturation PCR
+BG_FACTU25.BG_FACTU25;Facturation ADNBAC - Facturation PCR
+BG_FACTU26.BG_FACTU26;Facturation ADNEAE - Facturation PCR
+BG_FACTU27.BG_FACTU27;Facturation ADNEXB - Facturation PCR
+BG_FACTU28.BG_FACTU28;Facturation ADNFT - Facturation PCR
+BG_FACTU29.BG_FACTU29;Facturation ADNGON - Facturation PCR
+BG_FACTU30.BG_FACTU30;Facturation ADNK - Facturation PCR
+BG_FACTU31.BG_FACTU31;Facturation ADNL - Facturation PCR
+BG_FACTU32.BG_FACTU32;Facturation ADNLEG - Facturation PCR
+BG_FACTU33.BG_FACTU33;Facturation ADNLEP - Facturation PCR
+BG_FACTU34.BG_FACTU34;Facturation ADNLPV - Facturation PCR
+BG_FACTU35.BG_FACTU35;Facturation ADNLYT - Facturation PCR
+BG_FACTU36.BG_FACTU36;Facturation ADNM - Facturation PCR
+BG_FACTU37.BG_FACTU37;Facturation ADNMC - Facturation PCR
+BG_FACTU38.BG_FACTU38;Facturation ADNMEC - Facturation PCR
+BG_FACTU39.BG_FACTU39;Facturation ADNMECC - Facturation PCR
+BG_FACTU40.BG_FACTU40;Facturation ADNMGEN - Facturation PCR
+BG_FACTU41.BG_FACTU41;Facturation ADNP - Facturation PCR
+BG_FACTU42.BG_FACTU42;Facturation ADNPYO - Facturation PCR
+BG_FACTU43.BG_FACTU43;Facturation ADNSB - Facturation PCR
+BG_FACTU44.BG_FACTU44;Facturation ADNSTA - Facturation PCR
+BG_FACTU45.BG_FACTU45;Facturation ADNSTL - Facturation PCR
+BG_FACTU46.BG_FACTU46;Facturation ADNSTX - Facturation PCR
+BG_FACTU47.BG_FACTU47;Facturation ADNTSS - Facturation PCR
+BG_FACTU48.BG_FACTU48;Facturation ADNWHI - Facturation PCR
+BG_FACTU49.BG_FACTU49;Facturation ADNYP - Facturation PCR
+BG_FACTU50.BG_FACTU50;Facturation SIADB - Facturation PCR
+BG_FACTU51.BG_FACTU51;Facturation SIADC - Facturation PCR
+BG_FACTU52.BG_FACTU52;Facturation MENW135 - Facturation PCR
+BG_FACTU53.BG_FACTU53;Facturation MENY - Facturation PCR
+BG_FACTU54.BG_FACTU54;Facturation REP - Facturation PCR
+BG_FACTU55.BG_FACTU55;Facturation TYPSOU - Facturation PCR
+BG_FACTU56.BG_FACTU56;Facturation ADNBH - Facturation PCR
+BG_FACTU57.BG_FACTU57;Facturation ADNPANC - Facturation PCR
+BG_FACTU58.BG_FACTU58;Facturation ADNTP - Facturation PCR
+BG_FACTU59.BG_FACTU59;Facturation ADNCB - Facturation PCR
+BG_FACTU60.BG_FACTU60;Facturation  CARBA 1 - Facturation CARBA 1
+BG_FACTU61.BG_FACTU61;Facturation CARBA 2 - Facturation CARBA 2
+BG_FACTU62.BG_FACTU62;Facturation CARBA 3 - Facturation CARBA 1
+BG_FACTU63.BG_FACTU63;Facturation CARBA 4 - Facturation CARBA 
+BG_FACTU64.BG_FACTU64;Facturation CORIS 1 - Facturation CARBA 1
+BG_FACTU65.BG_FACTU65;Facturation  CORIS 2 - Facturation CARBA 1
+BG_FACTU66.BG_FACTU66;Facturation CORIS 3 - Facturation CARBA 1
+BG_FACTU67.BG_FACTU67;Facturation CORIS 4 - Facturation CARBA 1
+BGFA_DEL.BGFA_DEL1;Délai rendu - Délai rendu
+BGFAE.BGFAE1;FLACON AE - Technique
+BGFAE.BGFAE2;FLACON AE - Code barre scan
+BGFAE.BGFAE4;FLACON AE - Résultat flacon
+BGFAE.BGFAE5;FLACON AE - Code barre manuel
+BGFAE.BGFAE6;FLACON AE - Code barre 
+BGFAE.BGFAE7;FLACON AE - Délai
+BGFAE2D.BGFAE2D1;DECL. CULTURE FLACON(S) - DECL. CULTURE FLACON(S)
+BGFA_GRAM.BGFA_GRAM1;Gram fiole aé - Technique
+BGFA_GRAM.BGFA_GRAM2;Gram fiole aé - Morphologie n°1
+BGFA_GRAM.BGFA_GRAM3;Gram fiole aé - Création d'une analyse Mycologique pour un Gram Pos
+BGFA_GRAM.BGFA_GRAM4;Gram fiole aé - Morphologie n°2
+BG_FAGR.BG_FAGR_BLSE;FilmArray Respi Gène Résistance - Commentaire BLSE
+BG_FAGR.BG_FAGR_CARBA;FilmArray Respi Gène Résistance - Commentaire CARBA
+BG_FAGR.BG_FAGR_CMECA;FilmArray Respi Gène Résistance - Commentaire MECA
+BG_FAGR.BG_FAGR_CTXM;FilmArray Respi Gène Résistance - CTXM
+BG_FAGR.BG_FAGR_IMP;FilmArray Respi Gène Résistance - IMP
+BG_FAGR.BG_FAGR_KPC;FilmArray Respi Gène Résistance - KCP
+BG_FAGR.BG_FAGR_MECA;FilmArray Respi Gène Résistance - MecA/C et MREJ
+BG_FAGR.BG_FAGR_NDM;FilmArray Respi Gène Résistance - NDM
+BG_FAGR.BG_FAGR_OXA;FilmArray Respi Gène Résistance - OXA
+BG_FAGR.BG_FAGR_TITRE;FilmArray Respi Gène Résistance - Titre CR
+BG_FAGR.BG_FAGR_VIM;FilmArray Respi Gène Résistance - VIM
+BG_FALCR.BG_FALCR_CMV;FILMARRAY ME - Cytomégalovirus
+BG_FALCR.BG_FALCR_COND;FILMARRAY ME - Conditionnement
+BG_FALCR.BG_FALCR_CRYPTO;FILMARRAY ME - C.neoformans / gattii
+BG_FALCR.BG_FALCR_ECK1;FILMARRAY ME - Escherichia coli K1
+BG_FALCR.BG_FALCR_EN;FILMARRAY ME - Enterovirus
+BG_FALCR.BG_FALCR_HHV6;FILMARRAY ME - Herpèsvirus humain 6
+BG_FALCR.BG_FALCR_HINF;FILMARRAY ME - Haemophilus influenzae
+BG_FALCR.BG_FALCR_HP;FILMARRAY ME - Human Parechovirus
+BG_FALCR.BG_FALCR_HSV1;FILMARRAY ME - Herpès simplex 1
+BG_FALCR.BG_FALCR_HSV2;FILMARRAY ME - Herpès simplex 2
+BG_FALCR.BG_FALCR_IC;FILMARRAY ME - Filmarray Interne Control
+BG_FALCR.BG_FALCR_LIMO;FILMARRAY ME - Listeria monocytogenes
+BG_FALCR.BG_FALCR_LIST;FILMARRAY ME - Liste des pathogènes
+BG_FALCR.BG_FALCR_MNG;FILMARRAY ME - Neisseria meningitidis
+BG_FALCR.BG_FALCR_NEG;FILMARRAY ME - Recherche Neg
+BG_FALCR.BG_FALCR_PNE;FILMARRAY ME - Streptococcus pnemoniae
+BG_FALCR.BG_FALCR_PVT;FILMARRAY ME - Plélèvement
+BG_FALCR.BG_FALCR_RESBAC;FILMARRAY ME - Filmarray Résultat Bactéries
+BG_FALCR.BG_FALCR_RESMYC;FILMARRAY ME - Filmarray Résultat Myco
+BG_FALCR.BG_FALCR_RESVIR;FILMARRAY ME - Filmarray Résultat Virus
+BG_FALCR.BG_FALCR_ST;FILMARRAY ME - Statut
+BG_FALCR.BG_FALCR_STRB;FILMARRAY ME - Streptococcus agalactiae
+BG_FALCR.BG_FALCR_VZV;FILMARRAY ME - Varicella-zona
+BGFANA.BGFANA1;FLACON ANA - Technique
+BGFANA.BGFANA2;FLACON ANA - Code barre scan
+BGFANA.BGFANA4;FLACON ANA - Résultat flacon
+BGFANA.BGFANA5;FLACON ANA - Code barre manuel
+BGFANA.BGFANA6;FLACON ANA - Code barre
+BGFANA.BGFANA7;FLACON ANA - Délai
+BG_FANEG.BG_FANEG1;Filmarray Recherche Neg - Interprètation
+BG_FANEGM.BG_FANEGM_COM;FilmArray Neg Parasito - Commentaire
+BG_FANEGM.BG_FANEGM_RES;FilmArray Neg Parasito - C. neoformans / gattii
+BG_FANEGV.BG_FANEGV_COM;FilmArray Neg Virologie - Commentaire
+BG_FANEGV.BG_FANEGV_RES;FilmArray Neg Virologie - Virus
+BGFA_P.BGFA_P1;Flacon aé positif le - Flacon aé positif le
+BG_FAPCMV.BG_FAPCMV_COM;FilmArray Pos CMV CR Viro - Commentaire
+BG_FAPCMV.BG_FAPCMV_RES;FilmArray Pos CMV CR Viro - Cytomegalovirus
+BG_FAPECK1.BG_FAPECK1_COM;FilmArray E.coli K1 Pos CR - Commentaire
+BG_FAPECK1.BG_FAPECK1_RES;FilmArray E.coli K1 Pos CR - Escherichia coli K1
+BG_FAPEN.BG_FAPEN_COM;FilmArray Pos enterovirus CR Viro - Commentaire
+BG_FAPEN.BG_FAPEN_RES;FilmArray Pos enterovirus CR Viro - Entérovirus
+BG_FAPHHV6.BG_FAPHHV6_COM;FilmArray Pos HHV6 CR Viro - Commentaire
+BG_FAPHHV6.BG_FAPHHV6_RES;FilmArray Pos HHV6 CR Viro - Herpesvirus humain 6
+BG_FAPHINF.BG_FAPHINF_COM;FilmArray Haemophilus Pos CR - Commentaire
+BG_FAPHINF.BG_FAPHINF_RES;FilmArray Haemophilus Pos CR - Haemophilus influenzae
+BG_FAPHP.BG_FAPHP_COM;FilmArray Pos HP CR Viro - Commentaire
+BG_FAPHP.BG_FAPHP_RES;FilmArray Pos HP CR Viro - Parechovirus humain
+BG_FAPHSV1.BG_FAPHSV1_COM;FilmArray Pos HSV1 CR Viro - Commentaire
+BG_FAPHSV1.BG_FAPHSV1_RES;FilmArray Pos HSV1 CR Viro - Virus herpes simplex 1
+BG_FAPHSV2.BG_FAPHSV2_COM;FilmArray Pos HSV2 CR Viro - Commentaire
+BG_FAPHSV2.BG_FAPHSV2_RES;FilmArray Pos HSV2 CR Viro - Virus herpes simplex 2
+BG_FAPLIMO.BG_FAPLIMO_COM;FilmArray Listeria Pos CR - Commentaire
+BG_FAPLIMO.BG_FAPLIMO_RES;FilmArray Listeria Pos CR - Listeria monocytogenes
+BG_FAPMNG.BG_FAPMNG_COM;FilmArray Menigo Pos CR - Commentaire
+BG_FAPMNG.BG_FAPMNG_RES;FilmArray Menigo Pos CR - Neisseria meningitidis
+BG_FAPMYCO.BG_FAPMYCO_COM;FilmArray Pos Cryptocoque CR Para - Commentaire
+BG_FAPMYCO.BG_FAPMYCO_RES;FilmArray Pos Cryptocoque CR Para - C. neoformans / gattii
+BG_FAPPNE.BG_FAPPNE_COM;FilmArray Pneumo Pos CR - Commentaire
+BG_FAPPNE.BG_FAPPNE_RES;FilmArray Pneumo Pos CR - Streptococcus pneumoniae
+BG_FAPSTRB.BG_FAPSTRB_COM;FilmArray Strepto B Pos CR - Commentaire
+BG_FAPSTRB.BG_FAPSTRB_RES;FilmArray Strepto B Pos CR - Streptococcus agalactiae
+BG_FAPVZV.BG_FAPVZV_COM;FilmArray Pos VZV CR Viro - Commentaire
+BG_FAPVZV.BG_FAPVZV_RES;FilmArray Pos VZV CR Viro - Virus varicelle-zona
+BG_FARESB.BG_FARESB_COM;Filmarray Neg Bacteriologie - Commentaire
+BG_FARESB.BG_FARESB_RES;Filmarray Neg Bacteriologie - Bactéries
+BG_FARES.BG_FARES_ABAU;FILMARRAY RESPI - Acineto.C.Baumanii
+BG_FARES.BG_FARES_ADEB;FILMARRAY RESPI - Adenovirus
+BG_FARES.BG_FARES_CO;FILMARRAY RESPI - Coronavirus
+BG_FARES.BG_FARES_COND;FILMARRAY RESPI - Conditionnement
+BG_FARES.BG_FARES_CPNE;FILMARRAY RESPI - Chlamydia pneumoniae
+BG_FARES.BG_FARES_ECCLO;FILMARRAY RESPI - Ent.C.Cloacae
+BG_FARES.BG_FARES_EC;FILMARRAY RESPI - Escherichia.coli
+BG_FARES.BG_FARES_GRIPA;FILMARRAY RESPI - Virus de la grippe A
+BG_FARES.BG_FARES_GRIPB;FILMARRAY RESPI - Virus de la grippe B
+BG_FARES.BG_FARES_HINF;FILMARRAY RESPI - Haemophilus.influenzae
+BG_FARES.BG_FARES_IC;FILMARRAY RESPI - Filmarray Interne Control
+BG_FARES.BG_FARES_KAER;FILMARRAY RESPI - Kleb.aerogenes
+BG_FARES.BG_FARES_KOXY;FILMARRAY RESPI - Kleb.oxytoca
+BG_FARES.BG_FARES_KPNE;FILMARRAY RESPI - Kleb.pneumoniae
+BG_FARES.BG_FARES_LIST;FILMARRAY RESPI - Liste des pathogènes
+BG_FARES.BG_FARES_LPNE;FILMARRAY RESPI - Legionella pneumophila
+BG_FARES.BG_FARES_MERS;FILMARRAY RESPI - MERS-CoV
+BG_FARES.BG_FARES_META;FILMARRAY RESPI - Metapneumovirus humain
+BG_FARES.BG_FARES_MORAX;FILMARRAY RESPI - Moraxella.catarrhalis
+BG_FARES.BG_FARES_MPNE;FILMARRAY RESPI - Mycoplasma pneumoniae
+BG_FARES.BG_FARES_NEG;FILMARRAY RESPI - Recherche Neg
+BG_FARES.BG_FARES_PI;FILMARRAY RESPI - Virus Parainfluenzae
+BG_FARES.BG_FARES_PNE;FILMARRAY RESPI - Pneumo
+BG_FARES.BG_FARES_PROT;FILMARRAY RESPI - Proteus.spp
+BG_FARES.BG_FARES_PVT;FILMARRAY RESPI - Prélèvement
+BG_FARES.BG_FARES_PYO;FILMARRAY RESPI - Pseudo.aeruginosa
+BG_FARES.BG_FARES_RESBAC;FILMARRAY RESPI - Filmarray Résultat Bactéries
+BG_FARES.BG_FARES_RESVIR;FILMARRAY RESPI - Filmarray Résultat Virus
+BG_FARES.BG_FARES_RHEN;FILMARRAY RESPI - Enterovirus/ Rhinovirus humains
+BG_FARES.BG_FARES_RS;FILMARRAY RESPI - Virus Respiratoire syncytial
+BG_FARES.BG_FARES_SA;FILMARRAY RESPI - Staph.aureus
+BG_FARES.BG_FARES_SMAR;FILMARRAY RESPI - S.marcescens
+BG_FARES.BG_FARES_ST;FILMARRAY RESPI - Statut
+BG_FARES.BG_FARES_STRA;FILMARRAY RESPI - Strepto.pyogenes
+BG_FARES.BG_FARES_STRB;FILMARRAY RESPI - Strepto.agalactiae
+BG_FARNEGB.BG_FARNEGB_COM;FilmArray Respi Neg Bacterio - Commentaire
+BG_FARNEGB.BG_FARNEGB_RES;FilmArray Respi Neg Bacterio - Bactéries
+BG_FARNEG.BG_FARNEG1;FilmArray Respi Interprétation Neg - Interprétation
+BG_FARNEGV.BG_FARNEGV_COM;FilmArray Respi Neg Viro - Commentaire
+BG_FARNEGV.BG_FARNEGV_RES;FilmArray Respi Neg Viro - Virus
+BG_FARPAD.BG_FARPAD_COM;FilmArray Respi Pos Adenovirus - Commentaire
+BG_FARPAD.BG_FARPAD_RES;FilmArray Respi Pos Adenovirus - Adenovirus
+BG_FARPBAU.BG_FARPBAU_COM;FilmArray Respi Pos Acinto baumanii - Commentaire
+BG_FARPBAU.BG_FARPBAU_RES;FilmArray Respi Pos Acinto baumanii - Acintetobacter baumanii
+BG_FARPCAT.BG_FARPCAT_COM;FilmArray Respi Pos Morax - Commentaire
+BG_FARPCAT.BG_FARPCAT_RES;FilmArray Respi Pos Morax - Moraxella catarrhalis
+BG_FARPCLO.BG_FARPCLO_COM;FilmArray Respi Pos Ent cloacae - Commentaire
+BG_FARPCLO.BG_FARPCLO_RES;FilmArray Respi Pos Ent cloacae - Enterobacter complex cloacae
+BG_FARPCO.BG_FARPCO_COM;FilmArray Respi Pos Coronavirus - Commentaire
+BG_FARPCO.BG_FARPCO_RES;FilmArray Respi Pos Coronavirus - Coronavirus
+BG_FARPCOV.BG_FARPCOV_COM;FilmArray Respi Pos MERS-CoV - Commentaire
+BG_FARPCOV.BG_FARPCOV_RES;FilmArray Respi Pos MERS-CoV - MERS-CoV
+BG_FARPCPN.BG_FARPCPN_COM;FilmArray Respi Pos Chlamydia pneumoniae - Commentaire
+BG_FARPCPN.BG_FARPCPN_RES;FilmArray Respi Pos Chlamydia pneumoniae - Chlamydia pneumoniae
+BG_FARPEC.BG_FARPEC_COM;FilmArray Respi Pos E.coli - Commentaire
+BG_FARPEC.BG_FARPEC_RES;FilmArray Respi Pos E.coli - Escherichia coli
+BG_FARPGA.BG_FARPGA_COM;FilmArray Respi Pos Grippe A - Commentaire
+BG_FARPGA.BG_FARPGA_RES;FilmArray Respi Pos Grippe A - Virus de la grippe A
+BG_FARPGB.BG_FARPGB_COM;FilmArray Respi Pos Grippe B - Commentaire
+BG_FARPGB.BG_FARPGB_RES;FilmArray Respi Pos Grippe B - Virus de la grippe B
+BG_FARPHI.BG_FARPHI_COM;FilmArray Respi Pos Haemophilus influenzae - Commentaire
+BG_FARPHI.BG_FARPHI_RES;FilmArray Respi Pos Haemophilus influenzae - Haemophilus influenzae
+BG_FARPKAE.BG_FARPKAE_COM;FilmArray Respi Pos Kleb aerogenes - Commentaire
+BG_FARPKAE.BG_FARPKAE_RES;FilmArray Respi Pos Kleb aerogenes - Klebsiella aerogenes
+BG_FARPKPN.BG_FARPKPN_COM;FilmArray Respi Pos Kleb pneumoniae - Commentaire
+BG_FARPKPN.BG_FARPKPN_RES;FilmArray Respi Pos Kleb pneumoniae - Klebsiella pneumoniae
+BG_FARPLPN.BG_FARPLPN_COM;FilmArray Respi Pos Legionella pneumophila - Commentaire
+BG_FARPLPN.BG_FARPLPN_RES;FilmArray Respi Pos Legionella pneumophila - Legionnella pneumophila
+BG_FARPMAR.BG_FARPMAR_COM;FilmArray Respi Pos S.marcescens - Commentaire
+BG_FARPMAR.BG_FARPMAR_RES;FilmArray Respi Pos S.marcescens - Serratia marcescens
+BG_FARPME.BG_FARPME_COM;FilmArray Respi Pos Metapneumovirus - Commentaire
+BG_FARPME.BG_FARPME_RES;FilmArray Respi Pos Metapneumovirus - Metapneumovirus
+BG_FARPMPN.BG_FARPMPN_COM;FilmArray Respi Pos Mycoplasma pneumoniae - Commentaire
+BG_FARPMPN.BG_FARPMPN_RES;FilmArray Respi Pos Mycoplasma pneumoniae - Mycoplasma pneumonia
+BG_FARPOXY.BG_FARPOXY_COM;FilmArray Respi Pos Kleb oxytoca - Commentaire
+BG_FARPOXY.BG_FARPOXY_RES;FilmArray Respi Pos Kleb oxytoca - Klebsiella oxytoca
+BG_FARPPI.BG_FARPPI_COM;FilmArray Respi Pos Parainfluenzae - Commentaire
+BG_FARPPI.BG_FARPPI_RES;FilmArray Respi Pos Parainfluenzae - Virus Parainfluenzae
+BG_FARPPNE.BG_FARPPNE_COM;FilmArray Respi Pos Pneumo - Commentaire
+BG_FARPPNE.BG_FARPPNE_RES;FilmArray Respi Pos Pneumo - Streptococcus pneumoniae
+BG_FARPPRO.BG_FARPPRO_COM;FilmArray Respi Pos Proteus - Commentaire
+BG_FARPPRO.BG_FARPPRO_RES;FilmArray Respi Pos Proteus - Proteus spp.
+BG_FARPPYO.BG_FARPPYO_COM;FilmArray Respi Pos Pseudo aeruginosa - Commentaire
+BG_FARPPYO.BG_FARPPYO_RES;FilmArray Respi Pos Pseudo aeruginosa - Pseudomonas aeruginosa
+BG_FARPRE.BG_FARPRE_COM;FilmArray Respi Pos Enterovirus / rhinovirus - Commentaire
+BG_FARPRE.BG_FARPRE_RES;FilmArray Respi Pos Enterovirus / rhinovirus - Enterovirus / Rhinovirus
+BG_FARPRS.BG_FARPRS_COM;FilmArray Respi Pos Virus respiratoire syncytial - Commentaire
+BG_FARPRS.BG_FARPRS_RES;FilmArray Respi Pos Virus respiratoire syncytial - Virus Respiratoire syncytial
+BG_FARPSA.BG_FARPSA_COM;FilmArray Respi Pos S aureus - Commentaire
+BG_FARPSA.BG_FARPSA_RES;FilmArray Respi Pos S aureus - Staphylococcus aureus
+BG_FARPSTA.BG_FARPSTA_COM;FilmArray Respi Pos Strepto A - Commentaire
+BG_FARPSTA.BG_FARPSTA_RES;FilmArray Respi Pos Strepto A - Streptococcus pyogenes
+BG_FARPSTB.BG_FARPSTB_COM;FilmArray Respi Pos Strepto B - Commentaire
+BG_FARPSTB.BG_FARPSTB_RES;FilmArray Respi Pos Strepto B - Streptococcus agalactiae
+BGFA_S.BGFA_S1;Statut flacon aé pos - Statut flacon aé pos
+BG_FA_ST.BG_FA_ST1;FilmArray Staut - Statut
+BGF.BGF1;FORMULE  - Technique
+BGF.BGF2;FORMULE  - Résultat
+BGFCONG.BGFCONG1;Facturation congélation souche - Facturation congélation souche
+BGFFAE.BGFFAE1;Clôture flacon aé - Clôture flacon aé
+BGFFAE.BGFFAE2;Clôture flacon aé - Création d'un analyse de mycologie en cas de code LT dans BGID1
+BGFFAE.BGFFAE3;Clôture flacon aé - Création d'un analyse de mycologie en cas de code LT dans BGID1
+BGFFANA.BGFFANA1;Clôture flacon anaé - Clôture flacon anaé
+BGFFANA.BGFFANA2;Clôture flacon anaé - Création d'un analyse de mycologie en cas de code LT dans BGID1
+BGFFANA.BGFFANA3;Clôture flacon anaé - Création d'un analyse de mycologie en cas de code LT dans BGID1
+BGFFPED.BGFFPED1;Clôture flacon ped - Clôture flacon ped
+BGFFPED.BGFFPED2;Clôture flacon ped - Création d'un analyse de mycologie en cas de code LT dans BGID1
+BGFFPED.BGFFPED3;Clôture flacon ped - Création d'un analyse de mycologie en cas de code LT dans BGID1
+BGFIN.BGFIN1;CLOTURE DU DOSSIER - CLOTURE DU DOSSIER
+BGFIN.BGFIN2;CLOTURE DU DOSSIER - Création d'un analyse de mycologie en cas de code LT dans BGID1
+BGFIN.BGFIN3;CLOTURE DU DOSSIER - Création d'un analyse de mycologie en cas de code LT dans BGID1
+BGFMY.BGFMY1;EDITION FICHE MYCOPLASME POS - EDITION FEUILLE TRAVAIL
+BGFNCQ.BGFNCQ1;FLACON ANAEROBIE CQ - Technique
+BGFNCQ.BGFNCQ2;FLACON ANAEROBIE CQ - Code barre manuel
+BGFNCQ.BGFNCQ3;FLACON ANAEROBIE CQ - Lot n° : 
+BGFNCQ.BGFNCQ4;FLACON ANAEROBIE CQ - Date de péremption : 
+BGFNCQ.BGFNCQ5;FLACON ANAEROBIE CQ - Croissance
+BGFNCQ.BGFNCQ6;FLACON ANAEROBIE CQ - Délai détection
+BGFNCQN.BGFNCQN1;FLACON ANAE NEG - Résultat Flacon Neg
+BGFN_DEL.BGFN_DEL1;Délai rendu - Délai rendu
+BGFN_GRAM.BGFN_GRAM1;Gram fiole anaé - Technique
+BGFN_GRAM.BGFN_GRAM2;Gram fiole anaé - Morphologie n°1
+BGFN_GRAM.BGFN_GRAM3;Gram fiole anaé - Morphologie n°2
+BGFN_GRAM.BGFN_GRAM4;Gram fiole anaé - Création d'une analyse Mycologique pour un Gram Pos
+BGFN_P.BGFN_P1;Flacon anaé positif le  - Flacon anaé positif le
+BGFN_S.BGFN_S1;Statut flacon anaé pos - Statut flacon anaé pos
+BGFPED.BGFPED1;FLACON PED - Technique
+BGFPED.BGFPED2;FLACON PED - Code barre scan
+BGFPED.BGFPED4;FLACON PED - Résultat flacon
+BGFPED.BGFPED5;FLACON PED - Code barre manuel
+BGFPED.BGFPED6;FLACON PED - Code barre 
+BGFPED.BGFPED7;FLACON PED - Délai
+BGFQ.BGFQ1;FORMULE QUANTITATIVE - Polynucléaires neutrophiles
+BGFQ.BGFQ2;FORMULE QUANTITATIVE - Polynucléaires éosinophiles
+BGFQ.BGFQ3;FORMULE QUANTITATIVE - Lymphocytes
+BGFQ.BGFQ4;FORMULE QUANTITATIVE - Monocytes et cellules nuclées
+BGFQ.BGFQ5;FORMULE QUANTITATIVE - Commentaires
+BGFSQ.BGFSQ1;FORMULE SEMI QUANTITATIVE - Polynucléaires neutrophiles
+BGFSQ.BGFSQ2;FORMULE SEMI QUANTITATIVE - Polynucléaires éosinophiles
+BGFSQ.BGFSQ3;FORMULE SEMI QUANTITATIVE - Lymphocytes
+BGFSQ.BGFSQ4;FORMULE SEMI QUANTITATIVE - Monocytes et cellules nuclées
+BGFSQ.BGFSQ5;FORMULE SEMI QUANTITATIVE - Commmentaires
+BG_GDH.BG_GDH_COM;Recherche de l'antigène Gdh - GDH Commentaire
+BG_GDH.BG_GDH_EDIT;Recherche de l'antigène Gdh - Valeur éditable
+BG_GDH.BG_GDH_RES;Recherche de l'antigène Gdh - GDH Résultat
+BG_GDH.BG_GDH_S;Recherche de l'antigène Gdh - GDH Seuil
+BG_GDH.BG_GDH_ST;Recherche de l'antigène Gdh - Statut
+BG_GDH.BG_GDH_TEC;Recherche de l'antigène Gdh - GDH Technique
+BG_GDH.BG_GDH_VAL;Recherche de l'antigène Gdh - GDH Valeur
+BG_GDHW.BG_GDHW_ABW;GDH Week-end - Déclenchement toxine libre
+BG_GDHW.BG_GDHW_COM;GDH Week-end - GDH Commentaire
+BG_GDHW.BG_GDHW_RES;GDH Week-end - GDH Résultat
+BG_GDHW.BG_GDHW_ST;GDH Week-end - Statut
+BG_GDHW.BG_GDHW_TEC;GDH Week-end - GDH Technique
+BGGON.BGGON1;RECHERCHE GONOCOQUE - Résultat
+BGGON.BGGON2;RECHERCHE GONOCOQUE - Technique
+BGHELI.BGHELI1;RECHERCHE HELICOBACTER - Technique
+BGHELI.BGHELI2;RECHERCHE HELICOBACTER - Résultat
+BGHNAT.BGHNAT1;RECUPERATION NAT ORI - Nature 
+BGHNAT.BGHNAT2;RECUPERATION NAT ORI - Origine
+BGHNAT.BGHNAT3;RECUPERATION NAT ORI - Nature pvt
+BGHRN.BGHRN1;Résultat Flacon Neg - Résultat
+BGHRN2.BGHRN21;Résultat Flacon Neg  - Résultat 
+BGID.BGID1;IDENTIFICATION - Identification
+BGID.BGID10;IDENTIFICATION - Commentaire libre
+BGID.BGID11;IDENTIFICATION - Souche congelée le 
+BGID.BGID12;IDENTIFICATION - Vitek en cours?
+BGID.BGID13;IDENTIFICATION - Facturation Congélation
+BGID.BGID14;IDENTIFICATION - Atb Vitek en cours
+BGID.BGID15;IDENTIFICATION - Germe Vitek
+BGID.BGID2;IDENTIFICATION - Antibiogramme
+BGID.BGID3;IDENTIFICATION - Résultat
+BGID.BGID4;IDENTIFICATION - Quantité
+BGID.BGID5;IDENTIFICATION - Technique
+BGID.BGID6;IDENTIFICATION - Isolat et commentaire germe
+BGID.BGID7;IDENTIFICATION - Commentaire
+BGID.BGID8;IDENTIFICATION - Date 
+BGID.BGID9;IDENTIFICATION - Comm + date
+BGIDCOM.BGIDCOM1;COMMENTAIRES SUR IDENT - Commentaire
+BGIDCOM.BGIDCOM2;COMMENTAIRES SUR IDENT - Date
+BGIDCOM.BGIDCOM3;COMMENTAIRES SUR IDENT - Résultat calculé
+BGIDCOM.BGIDCOM4;COMMENTAIRES SUR IDENT - Commentaire libre
+BGIDGV.BGIDGV1;Id germe Vitek - Nom germe
+BGIDH.BGIDH1;IDENTIFICATION HEMOC - Identification
+BGIDH.BGIDH2;IDENTIFICATION HEMOC - Antibiogramme
+BGIDH.BGIDH3;IDENTIFICATION HEMOC - Technique
+BGIDH.BGIDH4;IDENTIFICATION HEMOC - Isolat
+BGIDH.BGIDH5;IDENTIFICATION HEMOC - Ident + Isolat
+BGIDH.BGIDH6;IDENTIFICATION HEMOC - Création analyse Mycologique
+BGIDMYC.BGIDMYC1;IDENTIFICATION MYCOPLASME - Identification
+BGIDMYC.BGIDMYC2;IDENTIFICATION MYCOPLASME - Antibiogramme
+BGIDMYC.BGIDMYC3;IDENTIFICATION MYCOPLASME - Quantité
+BGIDMYC.BGIDMYC4;IDENTIFICATION MYCOPLASME - Résultat calculé
+BGIDMYC.BGIDMYC5;IDENTIFICATION MYCOPLASME - Commentaire libre
+BG_ID16.BG_ID16_COM;Identification souche 16S - Commentaire
+BG_ID16.BG_ID16_NAT;Identification souche 16S - Prélèvement
+BG_ID16.BG_ID16_SEQ;Identification souche 16S - Identification sequençage
+BG_ID16.BG_ID16_TEC;Identification souche 16S - Technique
+BGKLEBO.BGKLEBO2;RECHERCHE DE KLEBSIELLA OXYTOCA - Résultat
+BG_LEGNAT.BG_LEGNAT;LEG NAT PVT - Prélèvement
+BG_LEGNAT.BG_LEGNAT_PVT;LEG NAT PVT - Nature pvt calculée
+BG_MAT_PCR.BG_MAT_PCR;Prélèvement PCR - BAC Nature PCR
+BG_MC_COM.BG_MC_COM;MC Commentaire - Commentaire
+BG_MC_NAT.BG_MC_NAT;MC NAT PVT - Prélèvement
+BG_MC_NAT.BG_MC_NAT_PVT;MC NAT PVT - Nature pvt calculée
+BGMCSF.BGMCSF1;METHODE CSF - METHODE CSF
+BG_MENW135.BG_MENW135_COM;PCR méningo W135 - Commentaire
+BG_MENW135.BG_MENW135_CT;PCR méningo W135 - Ct
+BG_MENW135.BG_MENW135_CTS;PCR méningo W135 - Ct souche
+BG_MENW135.BG_MENW135_RES;PCR méningo W135 - Résultat
+BG_MENW135.BG_MENW135_TEC;PCR méningo W135 - Technique
+BG_MENY.BG_MENY_COM;PCR méningo Y - Commentaire
+BG_MENY.BG_MENY_CT;PCR méningo Y - Ct
+BG_MENY.BG_MENY_CTS;PCR méningo Y - Ct souche
+BG_MENY.BG_MENY_RES;PCR méningo Y - Résultat
+BG_MENY.BG_MENY_TEC;PCR méningo Y - Technique
+BGMYCONE.BGMYCONE1;MYCOPLASMES URO GENITAUX NE - Commentaire NE
+BGMYCO_R.BGMYCO_R1;RECHERCHE MYCOPLASMES UROGENITAUX - Résultat
+BGMYCO_R.BGMYCO_R2;RECHERCHE MYCOPLASMES UROGENITAUX - Technique
+BGNAT.BGNAT1;Info.compl pvt - Info.compl pvt
+BGNAT.BGNAT2;Info.compl pvt - Nature calculé pour BM
+BGNAT_P.BGNAT_P1;INFO POCHE - Info complémentaire
+BGNAT_P.BGNAT_P2;INFO POCHE - Numero d'identification
+BGNAT_P.BGNAT_P3;INFO POCHE - Commentaire
+BGNAT2.BGNAT21;Compl. info prélèvement - Info.compl pvt
+BGN_COM.BGN_COM1;COMMENTAIRE ATB BGN - Technique
+BGN_COM.BGN_COM2;COMMENTAIRE ATB BGN - BLSE
+BGN_COM.BGN_COM3;COMMENTAIRE ATB BGN - Carba
+BGN_COM.BGN_COM4;COMMENTAIRE ATB BGN - C3GB
+BGN_COM.BGN_COM5;COMMENTAIRE ATB BGN - C3G et Gr III
+BGN_COM.BGN_COM6;COMMENTAIRE ATB BGN - Com libre
+BGN_COM.BGN_COM7;COMMENTAIRE ATB BGN - RFC
+BGNE.BGNE1;EXAMEN NON EFFECTUE - EXAMEN NON EFFECTUE
+BGNE2.BGNE22;Déjà fait le  - Déjà fait le
+BGNE2.BGNE23;Déjà fait le  - RC 
+BGNGATB.BGNGATB1;N°germe ATB - N°Germe
+BGNGERM.BGNGERM1;N°Germe - N°Germe
+BGNGERM2.BGNGERM21;N°Germe 2 - N°Germe
+BGNGERM3.BGNGERM31;N°Germe 3 - N°Germe
+BGNGERM4.BGNGERM41;N°Germe 4 - N°Germe
+BGNGERM5.BGNGERM51;N°Germe 5 - N°Germe
+BGNGERM6.BGNGERM61;N°Germe 6 - N°Germe
+BGNSA.BGNSA1;GROSSESSE NOMBRE SA  - GROSSESSE NOMBRE SA 
+BGNU_COM.BGNU_COM1;COM BGN URINAIRE - Technique
+BGNU_COM.BGNU_COM2;COM BGN URINAIRE - BLSE
+BGNU_COM.BGNU_COM3;COM BGN URINAIRE - Carba
+BGNU_COM.BGNU_COM4;COM BGN URINAIRE - C3G et Gr III
+BGNU_COM.BGNU_COM5;COM BGN URINAIRE - Augmentin
+BGNU_COM.BGNU_COM6;COM BGN URINAIRE - Com fixe/activité cystite
+BGNU_COM.BGNU_COM7;COM BGN URINAIRE - C3GB
+BGNU_COM.BGNU_COM8;COM BGN URINAIRE - Com libre
+BGNU_COM.BGNU_COM9;COM BGN URINAIRE - RFC
+BGNUM.BGNUM1;NUMERATION LIQUIDE DIVERS - Technique
+BGNUM.BGNUM2;NUMERATION LIQUIDE DIVERS - Leucocytes
+BGNUM.BGNUM3;NUMERATION LIQUIDE DIVERS - Hématies
+BGNUM.BGNUM4;NUMERATION LIQUIDE DIVERS - Commentaires
+BGNUMHLM.BGNUMHLM1;NUMERATION URINE HLM - Technique
+BGNUMHLM.BGNUMHLM2;NUMERATION URINE HLM - Leucocytes manuel
+BGNUMHLM.BGNUMHLM3;NUMERATION URINE HLM - hématies manuel
+BGNUMHLM.BGNUMHLM4;NUMERATION URINE HLM - Obs. supplémentaire
+BGNUMHLM.BGNUMHLM5;NUMERATION URINE HLM - Obs. supplémentaire
+BGNUML.BGNUML1;NUMERATION LIQUIDE DE PONCTION - Technique
+BGNUML.BGNUML2;NUMERATION LIQUIDE DE PONCTION - Leucocytes
+BGNUML.BGNUML3;NUMERATION LIQUIDE DE PONCTION - Hématies
+BGNUML.BGNUML4;NUMERATION LIQUIDE DE PONCTION - Commentaires
+BGNUML.BGNUML5;NUMERATION LIQUIDE DE PONCTION - Cellules épithéliales UF
+BGNUML.BGNUML6;NUMERATION LIQUIDE DE PONCTION - Cellules mononuclées UF
+BGNUML.BGNUML7;NUMERATION LIQUIDE DE PONCTION - Cellules polynuclées UF
+BGNUML.BGNUML8;NUMERATION LIQUIDE DE PONCTION - Normale
+BGNUMLCR.BGNUMLCR1;NUMERATION LCR - Technique
+BGNUMLCR.BGNUMLCR2;NUMERATION LCR - Leucocytes
+BGNUMLCR.BGNUMLCR3;NUMERATION LCR - Hématies
+BGNUMLCR.BGNUMLCR4;NUMERATION LCR - Commentaires
+BGNUMMIN.BGNUMMIN1;NUMERATION PAR MINUTE - Technique
+BGNUMMIN.BGNUMMIN2;NUMERATION PAR MINUTE - Volume
+BGNUMMIN.BGNUMMIN3;NUMERATION PAR MINUTE - Temps
+BGNUMMIN.BGNUMMIN4;NUMERATION PAR MINUTE - Leucocytes manuel
+BGNUMMIN.BGNUMMIN5;NUMERATION PAR MINUTE - Hématies manuel
+BGNUMMIN.BGNUMMIN6;NUMERATION PAR MINUTE - Leucocytes par minutes
+BGNUMMIN.BGNUMMIN7;NUMERATION PAR MINUTE - Hématies par minutes
+BGNUMMIN.BGNUMMIN8;NUMERATION PAR MINUTE - Obs. supplémentaire
+BGNUMMIN.BGNUMMIN9;NUMERATION PAR MINUTE - Obs. supplémentaire
+BGNUMU.BGNUMU1;NUMERATION URINAIRE - Technique
+BGNUMU.BGNUMU2;NUMERATION URINAIRE - Leucocytes UF
+BGNUMU.BGNUMU3;NUMERATION URINAIRE - Leucocytes manuel
+BGNUMU.BGNUMU4;NUMERATION URINAIRE - Leucocytes
+BGNUMU.BGNUMU5;NUMERATION URINAIRE - Hématies UF
+BGNUMU.BGNUMU6;NUMERATION URINAIRE - Hématies manuel
+BGNUMU.BGNUMU7;NUMERATION URINAIRE - Hématies
+BGNUMU.BGNUMU8;NUMERATION URINAIRE - Obs. supplémentaire
+BGNUMU.BGNUMU9;NUMERATION URINAIRE - Obs. supplémentaire
+BG_PCRIMP.BG_PCRIMP_COM;PCR IMP - IMP Commentaire
+BG_PCRIMP.BG_PCRIMP_CT;PCR IMP - IMP Ct
+BG_PCRIMP.BG_PCRIMP_CTS;PCR IMP - IMP Ct souche
+BG_PCRIMP.BG_PCRIMP_RES;PCR IMP - IMP Résultat
+BG_PCRIMP.BG_PCRIMP_TEC;PCR IMP - IMP Technique
+BG_PCRKPC.BG_PCRKPC_COM;PCR KPC - KPC Commentaire
+BG_PCRKPC.BG_PCRKPC_CT;PCR KPC - KPC Ct
+BG_PCRKPC.BG_PCRKPC_CTS;PCR KPC - KPC Ct souche
+BG_PCRKPC.BG_PCRKPC_RES;PCR KPC - KPC Résultat
+BG_PCRKPC.BG_PCRKPC_TEC;PCR KPC - KPC Technique
+BG_PCR_NAT.BG_PCR_NAT;Nature de prélèvement PCR - Prélèvement
+BG_PCR_NAT.BG_PCR_NAT_PVT;Nature de prélèvement PCR - Nature pvt calculée
+BG_PCRNDM.BG_PCRNDM_COM;PCR NDM - NDM Commentaire
+BG_PCRNDM.BG_PCRNDM_CT;PCR NDM - NDM Ct
+BG_PCRNDM.BG_PCRNDM_CTS;PCR NDM - NDM Ct souche
+BG_PCRNDM.BG_PCRNDM_RES;PCR NDM - NDM Résultat
+BG_PCRNDM.BG_PCRNDM_TEC;PCR NDM - NDM Technique
+BG_PCROX23.BG_PCROX23_COM;PCR OXA 23 - oxa23 Commentaire
+BG_PCROX23.BG_PCROX23_CT;PCR OXA 23 - oxa23 Ct
+BG_PCROX23.BG_PCROX23_CTS;PCR OXA 23 - oxa23 Ct souche
+BG_PCROX23.BG_PCROX23_RES;PCR OXA 23 - oxa23 Résultat
+BG_PCROX23.BG_PCROX23_TEC;PCR OXA 23 - oxa23 Technique
+BG_PCROX48.BG_PCROX48_COM;PCR OXA 48 - oxa48 Commentaire
+BG_PCROX48.BG_PCROX48_CT;PCR OXA 48 - oxa48 Ct
+BG_PCROX48.BG_PCROX48_CTS;PCR OXA 48 - oxa48 Ct souche
+BG_PCROX48.BG_PCROX48_RES;PCR OXA 48 - oxa48 Résultat
+BG_PCROX48.BG_PCROX48_TEC;PCR OXA 48 - oxa48 Technique
+BG_PCRVIM.BG_PCRVIM_COM;PCR VIM - VIM Commentaire
+BG_PCRVIM.BG_PCRVIM_CT;PCR VIM - VIM Ct
+BG_PCRVIM.BG_PCRVIM_CTS;PCR VIM - VIM Ct souche
+BG_PCRVIM.BG_PCRVIM_RES;PCR VIM - VIM Résultat
+BG_PCRVIM.BG_PCRVIM_TEC;PCR VIM - VIM Technique
+BGPLANCHE.BGPLANCHE1;Edition planche étiquette - Edition planche étiquette
+BGPYOBMR_R.BGPYOBMR_R1;RECHERCHE PYO CARBA - Technique
+BGPYOBMR_R.BGPYOBMR_R2;RECHERCHE PYO CARBA - Résultat
+BGRBMR.BGRBMR1;Déclenchement Culture BMR - Positive oui/non
+BGRECAPV.BGRECAPV1;RECAP VITEK EN COURS - RECAP VITEK EN COURS
+BGRECAPVF.BGRECAPVF1;RECAP VITEK POUR EDITION FEUILLE - RECAP VITEK POUR  EDITION FEUILLE
+BGREM.BGREM1;REMARQUES - REMARQUES
+BGRESULTAG.BGRESULTAG1;Quantité culture anaé - Quantité culture anaé
+BGRESULTAG.BGRESULTAG2;Quantité culture anaé - Résultat
+BGRESULTAN.BGRESULTAN1;Quantité culture anaé - Quantité culture anaé
+BGRESULTAN.BGRESULTAN2;Quantité culture anaé - Résultat 
+BGRESULT.BGRESULT1;Quantité culture aé - Quantité culture aé
+BGRESULT.BGRESULT2;Quantité culture aé - Résultat
+BGRFAGRAM.BGRFAGRAM1;Résultat Gram fiole aé - Résultat Gram fiole aé
+BGRSLTCQ.BGRSLTCQ1;RESULTAT CQ - Technique
+BGRSLTCQ.BGRSLTCQ2;RESULTAT CQ - Culture 
+BGRSLTF.BGRSLTF1;RESULTAT FLACON - RESULTAT FLACON
+BGSAMR_R.BGSAMR_R1;RECHERCHE SAMR - Technique
+BGSAMR_R.BGSAMR_R2;RECHERCHE SAMR - Résultat
+BGSAMR_R.BGSAMR_R3;RECHERCHE SAMR - Quantité
+BGSAMR_R.BGSAMR_R4;RECHERCHE SAMR - Résultat 
+BGSATB_R.BGSATB_R1;RESULTAT ATB - Identification
+BGSATB_R.BGSATB_R2;RESULTAT ATB - Antibiogramme
+BGSCNUG.BGSCNUG1;SCORE DE NUGENT - Résultat
+BGSCRIPT.BGSCRIPT1;Script Germe 1 - N°Germe
+BGSCRIPT2.BGSCRIPT21;Script Germe 2 - N°Germe
+BGSCRIPT3.BGSCRIPT31;Script Germe 3 - N°Germe
+BGSCRIPT4.BGSCRIPT41;Script Germe 4 - N°Germe
+BGSCRIPT5.BGSCRIPT51;Script Germe 5 - N°Germe
+BGSCRIPT6.BGSCRIPT61;Script Germe 6 - N°Germe
+BGSDEM.BGSDEM1;Analyses demandées - Analyse(s) demandée(s)
+BG_SIADB.BG_SIADB_COM;PCR méningo B - Commentaire
+BG_SIADB.BG_SIADB_CT;PCR méningo B - Ct
+BG_SIADB.BG_SIADB_CTS;PCR méningo B - Ct souche
+BG_SIADB.BG_SIADB_RES;PCR méningo B - Résultat
+BG_SIADB.BG_SIADB_ST;PCR méningo B - Statut
+BG_SIADB.BG_SIADB_TEC;PCR méningo B - Technique
+BG_SIADC.BG_SIADC_COM;PCR méningo C - Commentaire
+BG_SIADC.BG_SIADC_CT;PCR méningo C - Ct
+BG_SIADC.BG_SIADC_CTS;PCR méningo C - Ct souche
+BG_SIADC.BG_SIADC_RES;PCR méningo C - Résultat
+BG_SIADC.BG_SIADC_TEC;PCR méningo C - Technique
+BGSID_R.BGSID_R1;RESULTAT SOUCHE POUR IDENTIFICATION - Identification
+BGSID_R.BGSID_R5;RESULTAT SOUCHE POUR IDENTIFICATION - Technique
+BGSINFO.BGSINFO1;INFORMATION SOUCHE - Info compl. souche
+BGSINFO.BGSINFO2;INFORMATION SOUCHE - Analyses demandées
+BGSINFO1.BGSINFO11;Souche de : - Souche de :
+BGSINFO2.BGSINFO21;Isolée de : - Isolée de :
+BGSRSLT.BGSRSLT1;RESULTAT  - Identification
+BGSRSLT.BGSRSLT2;RESULTAT  - Antibiogramme
+BGSRSLT.BGSRSLT3;RESULTAT  - Technique
+BGSRSLT.BGSRSLT4;RESULTAT  - Commentaire libre
+BGSRSLT.BGSRSLT5;RESULTAT  - Souche congelée le 
+BGSRSLT.BGSRSLT6;RESULTAT  - VITEK
+BGSTA_R.BGSTA_R1;RECHERCHE DE STAPH AUREUS - Technique
+BGSTA_R.BGSTA_R2;RECHERCHE DE STAPH AUREUS - Résultat
+BGSTA_R.BGSTA_R3;RECHERCHE DE STAPH AUREUS - Quantité
+BGSTA_R.BGSTA_R4;RECHERCHE DE STAPH AUREUS - Résultat 
+BG_ST.BG_ST_RES;BM Statut demande - Oui/Non
+BGST.BGST1;STATUT - STATUT
+BGSTBM.BGSTBM1;Statut - Statut
+BGSTHAE.BGSTHAE1;STATUT HEMOC AE RENDU - STATUT HEMOC AE RENDU
+BGSTHANA.BGSTHANA1;STATUT FLACON ANAE RENDU - STATUT FLACON ANAE RENDU
+BGSTH.BGSTH1;STATUT HEMOCS RENDU - STATUT HEMOCS RENDU
+BGSTRA.BGSTRA1;RECHERCHE DE STREPTO A - Technique
+BGSTRA.BGSTRA2;RECHERCHE DE STREPTO A - Résultat
+BGSTRA.BGSTRA3;RECHERCHE DE STREPTO A - Quantité
+BGSTRA.BGSTRA4;RECHERCHE DE STREPTO A - Résultat
+BGSTRB.BGSTRB1;RECHERCHE DE STREPTO B - Technique
+BGSTRB.BGSTRB2;RECHERCHE DE STREPTO B - Résultat
+BGSTRB.BGSTRB3;RECHERCHE DE STREPTO B - Quantité
+BGSTRB.BGSTRB4;RECHERCHE DE STREPTO B - Résultat 
+BGSTS.BGSTS1;STATUT - STATUT
+BGSTU.BGSTU1;STATUT URINE - STATUT URINE
+BGSTU.BGSTU2;STATUT URINE - Flag urine
+BGSTU.BGSTU3;STATUT URINE - Statut serveur
+BGSUBCCQ.BGSUBCCQ1;SUBCULTURE - SUBCULTURE
+BGSUP.BGSUP1;SUPPLEMENT/DOSSIER CLOS - SUPPLEMENT/DOSSIER CLOS
+BGTCMI.BGTCMI1;Technique CMI - Technique CMI
+BG_TOXAB.BG_TOXAB_COM;Recherche des Tox Libres de C.diff - TOXAB Commentaire
+BG_TOXAB.BG_TOXAB_EDIT;Recherche des Tox Libres de C.diff - Valeur éditable
+BG_TOXAB.BG_TOXAB_RES;Recherche des Tox Libres de C.diff - TOXAB Résultat
+BG_TOXAB.BG_TOXAB_S;Recherche des Tox Libres de C.diff - TOXAB Seuil
+BG_TOXAB.BG_TOXAB_TEC;Recherche des Tox Libres de C.diff - TOXAB Technique
+BG_TOXAB.BG_TOXAB_VAL;Recherche des Tox Libres de C.diff - TOXAB Valeur
+BG_TOXA.BG_TOXA_COM;Recherche du gène tcdA - TOXA Commentaire
+BG_TOXA.BG_TOXA_RES;Recherche du gène tcdA - TOXA Résultat
+BG_TOXA.BG_TOXA_TEC;Recherche du gène tcdA - TOXA Technique
+BG_TOXABW.BG_TOXABW_COM;Recherche toxine libre Weekend - TOXAB Commentaire
+BG_TOXABW.BG_TOXABW_RES;Recherche toxine libre Weekend - TOXAB Résultat
+BG_TOXABW.BG_TOXABW_S;Recherche toxine libre Weekend - TOXAB Seuil
+BG_TOXABW.BG_TOXABW_TEC;Recherche toxine libre Weekend - TOXAB Technique
+BG_TOXABW.BG_TOXABW_VAL;Recherche toxine libre Weekend - TOXAB Valeur
+BG_TOXC.BG_TOXC1;Congélation selle Tox. - Congélation selle Tox.
+BG_TOXPCR.BG_TOXPCR1;Déclenchement PCR weekend - Déclenchement PCR weekend
+BG_TYPCD.BG_TYPCD_CDTA;TYP Cdiff - CDTA
+BG_TYPCD.BG_TYPCD_RES;TYP Cdiff - Résultat
+BG_TYPCD.BG_TYPCD_TCDB;TYP Cdiff - TCDB
+BG_TYPCD.BG_TYPCD_TPI;TYP Cdiff - TPI
+BG_TYPCD.BG_TYPCD_017;TYP Cdiff - RIB 017
+BG_TYPCD.BG_TYPCD_023;TYP Cdiff - RIB 023
+BG_TYPCD.BG_TYPCD_027;TYP Cdiff - RIB 027
+BG_TYPCD.BG_TYPCD_078_126;TYP Cdiff - RIB 078/126
+BG_TYPSOU.BG_TYPSOU_RES;PCR Typage de Souches - Résultat
+BG_TYPSTA.BG_TYPSTA_RES;PCR Typage S.aureus - Résultat
+BGUA.BGUA1;ANNULATION URINE - Antèriorité
+BGUA.BGUA2;ANNULATION URINE - Délai 
+BGUA.BGUA3;ANNULATION URINE - Nom
+BGUAF.BGUAF1;ANNALYSE FICHE URINES ANNULER - Annulation
+BGUANT.BGUANT1;REDONDANCE ECBU - Examen déja effectué:
+BGUCYTO.BGUCYTO1;CYTOLOGIE URINAIRE. - Technique
+BGUCYTO.BGUCYTO10;CYTOLOGIE URINAIRE. - Cristaux
+BGUCYTO.BGUCYTO11;CYTOLOGIE URINAIRE. - Hématies nephro
+BGUCYTO.BGUCYTO15;CYTOLOGIE URINAIRE. - Hématies  rendues
+BGUCYTO.BGUCYTO16;CYTOLOGIE URINAIRE. - Hématies /mL pour néphro
+BGUCYTO.BGUCYTO19;CYTOLOGIE URINAIRE. - Quantité bacteries vues
+BGUCYTO.BGUCYTO2;CYTOLOGIE URINAIRE. - Leucocytes UF
+BGUCYTO.BGUCYTO20;CYTOLOGIE URINAIRE. - Gram bacteries vues
+BGUCYTO.BGUCYTO21;CYTOLOGIE URINAIRE. - Nephro feuille
+BGUCYTO.BGUCYTO22;CYTOLOGIE URINAIRE. - Autres :
+BGUCYTO.BGUCYTO23;CYTOLOGIE URINAIRE. - Quantité cristaux
+BGUCYTO.BGUCYTO24;CYTOLOGIE URINAIRE. - Cristaux n°1 observés
+BGUCYTO.BGUCYTO25;CYTOLOGIE URINAIRE. - Cristaux n°2 observés
+BGUCYTO.BGUCYTO3;CYTOLOGIE URINAIRE. - Leucocytes manuel
+BGUCYTO.BGUCYTO4;CYTOLOGIE URINAIRE. - Leucocytes rendus
+BGUCYTO.BGUCYTO5;CYTOLOGIE URINAIRE. - Hématies UF
+BGUCYTO.BGUCYTO6;CYTOLOGIE URINAIRE. - Hématies manuel
+BGUCYTO.BGUCYTO7;CYTOLOGIE URINAIRE. - Hématies calcul pour uf et manuel
+BGUCYTO.BGUCYTO8;CYTOLOGIE URINAIRE. - Cellules epithéliales
+BGUCYTO.BGUCYTO9;CYTOLOGIE URINAIRE. - Amas de GB
+BGUF.BGUF1;FICHE URINES - Type d'urine
+BGUHEMCTL.BGUHEMCTL1;CONTROLE HEMATIES MICROSCOPE - Hématies contrôlées par microscope :
+BGUHEMCTL.BGUHEMCTL2;CONTROLE HEMATIES MICROSCOPE - Hématies rendues :
+BGUSV_COM.BGUSV_COM1;COMMENTAIRE NUMERATION URINES - NUMERATION
+BGVALIDANA.BGVALIDANA1;Validation de la culture anaé - Résultat
+BGVALIDANG.BGVALIDANG1;Validation de la culture anaé - Résultat
+BGVALID.BGVALID1;Validation de la culture aé - Résultat
+BGVALID2.BGVALID21;Validation culture annulée - Validation culture annulée
+BG_VANA.BG_VANA_CT;Recherche du gène VanA - VanA Ct
+BG_VANA.BG_VANA_RES;Recherche du gène VanA - VanA Résultat
+BG_VANA.BG_VANA_TEC;Recherche du gène VanA - VanA Technique
+BG_VANB.BG_VANB_CT;Recherche du gène VanB - VanB Ct
+BG_VANB.BG_VANB_RES;Recherche du gène VanB - VanB Résultat
+BG_VANB.BG_VANB_TEC;Recherche du gène VanB - VanB Technique
+BG_VAN_COM.BG_VAN_COM;PCR vanA vanB Commentaire - Commentaire
+BGVFAGRAM.BGVFAGRAM1;Validation Gram Fiole aé - Morphologie n°1
+BGVFAGRAM.BGVFAGRAM2;Validation Gram Fiole aé - Morphologie n°2
+BGVITEK.BGVITEK1;ATB VITEK - Oui / Non
+BGVITEK2.BGVITEK21;ATB VITEK 2 - Oui / Non
+BGVITEK3.BGVITEK31;ATB VITEK 3 - Oui / Non
+BGVITEK4.BGVITEK41;ATB VITEK 4 - Oui / Non
+BGVITEK5.BGVITEK51;ATB VITEK 5 - Oui / Non
+BGVITEK6.BGVITEK61;ATB VITEK 6 - Oui / Non
+BG_XPCRIMP.BG_XPCRIMP_COM;PCR IMP GeneXpert - IMP Commentaire
+BG_XPCRIMP.BG_XPCRIMP_CT;PCR IMP GeneXpert - IMP Ct
+BG_XPCRIMP.BG_XPCRIMP_RES;PCR IMP GeneXpert - IMP Résultat
+BG_XPCRIMP.BG_XPCRIMP_TEC;PCR IMP GeneXpert - IMP Technique
+BG_XPCRKPC.BG_XPCRKPC_COM;PCR KPC GeneXpert - KPC Commentaire
+BG_XPCRKPC.BG_XPCRKPC_CT;PCR KPC GeneXpert - KPC Ct
+BG_XPCRKPC.BG_XPCRKPC_RES;PCR KPC GeneXpert - KPC Résultat
+BG_XPCRKPC.BG_XPCRKPC_TEC;PCR KPC GeneXpert - KPC Technique
+BG_XPCRNDM.BG_XPCRNDM_COM;PCR NDM GeneXpert - NDM Commentaire
+BG_XPCRNDM.BG_XPCRNDM_CT;PCR NDM GeneXpert - NDM Ct
+BG_XPCRNDM.BG_XPCRNDM_RES;PCR NDM GeneXpert - NDM Résultat
+BG_XPCRNDM.BG_XPCRNDM_TEC;PCR NDM GeneXpert - NDM Technique
+BG_XPCRO23.BG_XPCRO23_COM;PCR oxa23 GeneXpert - oxa23 Commentaire
+BG_XPCRO23.BG_XPCRO23_CT;PCR oxa23 GeneXpert - oxa23 Ct
+BG_XPCRO23.BG_XPCRO23_RES;PCR oxa23 GeneXpert - oxa23 Résultat
+BG_XPCRO23.BG_XPCRO23_TEC;PCR oxa23 GeneXpert - oxa23 Technique
+BG_XPCRO48.BG_XPCRO48_COM;PCR oxa48 GeneXpert - oxa48 Commentaire
+BG_XPCRO48.BG_XPCRO48_CT;PCR oxa48 GeneXpert - oxa48 Ct
+BG_XPCRO48.BG_XPCRO48_RES;PCR oxa48 GeneXpert - oxa48 Résultat
+BG_XPCRO48.BG_XPCRO48_TEC;PCR oxa48 GeneXpert - oxa48 Technique
+BG_XPCRVIM.BG_XPCRVIM_COM;PCR VIM GeneXpert - VIM Commentaire
+BG_XPCRVIM.BG_XPCRVIM_CT;PCR VIM GeneXpert - VIM Ct
+BG_XPCRVIM.BG_XPCRVIM_RES;PCR VIM GeneXpert - VIM Résultat
+BG_XPCRVIM.BG_XPCRVIM_TEC;PCR VIM GeneXpert - VIM Technique
+BK_ID16.BK_ID16_COM;Identification Mycobactéries 16S - Commentaire
+BK_ID16.BK_ID16_NAT;Identification Mycobactéries 16S - Prélèvement
+BK_ID16.BK_ID16_SEQ;Identification Mycobactéries 16S - Identification sequençage
+BK_ID16.BK_ID16_TEC;Identification Mycobactéries 16S - Technique
+BLSE.BLSE1;COMMENTAIRE BLSE - Résultat BLSE
+BM_TECH.BM_TECH1;Dossier techniqué - Dossier techniqué
+BS_FACTLYM.BS_FACTLYM;Facturation Lyme LCR - Facturation PCR
+CAMP_COM.CAMP_COM1;COMMENTAIRES ATB CAMP - Technique
+CAMP_COM.CAMP_COM2;COMMENTAIRES ATB CAMP - Com libre
+CARBA.CARBA1;COMMENTAIRE CARBA - Résultat CARBA
+CAZA.CAZA1;CEFTAZIDIME-AVIBACTAM - SIR
+CAZA.CAZA2;CEFTAZIDIME-AVIBACTAM - CMI
+CAZA.CAZA3;CEFTAZIDIME-AVIBACTAM - Diamètre
+CEC.CEC1;CEFACLOR - SIR
+CEC.CEC2;CEFACLOR - CMI
+CEC.CEC3;CEFACLOR - Diamètre
+CEF.CEF1;CEFINASE - SIR
+CEP_COM.CEP_COM1;COMMENTAIRES ATB CEP - Technique
+CEP_COM.CEP_COM2;COMMENTAIRES ATB CEP - Com libre
+CF.CF1;CEFALOTINE - SIR
+CF.CF2;CEFALOTINE - CMI
+CF.CF3;CEFALOTINE - Diamètre
+CFD.CFD1;CEFIDEROCOL - SIR
+CFD.CFD2;CEFIDEROCOL - CMI
+CFD.CFD3;CEFIDEROCOL - Diamètre
+CHL.CHL1;CHLORAMPHENICOL - SIR
+CHL.CHL2;CHLORAMPHENICOL - CMI
+CHL.CHL3;CHLORAMPHENICOL - Diamètre
+CIP.CIP1;CIPROFLOXACINE - SIR
+CIP.CIP2;CIPROFLOXACINE - CMI
+CIP.CIP3;CIPROFLOXACINE - Diamètre
+CLOXA1000.CLOXA10001;CLOXA 1000 - SIR
+CLOXA250.CLOXA2501;CLOXA 250 - SIR
+CLOXA500.CLOXA5001;CLOXA 500 - SIR
+CLR.CLR1;CLARITHROMYCINE - SIR
+CLR.CLR2;CLARITHROMYCINE - CMI
+CLR.CLR3;CLARITHROMYCINE - Diamètre
+CMI_COM.CMI_COM1;COMMENTAIRES CMI - Technique
+CMI_COM.CMI_COM2;COMMENTAIRES CMI - Com libre
+CMN.CMN1;CLINDAMYCINE - SIR
+CMN.CMN2;CLINDAMYCINE - CMI
+CMN.CMN3;CLINDAMYCINE - Diamètre
+COL.COL1;COLISTINE - SIR
+COL.COL2;COLISTINE - CMI
+COL.COL3;COLISTINE - Diamètre
+CORB_COM.CORB_COM1;COMMENTAIRES ATB CORB - Technique
+CORB_COM.CORB_COM2;COMMENTAIRES ATB CORB - Com libre
+COX.COX1;CEFOTAXIME  - SIR
+COX.COX2;CEFOTAXIME  - CMI
+COX.COX3;CEFOTAXIME  - Diamètre
+COXM.COXM1;CEFOTAXIME MENINGITE - SIR
+COXM.COXM2;CEFOTAXIME MENINGITE - CMI
+COXM.COXM3;CEFOTAXIME MENINGITE - Diamètre
+COX3.COX31;CEFOTAXIME AUTRES CONTEXTES - SIR
+COX3.COX32;CEFOTAXIME AUTRES CONTEXTES - CMI
+COX3.COX33;CEFOTAXIME AUTRES CONTEXTES - Diamètre
+COX4.COX41;CEFOTAXIME PNEUMONIES - SIR
+COX4.COX42;CEFOTAXIME PNEUMONIES - CMI
+COX4.COX43;CEFOTAXIME PNEUMONIES - Diamètre
+CPD.CPD1;CEFPODOXIME - SIR
+CPD.CPD2;CEFPODOXIME - CMI
+CPD.CPD3;CEFPODOXIME - Diamètre
+CPN.CPN1;CEFTAROLINE - SIR
+CPN.CPN2;CEFTAROLINE - CMI
+CPN.CPN3;CEFTAROLINE - Diamètre
+CQPM.CQPM_BERGAN;Consultation des résultats du CQPM - BERGAN date de consultation:
+CQPM.CQPM_COSTDA;Consultation des résultats du CQPM - COSTDA date de consultation:
+CQPM.CQPM_FAVELO;Consultation des résultats du CQPM - FAVELO date de consultation:
+CQPM.CQPM_GARGGI;Consultation des résultats du CQPM - GARGGI date de consultation:
+CQPM.CQPM_LEBARIS;Consultation des résultats du CQPM - LEBARIS date de consultation:
+CQPM.CQPM_LEMEDE;Consultation des résultats du CQPM - LEMEDE date de consultation:
+CQPM.CQPM_PEREFL;Consultation des résultats du CQPM - PEREFL date de consultation:
+CQPM.CQPM_PERMDI;Consultation des résultats du CQPM - PERMDI date de consultation:
+CQPM.CQPM_RECEPTION;Consultation des résultats du CQPM - Date de réception du résultat:
+CQPM.CQPM_SILVJO;Consultation des résultats du CQPM - SILVJO date de consultation:
+CQPM.CQPM_THIEHE;Consultation des résultats du CQPM - THIEHE date de consultation:
+CRO.CRO1;CEFTRIAXONE - SIR
+CRO.CRO2;CEFTRIAXONE - CMI
+CRO.CRO3;CEFTRIAXONE - Diamètre
+CROM.CROM1;CEFTRIAXONE MENINGITE - SIR
+CROM.CROM2;CEFTRIAXONE MENINGITE - CMI
+CROM.CROM3;CEFTRIAXONE MENINGITE - Diamètre
+CRO3.CRO31;CETRIAXONE AUTRES CONTEXTES - SIR
+CRO3.CRO32;CETRIAXONE AUTRES CONTEXTES - CMI
+CRO3.CRO33;CETRIAXONE AUTRES CONTEXTES - Diamètre
+CS_MY.CS_MY_CMI;Caspofongine (CS) - CMI
+CS_MY.CS_MY_FAC;Caspofongine (CS) - Facturation
+CS_MY.CS_MY_SIR;Caspofongine (CS) - SIR
+CTOB.CTOB1;CEFTOBIPROLE - SIR
+CTOB.CTOB2;CEFTOBIPROLE - CMI
+CTOB.CTOB3;CEFTOBIPROLE - Diamètre
+CTOZ.CTOZ1;CEFTOLOZANE-TAZOBACTAM - SIR
+CTOZ.CTOZ2;CEFTOLOZANE-TAZOBACTAM - CMI
+CTOZ.CTOZ3;CEFTOLOZANE-TAZOBACTAM - Diamètre
+CXM.CXM1;CEFUROXIME - SIR
+CXM.CXM2;CEFUROXIME - CMI
+CXM.CXM3;CEFUROXIME - Diamètre
+CXN.CXN1;CEFALEXINE - SIR
+CXN.CXN2;CEFALEXINE - CMI
+CXN.CXN3;CEFALEXINE - Diamètre
+CYS.CYS1;MOLECULES RESERVEES AUX CYSTITES - SIR
+CZD.CZD1;CEFTAZIDIME - SIR
+CZD.CZD2;CEFTAZIDIME - CMI
+CZD.CZD3;CEFTAZIDIME - Diamètre
+C3G.C3G1;Commentaire C3G - Résultat C3G
+DAL.DAL1;DALBAVANCINE - SIR
+DAL.DAL2;DALBAVANCINE - CMI
+DAL.DAL3;DALBAVANCINE - Diamètre
+DAP.DAP1;DAPTOMYCINE - SIR
+DAP.DAP2;DAPTOMYCINE - CMI
+DAP.DAP3;DAPTOMYCINE - Diamètre
+DEL.DEL1;DELAFLOXACINE - SIR
+DEL.DEL2;DELAFLOXACINE - CMI
+DEL.DEL3;DELAFLOXACINE - Diamètre
+DOR.DOR1;DORIPENEME - SIR
+DOR.DOR2;DORIPENEME - CMI
+DOR.DOR3;DORIPENEME - Diamètre
+DOX.DOX1;DOXYCYCLINE - SIR
+DOX.DOX2;DOXYCYCLINE - CMI
+DOX.DOX3;DOXYCYCLINE - Diamètre
+ENC_COM.ENC_COM1;COMMENTAIRE ATB ENTEROCOQUES - Technique
+ENC_COM.ENC_COM2;COMMENTAIRE ATB ENTEROCOQUES - Ampicilline
+ENC_COM.ENC_COM3;COMMENTAIRE ATB ENTEROCOQUES - Gentamicine
+ENC_COM.ENC_COM4;COMMENTAIRE ATB ENTEROCOQUES - Streptomycine
+ENC_COM.ENC_COM5;COMMENTAIRE ATB ENTEROCOQUES - Com libre
+ENC_COM.ENC_COM6;COMMENTAIRE ATB ENTEROCOQUES - Vancomycine
+ENC_COM.ENC_COM7;COMMENTAIRE ATB ENTEROCOQUES - NXND R INACTIVE
+ENC_U_COM.ENC_U_COM1;COMMENTAIRES ATB ENC_U - Technique
+ENC_U_COM.ENC_U_COM2;COMMENTAIRES ATB ENC_U - Ampicilline
+ENC_U_COM.ENC_U_COM3;COMMENTAIRES ATB ENC_U - Activité/cystite
+ENC_U_COM.ENC_U_COM4;COMMENTAIRES ATB ENC_U - Com libre
+ENC_U_COM.ENC_U_COM5;COMMENTAIRES ATB ENC_U - Vancomycine
+ERG.ERG1;COMMENTAIRE ERG - Résultat ERG
+ERY.ERY1;ERYTHROMYCINE - SIR
+ERY.ERY2;ERYTHROMYCINE - CMI
+ERY.ERY3;ERYTHROMYCINE - Diamètre
+ETP.ETP1;ERTAPENEME - SIR
+ETP.ETP2;ERTAPENEME - CMI
+ETP.ETP3;ERTAPENEME - Diamètre
+FACTUANA1.FACTUANA11;Facturation pour ident anaé - Facturation pour ident anaé
+FACTUANA2.FACTUANA21;Facturation pour ident anaé - Facturation pour ident anaé
+FACTUANA3.FACTUANA31;Facturation pour ident anaé  - Facturation pour ident anaé
+FACTUANA4.FACTUANA41;Facturation pour ident anaé - Facturation pour ident anaé
+FACTUANA5.FACTUANA51;Facturation pour ident anaé  - Facturation pour ident anaé
+FACTUANA6.FACTUANA61;Facturation pour ident anaé - Facturation pour ident anaé
+FACTUCMI.FACTUCMI1;FACTU CMI  - FACTU CMI
+FACTUCMI2.FACTUCMI21;FACTU CMI 2 - FACTU CMI 2
+FACTUCMI2.FACTUCMI22;FACTU CMI 2 - FACTU CMI 2
+FACTUMV1.FACTUMV11;FACTU MV1 - FACTU CMI
+FACTUMV2.FACTUMV21;FACTU MV2 - FACTU MV2
+FACTUMV3.FACTUMV31;FACTU MV3 - FACTU MV3
+FACTUMV4.FACTUMV41;FACTU MV4 - FACTU MV4
+FAD.FAD1;ACIDE FUSIDIQUE - SIR
+FAD.FAD2;ACIDE FUSIDIQUE - CMI
+FAD.FAD3;ACIDE FUSIDIQUE - Diamètre
+FAM.FAM1;CEFAMANDOLE - SIR
+FAM.FAM2;CEFAMANDOLE - CMI
+FAM.FAM3;CEFAMANDOLE - Diamètre
+FC_MY.FC_MY_CMI;Flucytosine (FC) - CMI
+FC_MY.FC_MY_FAC;Flucytosine (FC) - Facturation
+FC_MY.FC_MY_SIR;Flucytosine (FC) - SIR
+FEP.FEP1;CEFEPIME - SIR
+FEP.FEP2;CEFEPIME - CMI
+FEP.FEP3;CEFEPIME - Diamètre
+FIX.FIX1;CEFIXIME - SIR
+FIX.FIX2;CEFIXIME - CMI
+FIX.FIX3;CEFIXIME - Diamètre
+FL_MY.FL_MY_CMI;Fluconazole (FL) - CMI
+FL_MY.FL_MY_FAC;Fluconazole (FL) - Facturation
+FL_MY.FL_MY_SIR;Fluconazole (FL) - SIR
+FOST.FOST1;FOSFOMYCINE TROMETAMOL - SIR
+FOST.FOST2;FOSFOMYCINE TROMETAMOL - CMI
+FOST.FOST3;FOSFOMYCINE TROMETAMOL - Diamètre
+FOS200.FOS2001;FOSFOMYCINE IV - SIR
+FOS200.FOS2002;FOSFOMYCINE IV - CMI
+FOS200.FOS2003;FOSFOMYCINE IV - Diamètre
+FOXD.FOXD1;OXACILLINE - SIR
+FOXD.FOXD2;OXACILLINE - CMI
+FOXD.FOXD3;OXACILLINE - Diamètre
+FOX.FOX1;CEFOXITINE - SIR
+FOX.FOX2;CEFOXITINE - CMI
+FOX.FOX3;CEFOXITINE - Diamètre
+GEN500.GEN5001;GENTAMICINE FORTE. - SIR
+GEN500.GEN5002;GENTAMICINE FORTE. - CMI
+GEN500.GEN5003;GENTAMICINE FORTE. - Diamètre
+GISA.GISA1;DEPISTAGE GLYCOPEPTIDES - SIR
+GME30.GME301;GENTAMICINE FORTE - SIR
+GME30.GME302;GENTAMICINE FORTE - CMI
+GME30.GME303;GENTAMICINE FORTE - Diamètre
+GMN10.GMN101;GENTAMICINE - SIR
+GMN10.GMN102;GENTAMICINE - CMI
+GMN10.GMN103;GENTAMICINE - Diamètre
+HAE_COM.HAE_COM1;COMMENTAIRES ATB HAE - Technique
+HAE_COM.HAE_COM2;COMMENTAIRES ATB HAE - Com libre
+HAE_COM.HAE_COM3;COMMENTAIRES ATB HAE - NXND R INACTIVE
+HELI_COM.HELI_COM1;COMMENTAIRES ATB HELI - Technique
+HELI_COM.HELI_COM2;COMMENTAIRES ATB HELI - Com libre
+HLS.HLS1;STREPTOMYCINE 300 - SIR
+HLS.HLS2;STREPTOMYCINE 300 - CMI
+HLS.HLS3;STREPTOMYCINE 300 - Diamètre
+IPM.IPM1;IMIPENEME - SIR
+IPM.IPM2;IMIPENEME - CMI
+IPM.IPM3;IMIPENEME - Diamètre
+IRL.IRL1;IMIPENEME-RELEBACTAM - SIR
+IRL.IRL2;IMIPENEME-RELEBACTAM - CMI
+IRL.IRL3;IMIPENEME-RELEBACTAM - Diamètre
+ISA_MY.ISA_MY_CMI;Isavuconazole (IVU) - CMI
+ISA_MY.ISA_MY_FAC;Isavuconazole (IVU) - Facturation
+ISA_MY.ISA_MY_SIR;Isavuconazole (IVU) - SIR
+IT_MY.IT_MY_CMI;Itraconazole (IT) - CMI
+IT_MY.IT_MY_FAC;Itraconazole (IT) - Facturation
+IT_MY.IT_MY_SIR;Itraconazole (IT) - SIR
+JM.JM1;JOSAMYCINE - SIR
+JM.JM2;JOSAMYCINE - CMI
+KIN_COM.KIN_COM1;COMMENTAIRES ATB KIN - Technique
+KIN_COM.KIN_COM2;COMMENTAIRES ATB KIN - Com libre
+KMN.KMN1;KANAMYCINE - SIR
+KMN.KMN2;KANAMYCINE - CMI
+KMN.KMN3;KANAMYCINE - Diamétre
+LCN.LCN1;LINCOMYCINE - SIR
+LCN.LCN2;LINCOMYCINE - CMI
+LCN.LCN3;LINCOMYCINE - Diamètre
+LIN.LIN1;LINEZOLIDE - SIR
+LIN.LIN2;LINEZOLIDE - CMI
+LIN.LIN3;LINEZOLIDE - Diamètre
+LIS_COM.LIS_COM1;COMMENTAIRES ATB LIS - Technique
+LIS_COM.LIS_COM2;COMMENTAIRES ATB LIS - Com libre
+LVX.LVX1;LEVOFLOXACINE - SIR
+LVX.LVX2;LEVOFLOXACINE - CMI
+LVX.LVX3;LEVOFLOXACINE - Diamètre
+M_COM.M_COM_ACR;NGS Commentaire - Ajout du CR O/N
+M_COM.M_COM_CR;NGS Commentaire - Compte rendu
+M_COM.M_COM_L;NGS Commentaire - Commentaire
+M_CRYP.M_CRYP_INF;NGS Cryptosporidium - Info complémentaire:
+M_CRYP.M_CRYP_NAT;NGS Cryptosporidium - Nature de prélèvement :
+M_CRYP.M_CRYP_RES;NGS Cryptosporidium - Résultat
+M_CRYP.M_CRYP_TEC;NGS Cryptosporidium - Technique
+MEC.MEC1;MECILLINAM - SIR
+MEC.MEC2;MECILLINAM - CMI
+MEC.MEC3;MECILLINAM - Diamètre
+MEM.MEM1;MEROPENEME - SIR
+MEM.MEM2;MEROPENEME - CMI
+MEM.MEM3;MEROPENEME - Diamètre
+MEMM.MEMM1;MEROPENEME  MENINGITE - SIR
+MEMM.MEMM2;MEROPENEME  MENINGITE - CMI
+MEMM.MEMM3;MEROPENEME  MENINGITE - Diamètre
+MEN_COM.MEN_COM1;COMMENTAIRES ATB MEN - Technique
+MEN_COM.MEN_COM2;COMMENTAIRES ATB MEN - Com libre
+M_ID_CRYP.M_ID_CRYP_GEN;Identification Crypto - Génotype
+M_ID_CRYP.M_ID_CRYP_NOM;Identification Crypto - Nom
+MNO.MNO1;MINOCYCLINE - SIR
+MNO.MNO2;MINOCYCLINE - CMI
+MNO.MNO3;MINOCYCLINE - Diamètre
+MORA_COM.MORA_COM1;COMMENTAIRES ATB MORA - Technique
+MORA_COM.MORA_COM2;COMMENTAIRES ATB MORA - Com libre
+MORA_COM.MORA_COM3;COMMENTAIRES ATB MORA - NXND R INACTIVE
+MOX.MOX1;MOXALACTAM - SIR
+MOX.MOX2;MOXALACTAM - CMI
+MOX.MOX3;MOXALACTAM - Diamètre
+MTR.MTR1;METRONIDAZOLE - SIR
+MTR.MTR2;METRONIDAZOLE - CMI
+MTR.MTR3;METRONIDAZOLE - Diamètre
+MVB.MVB1;MEROPENEME-VABORBACTAM - SIR
+MVB.MVB2;MEROPENEME-VABORBACTAM - CMI
+MVB.MVB3;MEROPENEME-VABORBACTAM - Diamètre
+MXF.MXF1;MOXIFLOXACINE - SIR
+MXF.MXF2;MOXIFLOXACINE - CMI
+MXF.MXF3;MOXIFLOXACINE - Diamètre
+MYC_COM.MYC_COM1;Commentaires ATB MYC - Technique
+MYC_COM.MYC_COM2;Commentaires ATB MYC - Com erythro s
+MYC_MY.MYC_MY_CMI;Micafongine (MYC) - CMI
+MYC_MY.MYC_MY_FAC;Micafongine (MYC) - Facturation
+MYC_MY.MYC_MY_SIR;Micafongine (MYC) - SIR
+NAL.NAL1;ACIDE NALIDIXIQUE - SIR
+NAL.NAL2;ACIDE NALIDIXIQUE - CMI
+NAL.NAL3;ACIDE NALIDIXIQUE - Diamètre
+NFE.NFE1;NITROFURANES - SIR
+NFE.NFE2;NITROFURANES - CMI
+NFE.NFE3;NITROFURANES - Diamètre
+NGO_COM.NGO_COM1;COMMENTAIRES ATB NGO - Technique
+NGO_COM.NGO_COM2;COMMENTAIRES ATB NGO - Com fixe
+NGO_COM.NGO_COM3;COMMENTAIRES ATB NGO - Com libre
+NTM.NTM1;NETILMICINE - SIR
+NTM.NTM2;NETILMICINE - CMI
+NTM.NTM3;NETILMICINE - Diamètre
+NXND.NXND1;NORFLO DEPIST RCC FQUINOLONES - SIR
+NXND.NXND2;NORFLO DEPIST RCC FQUINOLONES - Diamètre
+NXN.NXN1;NORFLOXACINE - SIR
+NXN.NXN2;NORFLOXACINE - CMI
+NXN.NXN3;NORFLOXACINE - Diamètre
+OFX.OFX1;OFLOXACINE - SIR
+OFX.OFX2;OFLOXACINE - CMI
+OFX.OFX3;OFLOXACINE - Diamètre
+OXC1.OXC11;OXACILLINE - SIR
+OXC1.OXC12;OXACILLINE - CMI
+OXC1.OXC13;OXACILLINE - Diamètre
+PAS_COM.PAS_COM1;COMMENTAIRES ATB PAS - Technique
+PAS_COM.PAS_COM2;COMMENTAIRES ATB PAS - Com libre
+PAS_COM.PAS_COM3;COMMENTAIRES ATB PAS - NXND R INACTIVE
+PCRTRICO.PCRTRICO_DEC;Ajout d'un niveau supplementaire pour obtenir un CR - Déclenchemnt de l'analyse PCRTV
+PERI_COM.PERI_COM1;COMMENTAIRES ATB PERI - Technique
+PERI_COM.PERI_COM2;COMMENTAIRES ATB PERI - Com fixe
+PERI_COM.PERI_COM3;COMMENTAIRES ATB PERI - Com optionnel
+PERI_COM.PERI_COM4;COMMENTAIRES ATB PERI - Com libre
+PERI_COM.PERI_COM5;COMMENTAIRES ATB PERI - C3G et Gr III
+PIL30.PIL301;PIPERACILLINE - SIR
+PIL30.PIL302;PIPERACILLINE - CMI
+PIL30.PIL303;PIPERACILLINE - Diamètre
+PM_ACANT.PM_ACANT_NAT;Recherche d'Acantamibes - Prélèvement:
+PM_ACANT.PM_ACANT_POS;Recherche d'Acantamibes - Résultat d'Acanthamoeba positif
+PM_ACANT.PM_ACANT_RE;Recherche d'Acantamibes - Recherche:
+PM_ACANT.PM_ACANT_STATUT;Recherche d'Acantamibes - Déclenchement de l'analyse statut
+PM_ACANT.PM_ACANT_TEC;Recherche d'Acantamibes - Technique
+PM_ATF_COM.PM_ATF_COM_CMI;Commentaire antifongiramme - Commentaire (µg/mL)
+PM_ATF_COM.PM_ATF_COM;Commentaire antifongiramme - Commentaire antifongigramme
+PM_ATF_COM.PM_ATF_COM_DEC;Commentaire antifongiramme - Facturation déclenchement
+PM_BAER.PM_BAER;RECHERCHE DE LARVES D'ANGUILLULES - Recherche:
+PM_BAER.PM_BAER_STATUT;RECHERCHE DE LARVES D'ANGUILLULES - Déclenchemnt de l'analyse statut
+PM_BAER.PM_BAER_TEC;RECHERCHE DE LARVES D'ANGUILLULES - Technique
+PM_BILH.PM_BILH_NAT;Recherche de bilharzies - PRELEVEMENT:
+PM_BILH.PM_BILH_RE;Recherche de bilharzies - RECHERCHE:
+PM_BILH.PM_BILH_STATUT;Recherche de bilharzies - Déclenchemnt de l'analyse statut
+PM_BILH.PM_BILH_TEC;Recherche de bilharzies - Technique
+PM_BM.PM_BM;Analyse de BM est-elle seule - Analyse est elle seule?
+PM_CMI_FAC.PM_CMI_FAC;Facturation (2 CMI) - Facturation CMI
+PM_CMI_FA1.PM_CMI_FA1;Facturation (4 CMI) - Facturation CMI
+PM_CMI_FA2.PM_CMI_FA2;Facturation (6 CMI) - Facturation CMI
+PM_CMI_FA3.PM_CMI_FA3;Facturation (8 CMI) - Facturation CMI
+PM_CMI_FA4.PM_CMI_FA4;Facturation (10 CMI) - Facturation CMI
+PM_COM.PM_COM;Commentaire parasitologie des selles - Attention:
+PM_COM.PM_COM_DFEV;Commentaire parasitologie des selles - Association D.fragilis E.vermicularis
+PM_COM.PM_COM1;Commentaire parasitologie des selles - Commentaire selles
+PM_COM.PM_COM2;Commentaire parasitologie des selles - Commentaire selles
+PM_COM.PM_COM3;Commentaire parasitologie des selles - Commentaire selles TT
+PM_COM.PM_COM4;Commentaire parasitologie des selles - Commentaire selles TT
+PM_COM.PM_COM5;Commentaire parasitologie des selles - Déclenchement de l'analyse statut pour les selles
+PM_CON_BEL.PM_CON_BEL_RES;Concentration de bailenger - CONCENTRATION DE BAILENGER:
+PM_CONF.PM_CONF;Conformité - CONFORMITE:
+PM_CONF_SE.PM_CONF_SE_BAER;Conformité selles - Baerman:
+PM_CONF_SE.PM_CONF_SE;Conformité selles - CONFORMITE:
+PM_CONF_SE.PM_CONF_SE_HELM;Conformité selles - Coproculuture d'helmynthe:
+PM_CONF_SE.PM_CONF_SE_MI;Conformité selles - Présence de l'analyse micro:
+PM_CONF_SE.PM_CONF_SE_MIF;Conformité selles - MIF
+PM_CONF_SE.PM_CONF_SE_NF;Conformité selles - Selles non fixées
+PM_CONF_SE.PM_CONF_SE_RC;Conformité selles - Renseignements cliniques
+PM_CONF_SE.PM_CONF_SE_TT;Conformité selles - Notion de traitement antiparasitaire
+PM_CON_MIF.PM_CON_MIF_RES;MIF concentration - MIF CONCENTRATION :
+PM_CON.PM_CON_NB;Concentrations supplémentaire - Nombre de concentration
+PM_CON.PM_CON_RES;Concentrations supplémentaire - AUTRES TECHNIQUES DE CONCENTRATION:
+PM_CRYPA.PM_CRYPA;Motif A (GP60) - A:
+PM_CRYPCON.PM_CRYPCON_CR;Intérpretation génotypage CNR Cryptosporidies - Nom et génotypage:
+PM_CRYPCON.PM_CRYPCON_LIB;Intérpretation génotypage CNR Cryptosporidies - Commentaire libre:
+PM_CRYPG.PM_CRYPG;Motif G (GP60) - G:
+PM_CRYP.PM_CRYP_COM_CNR;Recherche de cryptosporidies - CommentaireCNR :
+PM_CRYP.PM_CRYP_COM;Recherche de cryptosporidies - Commentaire:
+PM_CRYP.PM_CRYP_DEC;Recherche de cryptosporidies - Déclenchement microsporidies
+PM_CRYP.PM_CRYP_FAC;Recherche de cryptosporidies - Facturation des Crypto
+PM_CRYP.PM_CRYP_RES;Recherche de cryptosporidies - RECHERCHE DE CRYPTOSPORIDIES ET AUTRES COCCIDIES :
+PM_CRYP.PM_CRYP_TEC;Recherche de cryptosporidies - TECHNIQUE
+PM_CRYPPOS.PM_CRYPPOS_FAM;Identification (spéciation) - Famille:
+PM_CRYPPOS.PM_CRYPPOS;Identification (spéciation) - Nom:
+PM_CRYPPOS.PM_CRYPPOS_SUB;Identification (spéciation) - Déclenchement :
+PM_CRYPR.PM_CRYPR;Motif R (GP60) - R:
+PM_CRYPSUB.PM_CRYPSUB;subfamille - Subfamille:
+PM_CRYPT.PM_CRYPT;Motif T (GP60) - T:
+PM_ECTO.PM_ECTO_NAT;Recherche d'Ectoparasites - PRELEVEMENT:
+PM_ECTO.PM_ECTO_RES;Recherche d'Ectoparasites - RECHERCHE:
+PM_ECTO.PM_ECTO_STATUT;Recherche d'Ectoparasites - Déclenchement de l'analyse statut
+PM_ECTO.PM_ECTO_TEC;Recherche d'Ectoparasites - Technique
+PM_ECTO.PM_ECTO_TYP;Recherche d'Ectoparasites - TYPE D'ECTOPARASITE RECHERCHE:
+PM_ED_EC.PM_ED_EC_RES_TXT;ENCRE DE CHINE: - EXAMEN DIRECT:
+PM_ED_MACR.PM_ED_MACR-RES;Examen macroscopique - EXAMEN MACROSCOPIQUE:
+PM_ED_MICR.PM_ED_MICR_L;Examen Microscopique - Eléments non parasitaires:
+PM_ED_MICR.PM_ED_MICR_RES;Examen Microscopique - EXAMEN MICROSCOPIQUE:
+PM_ED_MY.PM_ED_MY_PNE;Examen direct mycologique: - Recherche de pneumocystis:
+PM_ED_MY.PM_ED_MY_RES;Examen direct mycologique: - EXAMEN DIRECT:
+PM_ED_MY.PM_ED_MY_TEC;Examen direct mycologique: - Technique
+PM_ED_MYP.PM_ED_MYP_RES;Résultats ED MY POS - Résultats
+PM_ED_PCRP.PM_ED_PCRP;L'analyse ED est elle  concernée par une recherche de pneumocystis? - Analyse est elle seule?
+PM_ED.PM_ED_CRE;Création d'un ED dans certaines conditions. - Crée un ED en automatique:
+PM_ED.PM_ED_CX;Création d'un ED dans certaines conditions. - Voulez-vous un ED:
+PM_FAC_ID.PM_FAC_ID;Facturation supp id autres que Cand albicans - Facturation id autres que C.albicans:
+PM_FACTCRY.PM_FACTCRY;Facturation des crypto - Facturation
+PM_FIL.PM_FIL;Recherche de microfilaire - RECHERCHE:
+PM_FIL.PM_FIL_STATUT;Recherche de microfilaire - Déclenchement de l'analyse statut
+PM_FIL.PM_FIL_TEC;Recherche de microfilaire - Technique
+PM_FIL_POS.PM_FIL_POS_QTE;Réponse filaire positive - Quantification des microfilaires
+PM_FIL_POS.PM_FIL_POS;Réponse filaire positive - Nom du microfilaire
+PM_FIL_POS.PM_FIL_POS_RES;Réponse filaire positive - Résultat
+PM_FIOLEBD.PM_FIOLEBD1;Fiole bd pour culture mycologique - Technique
+PM_FIOLEBD.PM_FIOLEBD2;Fiole bd pour culture mycologique - Code barre scan
+PM_FIOLEBD.PM_FIOLEBD3;Fiole bd pour culture mycologique - Détection de culture sur fiole:
+PM_FIOLEBD.PM_FIOLEBD4;Fiole bd pour culture mycologique - Détection de culture sur fiole:
+PM_FIOLEBD.PM_FIOLEBD5;Fiole bd pour culture mycologique - Code barre manuel
+PM_FIOLEBD.PM_FIOLEBD6;Fiole bd pour culture mycologique - Code barre 
+PM_FIOLEBD.PM_FIOLEBD7;Fiole bd pour culture mycologique - Resultat pour listing BG_HEMOC_LEV
+PM_GIAREXP.PM_GIAREXP_DEC;Prélèvement pour expertise Giardiose - Voulez vous déclencher la PCR:
+PM_GIAREXP.PM_GIAREXP_NAT;Prélèvement pour expertise Giardiose - Nature du prélèvement:
+PM_GIAREXP.PM_GIAREXP_RES;Prélèvement pour expertise Giardiose - Recherche microscopique:
+PM_GIAR.PM_GIAR_NAT;Recherche de Giardia - PRELEVEMENT:
+PM_GIAR.PM_GIAR_RE;Recherche de Giardia - RECHERCHE:
+PM_GIAR.PM_GIAR_STATUT;Recherche de Giardia - Déclenchement de l'analyse statut
+PM_GIAR.PM_GIAR_TEC;Recherche de Giardia - Technique
+PM_GIARPOS.PM_GIARPOS_CON;PCR Giardia positive - Conclusion:
+PM_GIARPOS.PM_GIARPOS_RES;PCR Giardia positive - Génotype:
+PM_HCPOS.PM_HCPOS;HEMOCULTURE POSITIVE - Edition d'une fiche de travail
+PM_HELM.PM_HELM;CULTURE DES HELMINTHES - RECHERCHE:
+PM_HELM.PM_HELM_STATUT;CULTURE DES HELMINTHES - Déclenchemnt de l'analyse statut
+PM_HELM.PM_HELM_TEC;CULTURE DES HELMINTHES - Technique
+PM_HYDA.PM_HYDA_RES;Recherche de crochet hydatiques - Recherche de crochets ou de scolex hydatiques:
+PM_HYDA.PM_HYDA_STATUT;Recherche de crochet hydatiques - Déclenchement de l'analyse staut
+PM_IDENT.PM_IDENT_FORME;Identification de parasites - Formes
+PM_IDENT.PM_IDENT_NOM_C;Identification de parasites - Nom (commentaire libre)
+PM_IDENT.PM_IDENT_NOM;Identification de parasites - Nom
+PM_IDENT.PM_IDENT_QTE;Identification de parasites - Quantité
+PM_IDENT.PM_IDENT_RESS;Identification de parasites - RESULTAT:
+PM_INFATCC.PM_INFATCC_S;Souche ATCC - Souche ATCC
+PM_LEI_CUL.PM_LEI_CUL_POS;Culture de Leishmanies - Résultat culture positive
+PM_LEI_CUL.PM_LEI_CUL_RES;Culture de Leishmanies - CULTURE:
+PM_LEI_CUL.PM_LEI_CUL_STATUT;Culture de Leishmanies - Déclenchement de l'analyse statut
+PM_LEI_CUL.PM_LEI_CUL_TEC;Culture de Leishmanies - Technique
+PM_LEI_ED.PM_LEI_ED_NAT;Examen directe pour la recherche de Leishmanies - PRELEVEMENT:
+PM_LEI_ED.PM_LEI_ED_POS;Examen directe pour la recherche de Leishmanies - Résultat culture positive
+PM_LEI_ED.PM_LEI_ED_RES;Examen directe pour la recherche de Leishmanies - RECHERCHE:
+PM_LEI_ED.PM_LEI_ED_TEC;Examen directe pour la recherche de Leishmanies - Technique
+PM_LISTLEV.PM_LISTLEV1;LISTING LEV BACTERIO - EDITION FEUILLE TRAVAIL
+PM_LISTLEV.PM_LISTLEV2;LISTING LEV BACTERIO - Code barre
+PM_MGG.PM_MGG_COL;Coloration MGG - Coloré par:
+PM_MGG.PM_MGG_LEC;Coloration MGG - Lecture par:
+PM_MGG.PM_MGG_RES;Coloration MGG - Coloration MGG
+PM_MGG.PM_MGG_SIL;Coloration MGG - SIL par:
+PM_MGGR.PM_MGGR_COL;Coloration RAL: - Coloré par:
+PM_MGGR.PM_MGGR_LEC;Coloration RAL: - Lecture par:
+PM_MGGR.PM_MGGR_RES;Coloration RAL: - Coloration RAL :
+PM_MGGR.PM_MGGR_SIL;Coloration RAL: - SIL par:
+PM_MGGR.PM_MGGR_TEC;Coloration RAL: - Technique
+PM_MICRO.PM_MICRO;Recherche de microsporidies - RECHERCHE DE MICROSPORIDIES:
+PM_MICRO.PM_MICRO_STATUT;Recherche de microsporidies - Déclenchemnt de l'analyse statut
+PM_MICRO.PM_MICRO_TEC;Recherche de microsporidies - TECHNIQUE:
+PM_MICROVI.PM_MICROVI_ADE;Cryptosporidies sur selles de virologie - Résultat Adénovirus:
+PM_MICROVI.PM_MICROVI;Cryptosporidies sur selles de virologie - RECHERCHE DE CRYPTOSPORIDIES:
+PM_MICROVI.PM_MICROVI_ROT;Cryptosporidies sur selles de virologie - Résultat Rotavirus:
+PM_MICROVI.PM_MICROVI_TEC;Cryptosporidies sur selles de virologie - Technique:
+PM_MICRPCR.PM_MICRPCR_COM;Recherce de microsporidies par PCR - Commentaire:
+PM_MICRPCR.PM_MICRPCR_IC;Recherce de microsporidies par PCR - Information complémentaire:
+PM_MICRPCR.PM_MICRPCR_NAT;Recherce de microsporidies par PCR - Nature:
+PM_MICRPCR.PM_MICRPCR;Recherce de microsporidies par PCR - Recherce de microsporidies par PCR:
+PM_MICRPCR.PM_MICRPCR_ST;Recherce de microsporidies par PCR - Présence de l'analyse statut:
+PM_MICRPCR.PM_MICRPCR_TEC;Recherce de microsporidies par PCR - Technique:
+PM_MYCID.PM_MYCID_ATF;Identification mycologique - Antifongigramme?
+PM_MYCID.PM_MYCID_COM;Identification mycologique - Commentaire:
+PM_MYCID.PM_MYCID_DELAI;Identification mycologique - DELAI
+PM_MYCID.PM_MYCID_FAC;Identification mycologique - Facturation ID autre que C.albicans
+PM_MYCID.PM_MYCID_RES;Identification mycologique - Identification
+PM_MYCID.PM_MYCID_SC;Identification mycologique - Souche congelée le:
+PM_MYCULT.PM_MYCULT_DEC;Culture mycologique - Déclenchement de la pcr pneumocystis pour Oncoped
+PM_MYCULT.PM_MYCULT_RES;Culture mycologique - CULTURE MYCOLOGIQUE:
+PM_MYCULT.PM_MYCULT_RESVALD;Culture mycologique - CULTURE MYCOLOGIQUE:
+PM_MYCULT.PM_MYCULT_TEC;Culture mycologique - Technique
+PM_OXY.PM_OXY_RES;Recherche d'Oxyures - Recherche d'helminthes:
+PM_OXY.PM_OXY_STATUT;Recherche d'Oxyures - Déclenchement de l'analyse statut
+PM_PALCHOI.PM_PALCHOI_FRO;Paludisme choix - Voulez vous ajouter une recherhce par frottis:
+PM_PALCHOI.PM_PALCHOI_PCR;Paludisme choix - Voulez vous ajouter une PCR Palu:
+PM_PALCHOI.PM_PALCHOI_PMO;Paludisme choix - Choix automatique analyse:
+PM_PAL_INT.PM_PAL_INT_ESP;Réponse Palu positif pendant la garde - Espece
+PM_PAL_INT.PM_PAL_INT_FORM;Réponse Palu positif pendant la garde - Forme
+PM_PAL_INT.PM_PAL_INT_PARA;Réponse Palu positif pendant la garde - PARASITEMIE:
+PM_PAL_INT.PM_PAL_INT_RES;Réponse Palu positif pendant la garde - Résultat
+PM_PAL_POS.PM_PAL_POS_COM;Réponse paludisme postif - Commentaire:
+PM_PAL_POS.PM_PAL_POS_ESP;Réponse paludisme postif - Espece
+PM_PAL_POS.PM_PAL_POS_FORM;Réponse paludisme postif - Forme
+PM_PAL_POS.PM_PAL_POS_PARA;Réponse paludisme postif - PARASITEMIE:
+PM_PAL_POS.PM_PAL_POS_RES;Réponse paludisme postif - Résultat
+PM_PAL_POS.PM_PAL_POS_STAT;Réponse paludisme postif - Nom du parasite pour les statistiques
+PM_PALT_PN.PM_PALT_PN_COM;Résultat Palutop Positif négatif - Commentaire
+PM_PALT_PN.PM_PALT_PN;Résultat Palutop Positif négatif - RECHERCHE:
+PM_PALT_PN.PM_PALT_PN_TEC;Résultat Palutop Positif négatif - Technique
+PM_PALU_FR.PM_PALU_FR_COL;Recherche d'hématozoaire par frottis mince - Coloré par : 
+PM_PALU_FR.PM_PALU_FR_COM;Recherche d'hématozoaire par frottis mince - Commentaire:
+PM_PALU_FR.PM_PALU_FR_INT;Recherche d'hématozoaire par frottis mince - Déclenchement analyses pour interne pendant la grade
+PM_PALU_FR.PM_PALU_FR_LEC;Recherche d'hématozoaire par frottis mince - Lecture par : 
+PM_PALU_FR.PM_PALU_FR;Recherche d'hématozoaire par frottis mince - FROTTIS MINCE:
+PM_PALU_FR.PM_PALU_FR_SIL;Recherche d'hématozoaire par frottis mince - SIL par : 
+PM_PALU_FR.PM_PALU_FR_TEC;Recherche d'hématozoaire par frottis mince - Technique
+PM_PALU_FR.PM_PALU_FR_TEL;Recherche d'hématozoaire par frottis mince - Télèphoner par : 
+PM_PALU_GE.PM_PALU_GE_COL;Recheche hématozoaire par goutte épaisse - Coloré par:
+PM_PALU_GE.PM_PALU_GE_COM;Recheche hématozoaire par goutte épaisse - Commentaire:
+PM_PALU_GE.PM_PALU_GE_LEC;Recheche hématozoaire par goutte épaisse - Lecture par:
+PM_PALU_GE.PM_PALU_GE;Recheche hématozoaire par goutte épaisse - GOUTTE EPAISSE:
+PM_PALU_GE.PM_PALU_GE_SIL;Recheche hématozoaire par goutte épaisse - SIL par:
+PM_PALU_GE.PM_PALU_GE_TEC;Recheche hématozoaire par goutte épaisse - Technique
+PM_PALUTOP.PM_PALUTOP_PFHRP2;Détection immuniochromatographique de plasmoduim - Détection de P.falciparum (PfHRP2 ) :
+PM_PALUTOP.PM_PALUTOP_PLDH;Détection immuniochromatographique de plasmoduim - Détection de PLDH commune au 5 éspeces:
+PM_PALUTOP.PM_PALUTOP_PVLDH;Détection immuniochromatographique de plasmoduim - Détection de P.vivax ( PvLDH) :
+PM_PARA_PH.PM_PARA_PH_FORME;Résultat positif culture d'helminthes - Formes
+PM_PARA_PH.PM_PARA_PH_NOM;Résultat positif culture d'helminthes - Nom
+PM_PARA_PH.PM_PARA_PH_QTE;Résultat positif culture d'helminthes - Quantité
+PM_PARA_PH.PM_PARA_PH_RES;Résultat positif culture d'helminthes - Résultat
+PM_PARA_PH.PM_PARA_PH_STAT;Résultat positif culture d'helminthes - Nom du parasite pour Stat
+PM_PARA_P.PM_PARA_P_FORME;Résultat parasitologie positive - Formes
+PM_PARA_P.PM_PARA_P_NOM;Résultat parasitologie positive - Nom
+PM_PARA_P.PM_PARA_P_QTE;Résultat parasitologie positive - Quantité
+PM_PARA_P.PM_PARA_P_RES;Résultat parasitologie positive - Résultat
+PM_PARA_P.PM_PARA_P_STAT;Résultat parasitologie positive - Nom du parasite pour Stat
+PM_PARA_P1.PM_PARA_P1_FORME;Résultat parasitologie selle positive N°1 - Formes
+PM_PARA_P1.PM_PARA_P1_NOM;Résultat parasitologie selle positive N°1 - Nom
+PM_PARA_P1.PM_PARA_P1_QTE;Résultat parasitologie selle positive N°1 - Quantité
+PM_PARA_P1.PM_PARA_P1_RES;Résultat parasitologie selle positive N°1 - Résultat
+PM_PARA_P1.PM_PARA_P1_STAT;Résultat parasitologie selle positive N°1 - Nom du parasite pour Stat
+PM_PARA_P2.PM_PARA_P2_FORME;Résultat parasitologie selle positive N°2 - Formes
+PM_PARA_P2.PM_PARA_P2_NOM;Résultat parasitologie selle positive N°2 - Nom
+PM_PARA_P2.PM_PARA_P2_QTE;Résultat parasitologie selle positive N°2 - Quantité
+PM_PARA_P2.PM_PARA_P2_RES;Résultat parasitologie selle positive N°2 - Résultat
+PM_PARA_P2.PM_PARA_P2_STAT;Résultat parasitologie selle positive N°2 - Nom du parasite pour Stat
+PM_PARA_P3.PM_PARA_P3_FORME;Résultat parasitologie selle positive N°3 - Formes
+PM_PARA_P3.PM_PARA_P3_NOM;Résultat parasitologie selle positive N°3 - Nom
+PM_PARA_P3.PM_PARA_P3_QTE;Résultat parasitologie selle positive N°3 - Quantité
+PM_PARA_P3.PM_PARA_P3_RES;Résultat parasitologie selle positive N°3 - Résultat
+PM_PARA_P3.PM_PARA_P3_STAT;Résultat parasitologie selle positive N°3 - Nom du parasite pour Stat
+PM_PARA_P4.PM_PARA_P4_FORME;Résultat parasitologie selle positive N°4 - Formes
+PM_PARA_P4.PM_PARA_P4_NOM;Résultat parasitologie selle positive N°4 - Nom
+PM_PARA_P4.PM_PARA_P4_QTE;Résultat parasitologie selle positive N°4 - Quantité
+PM_PARA_P4.PM_PARA_P4_RES;Résultat parasitologie selle positive N°4 - Résultat
+PM_PARA_P4.PM_PARA_P4_STAT;Résultat parasitologie selle positive N°4 - Nom du parasite pour Stat
+PM_PARA_P5.PM_PARA_P5_FORME;Résultat parasitologie selle positive N°5 - Formes
+PM_PARA_P5.PM_PARA_P5_NOM;Résultat parasitologie selle positive N°5 - Nom
+PM_PARA_P5.PM_PARA_P5_QTE;Résultat parasitologie selle positive N°5 - Quantité
+PM_PARA_P5.PM_PARA_P5_RES;Résultat parasitologie selle positive N°5 - Résultat
+PM_PARA_P5.PM_PARA_P5_STAT;Résultat parasitologie selle positive N°5 - Nom du parasite pour Stat
+PM_PARA_P6.PM_PARA_P6_FORME;Résultat parasitologie selle positive N°6 - Formes
+PM_PARA_P6.PM_PARA_P6_NOM;Résultat parasitologie selle positive N°6 - Nom
+PM_PARA_P6.PM_PARA_P6_QTE;Résultat parasitologie selle positive N°6 - Quantité
+PM_PARA_P6.PM_PARA_P6_RES;Résultat parasitologie selle positive N°6 - Résultat
+PM_PARA_P6.PM_PARA_P6_STAT;Résultat parasitologie selle positive N°6 - Nom du parasite pour Stat
+PM_PAR_ASP.PM_PAR_ASP;Aspect - ASPECT:
+PM_PCRACAN.PM_PCRACAN_CM;RECHERCHE D'ACANTHAMOEBA PAR PCR - Commentaire:
+PM_PCRACAN.PM_PCRACAN_IC;RECHERCHE D'ACANTHAMOEBA PAR PCR - Info complémentaire :
+PM_PCRACAN.PM_PCRACAN_NAT;RECHERCHE D'ACANTHAMOEBA PAR PCR - Nature du  prélèvement:
+PM_PCRACAN.PM_PCRACAN_RES;RECHERCHE D'ACANTHAMOEBA PAR PCR - Recherche de d'Acanthamoeba par PCR:
+PM_PCRACAN.PM_PCRACAN_STATUT;RECHERCHE D'ACANTHAMOEBA PAR PCR - Déclenchement de l'analyse statut:
+PM_PCRACAN.PM_PCRACAN_TEC;RECHERCHE D'ACANTHAMOEBA PAR PCR - Technique
+PM_PCRACAN.PM_PCRACAN_T;RECHERCHE D'ACANTHAMOEBA PAR PCR - Nombres de cycles
+PM_PCRASP.PM_PCRASP_COM;PCR Aspergillus - Commentaire:
+PM_PCRASP.PM_PCRASP_IC;PCR Aspergillus - Info complémentaire:
+PM_PCRASP.PM_PCRASP_NAT;PCR Aspergillus - Nature du  prélèvement:
+PM_PCRASP.PM_PCRASP_RES;PCR Aspergillus - Recherche d'Aspergillus fumigatus par PCR:
+PM_PCRASP.PM_PCRASP_STATUT;PCR Aspergillus - Déclenchement de l'analyses statut:
+PM_PCRASP.PM_PCRASP_TEC;PCR Aspergillus - Technique
+PM_PCRASP.PM_PCRASP_T;PCR Aspergillus - Nombres de cycles
+PM_PCRCRYP.PM_PCRCRYP_HEINECOM;PCR Cryptosporidies - Commentaire :
+PM_PCRCRYP.PM_PCRCRYP_HEINE;PCR Cryptosporidies - Recherche de Cryptosporidium :
+PM_PCRCRYP.PM_PCRCRYP_HEINETEC;PCR Cryptosporidies - Technique
+PM_PCRCRYP.PM_PCRCRYP_INF;PCR Cryptosporidies - Info complémentaire:
+PM_PCRCRYP.PM_PCRCRYP_NAT;PCR Cryptosporidies - Nature de prélèvement :
+PM_PCRCRYP.PM_PCRCRYP;PCR Cryptosporidies - Recherche d'ADN de Cryptosporidium :
+PM_PCRCRYP.PM_PCRCRYP_TEC;PCR Cryptosporidies - Technique
+PM_PCRCYCL.PM_PCRCYCL_CT;CNR PCR CYCLOSPORA - CT
+PM_PCRCYCL.PM_PCRCYCL_NAT;CNR PCR CYCLOSPORA - Nature de prélèvement :
+PM_PCRCYCL.PM_PCRCYCL_RES;CNR PCR CYCLOSPORA - Recherche d'ADN de Cyclospora :
+PM_PCRCYCL.PM_PCRCYCL_TEC;CNR PCR CYCLOSPORA - Technique
+PM_PCRENTA.PM_PCRENTA_COM;Recherche et identification d'Entomoeba par PCR - Commentaire:
+PM_PCRENTA.PM_PCRENTA_IC;Recherche et identification d'Entomoeba par PCR - Information complémentaire:
+PM_PCRENTA.PM_PCRENTA_NAT;Recherche et identification d'Entomoeba par PCR - Nature:
+PM_PCRENTA.PM_PCRENTA_RES;Recherche et identification d'Entomoeba par PCR - Recherce d'Entamoeba par PCR:
+PM_PCRENTA.PM_PCRENTA_ST;Recherche et identification d'Entomoeba par PCR - Présence de l'analyse statut:
+PM_PCRENTA.PM_PCRENTA_TEC;Recherche et identification d'Entomoeba par PCR - Technique:
+PM_PCRGIAR.PM_PCRGIAR_RES;PCR Giardia - Recherche de Giardia par PCR:
+PM_PCRGIAR.PM_PCRGIAR_TEC;PCR Giardia - Technique:
+PM_PCRPALU.PM_PCRPALU_COM;PCR Paludisme - Commentaire:
+PM_PCRPALU.PM_PCRPALU_NAT;PCR Paludisme - Nature du  prélèvement:
+PM_PCRPALU.PM_PCRPALU_RES;PCR Paludisme - Tests d'Amplification de l'ADN pour la détection du genre Plasmodium:
+PM_PCRPALU.PM_PCRPALU_ST;PCR Paludisme - Déclenchement de l'analyse STATUT:
+PM_PCRPALU.PM_PCRPALU_TEC;PCR Paludisme - Technique
+PM_PCRP.PM_PCRP_COM;PCR Pneumocytis - Commentaire:
+PM_PCRP.PM_PCRP_ED;PCR Pneumocytis - Création de l'analyse ED en fonction de la nature:
+PM_PCRP.PM_PCRP_MGG;PCR Pneumocytis - Création de l'analyse MGG en fonction de la nature:
+PM_PCRP.PM_PCRP_NAT;PCR Pneumocytis - Nature du  prélèvement:
+PM_PCRP.PM_PCRP_O;PCR Pneumocytis - ED qui concerne la recherche de peumocystis:
+PM_PCRP.PM_PCRP_RES;PCR Pneumocytis - Recherche de P.jiroveci par PCR:
+PM_PCRP.PM_PCRP_STATUT;PCR Pneumocytis - Déclenchement de l'analyse statut
+PM_PCRP.PM_PCRP_TEC;PCR Pneumocytis - Technique
+PM_PCRP.PM_PCRP_T;PCR Pneumocytis - Nombres de cycles
+PM_PCRTOXO.PM_PCRTOXO_COM;PCR Toxoplasmose - Commentaire:
+PM_PCRTOXO.PM_PCRTOXO_IC;PCR Toxoplasmose - Info complémentaire:
+PM_PCRTOXO.PM_PCRTOXO_NAT;PCR Toxoplasmose - Nature du  prélèvement:
+PM_PCRTOXO.PM_PCRTOXO_RES;PCR Toxoplasmose - Recherche de Toxoplasma gondii par PCR:
+PM_PCRTOXO.PM_PCRTOXO_STATU;PCR Toxoplasmose - Déclenchement de l'analyse STATU :
+PM_PCRTOXO.PM_PCRTOXO_TEC;PCR Toxoplasmose - Technique
+PM_PCRTOXO.PM_PCRTOXO_T;PCR Toxoplasmose - Nombres de cycles
+PM_PMO.PM_PMO;ATTENTION - ATTENTION
+PM_PRESTA.PM_PRESTACON_ANT;Prestation de conseil (Parasito-Myco) - Prestations de conseil antérieur:
+PM_PRESTA.PM_PRESTACON_COMPT;Prestation de conseil (Parasito-Myco) - Comptabilisée:
+PM_PRESTA.PM_PRESTACON;Prestation de conseil (Parasito-Myco) - Prestations de conseil :
+PM_RPMI.PM_RPMI_LOT;Suivi Lot RPMI - N° Lot
+PM_STATUFN.PM_STATUFN;STATUT COMPLET POUR FIOLE NEGATIVE - Statut du dossier
+PM_STATUTF.PM_STATUTF_CDP2;Statut du dossier pour les fioles BactecFx - Statut du dossier CDP2
+PM_STATUTF.PM_STATUTF;Statut du dossier pour les fioles BactecFx - Statut du dossier
+PM_STATUT.PM_STATUT_BAC;Statut du dossier - Prélèvement commun avec la bactério:
+PM_STATUT.PM_STATUT_CDP2;Statut du dossier - Statut du dossier pour cdp2
+PM_STATUT.PM_STATUT_NAT;Statut du dossier - Nature du prélevement pour extraction:
+PM_STATUT.PM_STATUT;Statut du dossier - Statut du dossier
+PM_TIT_LEV.PM_TIT_LEV_INF;EXAMEN MYCOLOGIQUE SUITE A UN ED POSITIF EN BACTERIOLOGIE(TIT) - Info.compl pvt:
+PM_TIT_LEV.PM_TIT_LEV_PVT;EXAMEN MYCOLOGIQUE SUITE A UN ED POSITIF EN BACTERIOLOGIE(TIT) - PRELEVEMENT:
+PM_TIT_PAR.PM_TIT_PAR_INF;CULTURE EN PROVENANCE DE LA BACTERIOLOGIE(TIT) - Info.compl pvt:
+PM_TIT_PAR.PM_TIT_PAR_PVT;CULTURE EN PROVENANCE DE LA BACTERIOLOGIE(TIT) - PRELEVEMENT:
+PM_TIT.PM_TIT_ICP;TITRE PVT - Info. compl pvt:
+PM_TIT.PM_TIT_IC;TITRE PVT - Info. compl pvt:
+PM_TIT.PM_TIT_PVT;TITRE PVT - Prélèvement:
+PM_TRICOCU.PM_TRICOCU_RES;RECHERCHE DE TRICHOMONAS PAR CULTURE - RECHERCHE  PAR CULTURE:
+PM_TRICOCU.PM_TRICOCU_STATUT;RECHERCHE DE TRICHOMONAS PAR CULTURE - Déclnchement de l'analyse statut
+PM_TRICOCU.PM_TRICOCU_TEC;RECHERCHE DE TRICHOMONAS PAR CULTURE - TECHNIQUE:
+PM_TRICO.PM_TRICO_NAT;Recherche de trichomonas - PRELEVEMENT:
+PM_TRICO.PM_TRICO_POS;Recherche de trichomonas - Résultat examen directe
+PM_TRICO.PM_TRICO_RES;Recherche de trichomonas - RECHERCHE PAR EXAMEN DIRECT:
+PM_TRY_POS.PM_TRY_POS;RECHERCHE DE TRYPANOSOME - Résultat de la recherche de trypanosmoe
+PM_TRYP.PM_TRYP;Recherche de Trypanosome - RECHERCHE:
+PM_TRYP.PM_TRYP_STATUT;Recherche de Trypanosome - Déclenchement de l'analyse statut
+PM_TRYP.PM_TRYP_TEC;Recherche de Trypanosome - Technique
+PM_TYP_ABD.PM_TYP_ABD;Type de liquide abdominal - TYPE DE PRELEVEMENT:
+PM_TYP_CON.PM_TYP_CONC;Type de liquide de conservation - Info complémentaire :
+PM_TYP_CON.PM_TYP_CON_NAT;Type de liquide de conservation - Prélèvement:
+PM_TYP_CON.PM_TYP_CON_PM_TYP_NAT;Type de liquide de conservation - Prélèvement:
+PM_TYP_CON.PM_TYP_CON;Type de liquide de conservation - NATURE DU LIQUIDE DE CONSERVATION:
+PM_TYP_LOC.PM_TYP_LOC_CPT;Localisation anatomique - Info Complt Pvt:
+PM_TYP_LOC.PM_TYP_LOC;Localisation anatomique - Prélèvement:
+PM_TYP_NAT.PM_TYP_NAT;Nature de prélèvement - Nature de prélèvement
+PM_TYP_RES.PM_TYP_RES_BACT;Type de prélèvement respiratoire - Prélèvement commun avec la bactériologie:
+PM_TYP_RES.PM_TYP_RES_DB;Type de prélèvement respiratoire - Doublon:
+PM_TYP_RES.PM_TYP_RES_ED;Type de prélèvement respiratoire - Création de l'examen directe:
+PM_TYP_RES.PM_TYP_RES_M;Type de prélèvement respiratoire - Type de prélèvement:
+PM_TYP_RES.PM_TYP_RES_PVT;Type de prélèvement respiratoire - Type de prélèvement:
+PNE_COM.PNE_COM1;COMMENTAIRES ATB PNEUMO - Technique
+PNE_COM.PNE_COM2;COMMENTAIRES ATB PNEUMO - Oxacilline
+PNE_COM.PNE_COM3;COMMENTAIRES ATB PNEUMO - Norfloxacine INACTIVE
+PNE_COM.PNE_COM4;COMMENTAIRES ATB PNEUMO - Gentamycine
+PNE_COM.PNE_COM5;COMMENTAIRES ATB PNEUMO - Com libre
+PNE_COM.PNE_COM6;COMMENTAIRES ATB PNEUMO - NXND R
+PNGA.PNGA1;PENI G AUTRES CONTEXTES - SIR
+PNGA.PNGA2;PENI G AUTRES CONTEXTES - CMI
+PNGA.PNGA3;PENI G AUTRES CONTEXTES - Diamètre
+PNGM.PNGM1;PENI G MENINGITE - SIR
+PNGM.PNGM2;PENI G MENINGITE - CMI
+PNGM.PNGM3;PENI G MENINGITE - Diamètre
+PNG.PNG1;PENICILLINE G - SIR
+PNG.PNG2;PENICILLINE G - CMI
+PNG.PNG3;PENICILLINE G - Diamètre
+POS_MY.POS_MY_CMI;Posaconazole (POS) - CMI 
+POS_MY.POS_MY_FAC;Posaconazole (POS) - Facturation
+POS_MY.POS_MY_SIR;Posaconazole (POS) - SIR
+PPT85.PPT851;PIPERA TAZO - SIR
+PPT85.PPT852;PIPERA TAZO - CMI
+PPT85.PPT853;PIPERA TAZO - Diamètre
+PS_AMIA.PS_AMIA_RES;DEPISTAGE AMIBIASE AGGLUTINATION - Ac anti-E.histolytica (agglutination)
+PS_AMIA.PS_AMIA_TEC;DEPISTAGE AMIBIASE AGGLUTINATION - Technique
+PS_AMIA.PS_AMIA_TIT;DEPISTAGE AMIBIASE AGGLUTINATION - Ac anti-E.histolytica (titre)
+PS_AMI_COM.PS_AMI_COM;COMMENTAIRE AMIBIASE - Interprétation:
+PS_AMI_COM.PS_AMI_COM_TXT;COMMENTAIRE AMIBIASE - Interprétation:
+PS_AMIH.PS_AMIH_RES;Amibiase (hémagglutination) - Ac anti-E.histolytica (hémagglutination)
+PS_AMIH.PS_AMIH_RN;Amibiase (hémagglutination) - Ac anti-E.histolytica (Titre)
+PS_AMIH.PS_AMIH_TEC;Amibiase (hémagglutination) - Technique
+PS_AMI.PS_AMI_DEC;DEPISTAGE AMIBIASE - Déclenchement d'une reprise
+PS_AMI.PS_AMI_RES;DEPISTAGE AMIBIASE - Résultat
+PS_AMI.PS_AMI_SEU;DEPISTAGE AMIBIASE - SEUIL
+PS_AMI.PS_AMI_SEU1;DEPISTAGE AMIBIASE - SEUIL CR
+PS_AMI.PS_AMI_TEC;DEPISTAGE AMIBIASE - Technique
+PS_AMI.PS_AMI_VAL;DEPISTAGE AMIBIASE - Ac anti-E.histolytica
+PS_AMIR.PS_AMIR_RES;DEPISTAGE AMIBIASE REPRISE - RESULTAT
+PS_AMIR.PS_AMIR_SEU;DEPISTAGE AMIBIASE REPRISE - SEUIL
+PS_AMIR.PS_AMIR_TEC;DEPISTAGE AMIBIASE REPRISE - TECHNIQUE
+PS_AMIR.PS_AMIR_VAL;DEPISTAGE AMIBIASE REPRISE - VALEUR
+PS_ASAG_CM.PS_ASAG_CM;COMMENTAIRE ASPERGILLOSE (AG) - Interprétation:
+PS_ASAG_CM.PS_ASAG_CM_SEU;COMMENTAIRE ASPERGILLOSE (AG) - Seuil:
+PS_ASAG_CM.PS_ASAG_CM_SEU_TXT;COMMENTAIRE ASPERGILLOSE (AG) - Seuil:
+PS_ASAG_CM.PS_ASAG_CM_TXT;COMMENTAIRE ASPERGILLOSE (AG) - Complément d'interprétation:
+PS_ASPBOCO.PS_ASPBOCO_COM;Interpretation - Commentaire changement de technique:
+PS_ASPBOCO.PS_ASPBOCO_CTRL;Interpretation - Validation senior:
+PS_ASPBOCO.PS_ASPBOCO_IN;Interpretation - Interprétation:
+PS_ASPBOCO.PS_ASPBOCO_TXT;Interpretation - Complément d'interprétation:
+PS_ASPBO.PS_ASPBO_RES;Sérologie Aspergillaire (Bordier) - Résultat
+PS_ASPBO.PS_ASPBO_SEU1;Sérologie Aspergillaire (Bordier) - Seuil:
+PS_ASPBO.PS_ASPBO_TEC;Sérologie Aspergillaire (Bordier) - Technique
+PS_ASPBO.PS_ASPBO_VAL;Sérologie Aspergillaire (Bordier) - Ac anti-Aspergillus Bordier (Index)
+PS_ASP_COM.PS_ASP_COM;COMMENTAIRE ASPERGILLOSE - Interprétation:
+PS_ASP_COM.PS_ASP_COM_CTRL;COMMENTAIRE ASPERGILLOSE - Validation senior:
+PS_ASP_COM.PS_ASP_COM_TXT;COMMENTAIRE ASPERGILLOSE - Complément d'interprétation:
+PS_ASP_COM.PS_ASP_COM2;COMMENTAIRE ASPERGILLOSE - Interprétation:
+PS_ASP_COM.PS_ASP_COM3;COMMENTAIRE ASPERGILLOSE - Commentaire changement automate:
+PS_ASPERAG.PS_ASPERAG_G;RECHERCHE D'ANTIGENE ASPERGILLAIRE - Ag aspergillaire (index)
+PS_ASPERAG.PS_ASPERAG_RES;RECHERCHE D'ANTIGENE ASPERGILLAIRE - Résultat
+PS_ASPERAG.PS_ASPERAG_R;RECHERCHE D'ANTIGENE ASPERGILLAIRE - Déclenchemnet d'une reprise:
+PS_ASPERAG.PS_ASPERAG_SEU1;RECHERCHE D'ANTIGENE ASPERGILLAIRE - Seuil:
+PS_ASPERAG.PS_ASPERAG_SEU2;RECHERCHE D'ANTIGENE ASPERGILLAIRE - Seuil:
+PS_ASPERAG.PS_ASPERAG_TEC;RECHERCHE D'ANTIGENE ASPERGILLAIRE - Technique
+PS_ASPERAG.PS_ASPERAG_VAL;RECHERCHE D'ANTIGENE ASPERGILLAIRE - Ag Aspergillaire (Index)
+PS_ASPERAR.PS_ASPERAR_DAT;RECHERCHE D'ANTIGENE ASPERGILLAIRE (Reprise) - Date du sérum antérieur
+PS_ASPERAR.PS_ASPERAR_RES;RECHERCHE D'ANTIGENE ASPERGILLAIRE (Reprise) - Résultat
+PS_ASPERAR.PS_ASPERAR_SEU1;RECHERCHE D'ANTIGENE ASPERGILLAIRE (Reprise) - Seuil:
+PS_ASPERAR.PS_ASPERAR_SEU2;RECHERCHE D'ANTIGENE ASPERGILLAIRE (Reprise) - Seuil:
+PS_ASPERAR.PS_ASPERAR_TEC;RECHERCHE D'ANTIGENE ASPERGILLAIRE (Reprise) - Technique
+PS_ASPERAR.PS_ASPERAR_VAL;RECHERCHE D'ANTIGENE ASPERGILLAIRE (Reprise) - Ag Aspergillaire (Index)
+PS_ASPERDI.PS_ASPERDI_DO;DILUTION ASPER>80 - Ac anti-Aspergillus (DO) précedente :
+PS_ASPERDI.PS_ASPERDI_VAL;DILUTION ASPER>80 - Dilution effectuée:
+PS_ASPERG.PS_ASPERG_ANT;ASPERGILOSE IGG - Résultat WB pour antériorité
+PS_ASPERG.PS_ASPERG_DEC;ASPERGILOSE IGG - Déclenchement d'une reprise
+PS_ASPERG.PS_ASPERG_DEC_MAN;ASPERGILOSE IGG - Déclenchement d'une reprise manuel
+PS_ASPERG.PS_ASPERG_DEL;ASPERGILOSE IGG - Délai >30 pour WB
+PS_ASPERG.PS_ASPERG_DO;ASPERGILOSE IGG - Ac anti-Aspergillus (DO)
+PS_ASPERG.PS_ASPERG_RES;ASPERGILOSE IGG - Résultat
+PS_ASPERG.PS_ASPERG_SEU;ASPERGILOSE IGG - Seuil:
+PS_ASPERG.PS_ASPERG_SEU1;ASPERGILOSE IGG - Seuil:
+PS_ASPERG.PS_ASPERG_SUP;ASPERGILOSE IGG - Ajout analyse quand >80
+PS_ASPERG.PS_ASPERG_TEC;ASPERGILOSE IGG - Technique
+PS_ASPERG.PS_ASPERG_VAL;ASPERGILOSE IGG - Ac anti-Aspergillus (UA/mL)
+PS_ASPERG.PS_ASPERG_WB;ASPERGILOSE IGG - Création WB
+PS_ASPERGR.PS_ASPERGR_COM;ASPERGILLOSE IGG REPRISE - Commentaire Numéros et date de la reprise
+PS_ASPERGR.PS_ASPERGR_DAT;ASPERGILLOSE IGG REPRISE - Date de la reprise
+PS_ASPERGR.PS_ASPERGR_DO;ASPERGILLOSE IGG REPRISE - Ac anti-Aspergillus (DO reprise)
+PS_ASPERGR.PS_ASPERGR_NUM;ASPERGILLOSE IGG REPRISE - Numéros de la reprise
+PS_ASPERGR.PS_ASPERGR_RES;ASPERGILLOSE IGG REPRISE - Résultat (reprise)
+PS_ASPERGR.PS_ASPERGR_SEU;ASPERGILLOSE IGG REPRISE - SEUIL
+PS_ASPERGR.PS_ASPERGR_SEU1;ASPERGILLOSE IGG REPRISE - SEUIL
+PS_ASPERGR.PS_ASPERGR_TEC;ASPERGILLOSE IGG REPRISE - TECHNIQUE
+PS_ASPERGR.PS_ASPERGR_VAL;ASPERGILLOSE IGG REPRISE - Ac anti-Aspergillus (reprise)
+PS_BDG_COM.PS_BDG_COM;Commentaire Beta-D-Glucane - Interprétation:
+PS_BDG_COM.PS_BDG_COM_TXT;Commentaire Beta-D-Glucane - Complément d'interprétation:
+PS_BDG.PS_BDG_RES;Dosage Beta-D-Glucane - Résultat
+PS_BDG.PS_BDG_SEU;Dosage Beta-D-Glucane - Seuil
+PS_BDG.PS_BDG_TEC;Dosage Beta-D-Glucane - Technique
+PS_BDG.PS_BDG_VAL;Dosage Beta-D-Glucane - Beta-D-Glucane (pg/mL)
+PS_BIL_COM.PS_BIL_COM;COMMENTAIRE SEROLOGIE  BILHARZIOSE - Interprétation:
+PS_BIL_COM.PS_BIL_COM_TXT;COMMENTAIRE SEROLOGIE  BILHARZIOSE - Complément interprétation:
+PS_BIL_COM.PS_BIL_COM2;COMMENTAIRE SEROLOGIE  BILHARZIOSE - Complément interprétation:
+PS_BIL_COM.PS_BIL_COM3;COMMENTAIRE SEROLOGIE  BILHARZIOSE - Résultats de la reprise :
+PS_BILH.PS_BILH_DEC;BILHARZIOSE - DECLENCHEMENT REPRISE
+PS_BILH.PS_BILH_RES;BILHARZIOSE - Résultat:
+PS_BILH.PS_BILH_SEU;BILHARZIOSE - Seuil:
+PS_BILH.PS_BILH_SEUIL1;BILHARZIOSE - Seuil:
+PS_BILH.PS_BILH_TEC;BILHARZIOSE - Technique:
+PS_BILH.PS_BILH_VAL;BILHARZIOSE - Schistosoma mansoni IgG
+PS_BILHR.PS_BILHR_RES;BILHARZIOSE REPRISE - Schistosoma mansoni IgG (reprise)
+PS_BILHR.PS_BILHR_SEU;BILHARZIOSE REPRISE - SEUIL
+PS_BILHR.PS_BILHR_TEC;BILHARZIOSE REPRISE - TECHNIQUE
+PS_BILHR.PS_BILHR_VAL;BILHARZIOSE REPRISE - VALEUR
+PS_BILNOVA.PS_BILNOVA_ANT;Sérologie bilharziose - Reprise d'un sérum antérieur:
+PS_BILNOVA.PS_BILNOVA_RES;Sérologie bilharziose - Résultat
+PS_BILNOVA.PS_BILNOVA_SEU;Sérologie bilharziose - Seuil
+PS_BILNOVA.PS_BILNOVA_SEU1;Sérologie bilharziose - Seuil
+PS_BILNOVA.PS_BILNOVA_TEC;Sérologie bilharziose - Technique:
+PS_BILNOVA.PS_BILNOVA_VAL;Sérologie bilharziose - Ac anti-Schitosoma mansonii (Novatec)
+PS_BILRE.PS_BILRE_CR;Sérologie bilharziose reprise - Ac anti-Bilharziose (Reprise sur Novatec)
+PS_BILRE.PS_BILRE_DATE;Sérologie bilharziose reprise - Date du sérum antérieur:
+PS_BILRE.PS_BILRE_RES;Sérologie bilharziose reprise - Résultat
+PS_BILRE.PS_BILRE_VAL;Sérologie bilharziose reprise - Ac anti-Bilharziose (Reprise )
+PS_CAN_COM.PS_CAN_COM;COMMENTAIRE CANDIDOSE - Interprétation:
+PS_CAN_COM.PS_CAN_COM_TXT;COMMENTAIRE CANDIDOSE - Complément d'interprétation:
+PS_CAND.PS_CAND_RES;DEPISTAGE CANDIDOSE - Résultat
+PS_CAND.PS_CAND_SEU;DEPISTAGE CANDIDOSE - Seuil:
+PS_CAND.PS_CAND_SEU1;DEPISTAGE CANDIDOSE - Seuil:
+PS_CAND.PS_CAND_TEC;DEPISTAGE CANDIDOSE - Technique:
+PS_CAND.PS_CAND_VAL;DEPISTAGE CANDIDOSE - Ac anti-Candida
+PS_CRAG.PS_CRAG_CR;Recherche d'antigéne Cryptocoque - Recherche d'antigène Cryptococcus spp:
+PS_CRAG.PS_CRAG_RES;Recherche d'antigéne Cryptocoque - Cryptocoque dépistage (Ag)
+PS_CRAG.PS_CRAG_TEC;Recherche d'antigéne Cryptocoque - Technique
+PS_CRAG.PS_CRAG_TITRA;Recherche d'antigéne Cryptocoque - Cryptocoque Titration (Ag)
+PS_CRY_COM.PS_CRY_COM;COMMENTAIRE CRYPTOCOQUE - Interprétation:
+PS_CRY_COM.PS_CRY_COM_L;COMMENTAIRE CRYPTOCOQUE - Complément d'interprétation
+PS_CRYL.PS_CRYL_CR;RECHERCHE ANTIGENES CRYPTOCQUES - Intérpretation:
+PS_CRYL.PS_CRYL_RESPM;RECHERCHE ANTIGENES CRYPTOCQUES - Recherche d'Ag Cryptocoque 
+PS_CRYL.PS_CRYL_RES;RECHERCHE ANTIGENES CRYPTOCQUES - Cryptocoque dépistage (Ag)
+PS_CRYL.PS_CRYL_TEC;RECHERCHE ANTIGENES CRYPTOCQUES - Technique
+PS_CRYS.PS_CRYS_CR;RECHERCHE ANTIGENE CRYPTOCOQUE DANS LE SERUM - Intérpretation:
+PS_CRYS.PS_CRYS_RESPM;RECHERCHE ANTIGENE CRYPTOCOQUE DANS LE SERUM - Confirmation d'Ag Cryptocoque
+PS_CRYS.PS_CRYS_RES;RECHERCHE ANTIGENE CRYPTOCOQUE DANS LE SERUM - Cryptocoque dépistage (Ag)
+PS_CRYS.PS_CRYS_TEC;RECHERCHE ANTIGENE CRYPTOCOQUE DANS LE SERUM - Technique
+PS_CRYS.PS_CRYS_TIT;RECHERCHE ANTIGENE CRYPTOCOQUE DANS LE SERUM - Titre Ag Cryptocoque:
+PS_DIS_COM.PS_DIS_COM;COMMENTAIRE SEROLOGIE DISTOMATOSE - Interprétation:
+PS_DIS_COM.PS_DIS_COM_TXT;COMMENTAIRE SEROLOGIE DISTOMATOSE - Complément d'interprétation:
+PS_DIS_COM.PS_DIS_COM1;COMMENTAIRE SEROLOGIE DISTOMATOSE - Complément interprétation
+PS_DIS_ENV.PS_DIS_ENV_CR;ENVOI WB DISTOMATOSE - COMPTE RENDU
+PS_DIS_ENV.PS_DIS_ENV_ENV;ENVOI WB DISTOMATOSE - Envoyé le :
+PS_DIS_ENV.PS_DIS_ENV_REC;ENVOI WB DISTOMATOSE - Résultat reçu le :
+PS_DIS_ENV.PS_DIS_ENV_RES;ENVOI WB DISTOMATOSE - Résultat:
+PS_DIST.PS_DIST_RES;DEPISTAGE DISTOMATOSE - Résultat
+PS_DIST.PS_DIST_SEU;DEPISTAGE DISTOMATOSE - Seuil:
+PS_DIST.PS_DIST_SEU1;DEPISTAGE DISTOMATOSE - Seuil:
+PS_DIST.PS_DIST_TEC;DEPISTAGE DISTOMATOSE - Technique
+PS_DIST.PS_DIST_VAL;DEPISTAGE DISTOMATOSE - Ac anti-distomatose
+PS_ECH_COM.PS_ECH_COM;COMMENTAIRE ECHINOCOCCOSE/HYDATIDOSE - Interprétation:
+PS_ECH_COM.PS_ECH_COM_TXT;COMMENTAIRE ECHINOCOCCOSE/HYDATIDOSE - Complément d'interprétation:
+PS_ECH_COM.PS_ECH_COM2;COMMENTAIRE ECHINOCOCCOSE/HYDATIDOSE - Complément interprétation:
+PS_ECHID.PS_ECHID_DEC;Sérologie Echinococose/hyadatidose - Déclenchement d'une reprise
+PS_ECHID.PS_ECHID_RES;Sérologie Echinococose/hyadatidose - Ac Echinococcose/Hydatidose
+PS_ECHID.PS_ECHID_TEC;Sérologie Echinococose/hyadatidose - TECHNIQUE
+PS_ECHID.PS_ECHID_VAL;Sérologie Echinococose/hyadatidose - Ac Echinococcose/Hydatidose
+PS_ECHID.PS_ECHID_WB;Sérologie Echinococose/hyadatidose - Voulez vous un WB:
+PS_ECHI.PS_ECHI_DEC;SEROLOGIE ECHINOCOCCOSE/HYDATIDOSE - Déclenchement d'une reprise
+PS_ECHI.PS_ECHI_RES;SEROLOGIE ECHINOCOCCOSE/HYDATIDOSE - Ac Echinococcose/Hydatidose
+PS_ECHI.PS_ECHI_SEU;SEROLOGIE ECHINOCOCCOSE/HYDATIDOSE - SEUIL
+PS_ECHI.PS_ECHI_TEC;SEROLOGIE ECHINOCOCCOSE/HYDATIDOSE - TECHNIQUE
+PS_ECHI.PS_ECHI_VAL;SEROLOGIE ECHINOCOCCOSE/HYDATIDOSE - Ac Echinococcose/Hydatidose
+PS_ECHI_WB.PS_ECHI_WB_P12;WESTERN BLOT ECHINOCOCCOSE -       p12
+PS_ECHI_WB.PS_ECHI_WB_P15;WESTERN BLOT ECHINOCOCCOSE -       p15
+PS_ECHI_WB.PS_ECHI_WB_P16;WESTERN BLOT ECHINOCOCCOSE -       p16
+PS_ECHI_WB.PS_ECHI_WB_P17;WESTERN BLOT ECHINOCOCCOSE -       p17
+PS_ECHI_WB.PS_ECHI_WB_P18;WESTERN BLOT ECHINOCOCCOSE -       p18
+PS_ECHI_WB.PS_ECHI_WB_P20;WESTERN BLOT ECHINOCOCCOSE -       p20
+PS_ECHI_WB.PS_ECHI_WB_P24;WESTERN BLOT ECHINOCOCCOSE -       p24
+PS_ECHI_WB.PS_ECHI_WB_P26;WESTERN BLOT ECHINOCOCCOSE -       p26
+PS_ECHI_WB.PS_ECHI_WB_P26_28;WESTERN BLOT ECHINOCOCCOSE -       p26-28
+PS_ECHI_WB.PS_ECHI_WB_P7;WESTERN BLOT ECHINOCOCCOSE -       p7
+PS_ECHI_WB.PS_ECHI_WB_TEC;WESTERN BLOT ECHINOCOCCOSE - Technique
+PS_ECHI_WB.PS_ECHI_WB;WESTERN BLOT ECHINOCOCCOSE - Western Blot Echinococcose
+PSE_COM.PSE_COM1;COMMENTAIRES ATB PSE - Technique
+PSE_COM.PSE_COM2;COMMENTAIRES ATB PSE - BLSE
+PSE_COM.PSE_COM3;COMMENTAIRES ATB PSE - CARBA
+PSE_COM.PSE_COM4;COMMENTAIRES ATB PSE - Com libre
+PS_FIL_COM.PS_FIL_COM_ANT;COMMENTAIRE FILARIOSE - Interprétation :
+PS_FIL_COM.PS_FIL_COM;COMMENTAIRE FILARIOSE - Interprétation :
+PS_FIL_COM.PS_FIL_COM_TXT;COMMENTAIRE FILARIOSE - COMMENTAIRE SEROLOGIE FILARIOSE
+PS_FILNOR.PS_FILNOR_CR;Sérologie filarisis Reprise - Ac anti-Filarien (Reprise sur Novatec)
+PS_FILNOR.PS_FILNOR_RES;Sérologie filarisis Reprise - Résultat
+PS_FILNOR.PS_FILNOR_VAL;Sérologie filarisis Reprise - Ac anti-Filarien (Reprise sur Novatec)
+PS_FILNOVA.PS_FILNOVA_DATE;Sérologie filariasis - Date de l'antérieur:
+PS_FILNOVA.PS_FILNOVA_RES;Sérologie filariasis - Résultat
+PS_FILNOVA.PS_FILNOVA_R;Sérologie filariasis - Reprise d'un antérieur:
+PS_FILNOVA.PS_FILNOVA_SEU;Sérologie filariasis - Seuil
+PS_FILNOVA.PS_FILNOVA_SEU1;Sérologie filariasis - Seuil
+PS_FILNOVA.PS_FILNOVA_TEC;Sérologie filariasis - Technique:
+PS_FILNOVA.PS_FILNOVA_VAL;Sérologie filariasis - Ac anti-Filarien (Novatec)
+PS_FIL.PS_FIL_DEC;DEPISTAGE FILARIOSE - DECLENCHEMENT REPRISE
+PS_FIL.PS_FIL_RES;DEPISTAGE FILARIOSE - RESULTAT
+PS_FIL.PS_FIL_SEU;DEPISTAGE FILARIOSE - Seuil (DO)
+PS_FIL.PS_FIL_TEC;DEPISTAGE FILARIOSE - TECHNIQUE
+PS_FIL.PS_FIL_VAL;DEPISTAGE FILARIOSE - DO PATIENT
+PS_FILR.PS_FILR_RES;SEROLOGIE FILARIOSE REPRISE - RESULTAT (REPRISE)
+PS_FILR.PS_FILR_SEU;SEROLOGIE FILARIOSE REPRISE - DO SEUIL (REPRISE)
+PS_FILR.PS_FILR_TEC;SEROLOGIE FILARIOSE REPRISE - TECHNIQUE
+PS_FILR.PS_FILR_VAL;SEROLOGIE FILARIOSE REPRISE - DO PATIENT (REPRISE)
+PS_LSH_COM.PS_LSH_COM;COMMENTAIRE LEISHMANIOSE - LEISHMANIOSE
+PS_LSH_COM.PS_LSH_COM_TXT;COMMENTAIRE LEISHMANIOSE - LEISHMANIOSE:
+PS_LSH_FAC.PS_LSH_FAC;Facturation du WB LSH - Facturation du wb car il est positif
+PS_LSH.PS_LSH_DEC;DEPISTAGE LEISHMANIOSE - DECLENCHEMENT D'UNE REPRISE
+PS_LSH.PS_LSH_RES;DEPISTAGE LEISHMANIOSE - Résultat
+PS_LSH.PS_LSH_SEU;DEPISTAGE LEISHMANIOSE - SEUIL
+PS_LSH.PS_LSH_SEU1;DEPISTAGE LEISHMANIOSE - SEUIL
+PS_LSH.PS_LSH_TEC;DEPISTAGE LEISHMANIOSE - TECHNIQUE
+PS_LSH.PS_LSH_VAL;DEPISTAGE LEISHMANIOSE - Ac anti-Leishmania IgG
+PS_LSHR.PS_LSHR_RES;DEPISTAGE LESHMANIOSE REPRISE - RESULTAT
+PS_LSHR.PS_LSHR_SEU;DEPISTAGE LESHMANIOSE REPRISE - SEUIL
+PS_LSHR.PS_LSHR_TEC;DEPISTAGE LESHMANIOSE REPRISE - TECHNIQUE
+PS_LSHR.PS_LSHR_VAL;DEPISTAGE LESHMANIOSE REPRISE - VALEUR
+PS_LSH_WB.PS_LSH_WB_RES;Western Blot Leishmanie - Résultat
+PS_LSH_WB.PS_LSH_WB_TEC;Western Blot Leishmanie - TECHNIQUE
+PS_MAT_SER.PS_MAT_SER_COM;NATURE PRELEVEMENT SEROLOGIE - PARA SERO Nature Commentaire
+PS_MAT_SER.PS_MAT_SER_MAT;NATURE PRELEVEMENT SEROLOGIE - PARA SERO Materiel
+PS_MAT_SER.PS_MAT_SER;NATURE PRELEVEMENT SEROLOGIE - PARA SERO Nature
+PS_NAT_SER.PS_NAT_SER_MAT;NATURE PRELEVEMENT SERO - PARA SERO Materiel
+PS_NAT_SER.PS_NAT_SER;NATURE PRELEVEMENT SERO - PARA SERO Nature
+PS_STRO_CO.PS_STRO_CO;COMMENTAIRE STRONGYLOIDES - Interprétation:
+PS_STRO_CO.PS_STRO_CO_TXT;COMMENTAIRE STRONGYLOIDES - COMMENTAIRE SEROLOGIE STRONGYLOIDES
+PS_STRONNO.PS_STRONNO_RES;Sérologie strongyloides - Résultat
+PS_STRONNO.PS_STRONNO_SEU;Sérologie strongyloides - Seuil
+PS_STRONNO.PS_STRONNO_SEU1;Sérologie strongyloides - Seuil
+PS_STRONNO.PS_STRONNO_TEC;Sérologie strongyloides - Technique:
+PS_STRONNO.PS_STRONNO_VAL;Sérologie strongyloides - Ac anti-Strongyloides (Novatec)
+PS_TOAV_CM.PS_TOAV_CM;COMMENTAIRE AVIDITE IGG TOXOPLASMOSE - Commentaire avidité
+PS_TOAV_CM.PS_TOAV_CM1;COMMENTAIRE AVIDITE IGG TOXOPLASMOSE - Commentaire avidité
+PS_TOXCARE.PS_TOXCARE_CR;Sérologie Toxocarose Reprise - Ac anti-Toxocarose (Reprise sur Novatec)
+PS_TOXCARE.PS_TOXCARE_DATE;Sérologie Toxocarose Reprise - Date du sérum antérieur:
+PS_TOXCARE.PS_TOXCARE_RES;Sérologie Toxocarose Reprise - Résultat
+PS_TOXCARE.PS_TOXCARE_VAL;Sérologie Toxocarose Reprise - Ac anti-Toxocarose (Reprise )
+PS_TOXCAR.PS_TOXCAR_RES;TOXOCAROSE REPRISE - RESULTAT
+PS_TOXCAR.PS_TOXCAR_SEU;TOXOCAROSE REPRISE - SEUIL
+PS_TOXCAR.PS_TOXCAR_TEC;TOXOCAROSE REPRISE - TECHNIQUE
+PS_TOXCAR.PS_TOXCAR_VAL;TOXOCAROSE REPRISE - VALEUR
+PS_TOXC_CM.PS_TOXC_CM;COMMENTAIRE TOXOCAROSE - Interprétation:
+PS_TOXC_CM.PS_TOXC_CM_TXT;COMMENTAIRE TOXOCAROSE - Complément d'interprétation:
+PS_TOXC_CM.PS_TOXC_CM2;COMMENTAIRE TOXOCAROSE - Complément d'interprétation:
+PS_TOXC_CM.PS_TOXC_CM3;COMMENTAIRE TOXOCAROSE - Interprétation:
+PS_TOXCHI.PS_TOXCHI_QTE;CHARGE IMMUNITAIRE - Quantification IgG (Architect)
+PS_TOXCHI.PS_TOXCHI_QTE1;CHARGE IMMUNITAIRE - Quantification IgG (Toxoscreen)
+PS_TOXCHI.PS_TOXCHI_VAL;CHARGE IMMUNITAIRE - IgG totaux
+PS_TOX_COM.PS_TOX_COM;COMMENTAIRE TOXOPLASMOSE - COMMENTAIRE TOXOPLASMOSE
+PS_TOX_COM.PS_TOX_COM_CONT;COMMENTAIRE TOXOPLASMOSE - Controle de la serologie valider par l'interne:
+PS_TOX_COM.PS_TOX_COM_TOXOAV;COMMENTAIRE TOXOPLASMOSE - COMMENTAIRE TOXOAV
+PS_TOX_COM.PS_TOX_COM_TOXSC;COMMENTAIRE TOXOPLASMOSE - COMMENTAIRE TOXSC
+PS_TOX_COM.PS_TOX_COM_TXISA;COMMENTAIRE TOXOPLASMOSE - COMMENTAIRE TXISA
+PS_TOX_COM.PS_TOX_COM_TXISM;COMMENTAIRE TOXOPLASMOSE - COMMENTAIRE TXISM
+PS_TOX_COM.PS_TOX_COM_TXT;COMMENTAIRE TOXOPLASMOSE - COMMENTAIRE TOXOPLASMOSE
+PS_TOXDEC.PS_TOXDEC;Déclenchement de la conclusion TOXO - Présence de l'analyse com toxo:
+PS_TOX_DEC.PS_TOX_DEC;SEROLOGIE  - Déclenchement d'une analyse TOXO sur ARCHITECT ou en méthode manuel 
+PS_TOXG.PS_TOXG_DEC;TOXOPLASMOSE IGG (Architect) - Réalisation d'un VIDAS en cas de positivité et femme enceinte
+PS_TOXG.PS_TOXG_RES;TOXOPLASMOSE IGG (Architect) - Résultat
+PS_TOXG.PS_TOXG_SEU;TOXOPLASMOSE IGG (Architect) - SEUIL
+PS_TOXG.PS_TOXG_SEU1;TOXOPLASMOSE IGG (Architect) - SEUIL
+PS_TOXG.PS_TOXG_TEC;TOXOPLASMOSE IGG (Architect) - TECHNIQUE
+PS_TOXG.PS_TOXG;TOXOPLASMOSE IGG (Architect) - Réalisation d'une charge immunitaire pour un prélèvement passé sur ARCHITECT
+PS_TOXG.PS_TOXG_VAL;TOXOPLASMOSE IGG (Architect) - Toxoplasmose IgG (Alinity)
+PS_TOXGVI.PS_TOXGVI_RES;IgG Toxoplasmose - Résultat
+PS_TOXGVI.PS_TOXGVI_SEU;IgG Toxoplasmose - SEUIL
+PS_TOXGVI.PS_TOXGVI_SEU1;IgG Toxoplasmose - SEUIL
+PS_TOXGVI.PS_TOXGVI_TEC;IgG Toxoplasmose - TECHNIQUE
+PS_TOXGVI.PS_TOXGVI_VAL;IgG Toxoplasmose - Toxoplasmose IgG (Vidas)
+PS_TOXM.PS_TOXM_RES;TOXOPLASMOSE IGM - Résultat
+PS_TOXM.PS_TOXM_SEU;TOXOPLASMOSE IGM - SEUIL
+PS_TOXM.PS_TOXM_SEU1;TOXOPLASMOSE IGM - SEUIL
+PS_TOXM.PS_TOXM_TEC;TOXOPLASMOSE IGM - TECHNIQUE
+PS_TOXM.PS_TOXM_VAL;TOXOPLASMOSE IGM - Toxoplasmose IgM (Alinity)
+PS_TOXM.PS_TOXM_VI;TOXOPLASMOSE IGM - Déclenchement toxovi
+PS_TOXMVI.PM_TOXMVI_DEC;IgM Toxoplasmose (Vidas) - Declenchement d'une analyse commentaire si pasprésente:
+PS_TOXMVI.PS_TOXMVI_RES;IgM Toxoplasmose (Vidas) - Résultat
+PS_TOXMVI.PS_TOXMVI_SEU;IgM Toxoplasmose (Vidas) - SEUIL
+PS_TOXMVI.PS_TOXMVI_SEU1;IgM Toxoplasmose (Vidas) - SEUIL
+PS_TOXMVI.PS_TOXMVI_TEC;IgM Toxoplasmose (Vidas) - TECHNIQUE
+PS_TOXMVI.PS_TOXMVI_VAL;IgM Toxoplasmose (Vidas) - Toxoplasmose IgM (Vidas)
+PS_TOXOAV.PS_TOXOAV_RES;AVIDITE DES IGG TOXOPLASMOSE - RESULTAT
+PS_TOXOAV.PS_TOXOAV_SEU;AVIDITE DES IGG TOXOPLASMOSE - SEUIL
+PS_TOXOAV.PS_TOXOAV_SEU1;AVIDITE DES IGG TOXOPLASMOSE - SEUIL CR
+PS_TOXOAV.PS_TOXOAV_TEC;AVIDITE DES IGG TOXOPLASMOSE - TECHNIQUE
+PS_TOXOAV.PS_TOXOAV_VAL;AVIDITE DES IGG TOXOPLASMOSE - Avidité des IgG Toxoplasmose
+PS_TOXOBB.PS_TOXOBB;TOXOPLASMOSE JEUNE ENFANT - DECLENCHEMENT ANALYSE
+PS_TOXOCA.PS_TOXOCA_ANT;TOXOCAROSE - Déclenchement d'une reprise:
+PS_TOXOCA.PS_TOXOCA_DEC;TOXOCAROSE - DECLENCHEMENT D'UNE REPRISE
+PS_TOXOCA.PS_TOXOCA_RES;TOXOCAROSE - Résultat
+PS_TOXOCA.PS_TOXOCA_SEU;TOXOCAROSE - SEUIL
+PS_TOXOCA.PS_TOXOCA_SEU1;TOXOCAROSE - SEUIL
+PS_TOXOCA.PS_TOXOCA_TEC;TOXOCAROSE - TECHNIQUE
+PS_TOXOCA.PS_TOXOCA_VAL;TOXOCAROSE - Ac anti-Toxocara canis IgG (Tecan)
+PS_TOXOCA.PS_TOXOCA_WB;TOXOCAROSE - Voulez vous un WB:
+PS_TOXOPC.PS_TOXOPC_AF;Profils immunologiques comparés - Fait :
+PS_TOXOPC.PS_TOXOPC_RES;Profils immunologiques comparés - Interprétation :
+PS_TOXO_WB.PS_TOXO_WB_COM;WESTERN BLOT CONFIRMATION TOXO - Intérpretation:
+PS_TOXO_WB.PS_TOXO_WB_P30;WESTERN BLOT CONFIRMATION TOXO -       p30
+PS_TOXO_WB.PS_TOXO_WB_P31;WESTERN BLOT CONFIRMATION TOXO -       p31
+PS_TOXO_WB.PS_TOXO_WB_P33;WESTERN BLOT CONFIRMATION TOXO -       p33
+PS_TOXO_WB.PS_TOXO_WB_P40;WESTERN BLOT CONFIRMATION TOXO -       p40
+PS_TOXO_WB.PS_TOXO_WB_P45;WESTERN BLOT CONFIRMATION TOXO -       p45
+PS_TOXO_WB.PS_TOXO_WB_TEC;WESTERN BLOT CONFIRMATION TOXO - Technique
+PS_TOXO_WB.PS_TOXO_WB;WESTERN BLOT CONFIRMATION TOXO - Western Toxoplasmose:
+PS_TOXP_CM.PS_TOXP_CM;COMMENTAIRE SPECIFIQUE TOXOPLASMOSE - COMMENTAIRE SPECIFIQUE TOXOPLASMOSE
+PS_TRI_COM.PS_TRI_COM;COMMENTAIRE TRICHINOSE - Interprétation:
+PS_TRI_COM.PS_TRI_COM_TXT;COMMENTAIRE TRICHINOSE - Complément d'interprétation:
+PS_TRI_COM.PS_TRI_COM1;COMMENTAIRE TRICHINOSE - Complément interprétation
+PS_TRI_COM.PS_TRI_COM2;COMMENTAIRE TRICHINOSE - Interprétation:
+PS_TRI_ENV.PS_TRI_ENV_CR;ENVOI WB TRICHINOSE - COMPTE RENDU
+PS_TRI_ENV.PS_TRI_ENV_ENV;ENVOI WB TRICHINOSE - Envoyé le :
+PS_TRI_ENV.PS_TRI_ENV_REC;ENVOI WB TRICHINOSE - Résultat reçu le :
+PS_TRI_ENV.PS_TRI_ENV_RES;ENVOI WB TRICHINOSE - RESULTAT
+PS_TRINOVA.PS_TRINOVA_ANT;Sérologie Trichinella spiralis - Reprise d'un sérum antérieur:
+PS_TRINOVA.PS_TRINOVA_RES;Sérologie Trichinella spiralis - Résultat
+PS_TRINOVA.PS_TRINOVA_SEU;Sérologie Trichinella spiralis - Seuil
+PS_TRINOVA.PS_TRINOVA_SEU1;Sérologie Trichinella spiralis - Seuil
+PS_TRINOVA.PS_TRINOVA_TEC;Sérologie Trichinella spiralis - Technique:
+PS_TRINOVA.PS_TRINOVA_VAL;Sérologie Trichinella spiralis - Ac anti-Trichinella spiralis (Novatec)
+PS_TRI.PS_TRI_DEC;SEROLOGIE TRICHINOSE - DECLENCHEMENT D'UNE REPRISE
+PS_TRI.PS_TRI_RES;SEROLOGIE TRICHINOSE - Résultat
+PS_TRI.PS_TRI_SEU;SEROLOGIE TRICHINOSE - Seuil
+PS_TRI.PS_TRI_SEU1;SEROLOGIE TRICHINOSE - Seuil
+PS_TRI.PS_TRI_TEC;SEROLOGIE TRICHINOSE - Technique:
+PS_TRI.PS_TRI_VAL;SEROLOGIE TRICHINOSE - Ac anti-Trichine
+PS_TRIRE.PS_TRIRE_CR;Sérologie Trichinose Reprise - Ac anti-Trichinose (Reprise sur Novatec)
+PS_TRIRE.PS_TRIRE_DATE;Sérologie Trichinose Reprise - Date du sérum antérieur:
+PS_TRIRE.PS_TRIRE_RES;Sérologie Trichinose Reprise - Résultat
+PS_TRIRE.PS_TRIRE_VAL;Sérologie Trichinose Reprise - Ac anti-Trichinose (Reprise )
+PS_TRIR.PS_TRIR_RES;SEROLOGIE  TRICHINOSE REPRISE - RESULTAT
+PS_TRIR.PS_TRIR_SEU;SEROLOGIE  TRICHINOSE REPRISE - SEUIL
+PS_TRIR.PS_TRIR_TEC;SEROLOGIE  TRICHINOSE REPRISE - TECHNIQUE
+PS_TRIR.PS_TRIR_VAL;SEROLOGIE  TRICHINOSE REPRISE - VALEUR
+PS_TXIA_CM.PS_TXIA_CM;COMMENTAIRE TOXO ISAGA A - COMMENTAIRE TOXO ISAGA A
+PS_TXIA_CM.PS_TXIA_CM_TXT;COMMENTAIRE TOXO ISAGA A - COMMENTAIRE TOXO ISAGA A
+PS_TXIM_CM.PS_TXIM_CM;COMMENTAIRE TOXO ISAGA M - COMMENTAIRE TOXO ISAGA M
+PS_TXIM_CM.PS_TXIM_CM_TXT;COMMENTAIRE TOXO ISAGA M - COMMENTAIRE TOXO ISAGA M
+PS_TXISA.PS_TXISA_RES;TOXO ISAGA A - Résultat
+PS_TXISA.PS_TXISA_SEU;TOXO ISAGA A - SEUIL
+PS_TXISA.PS_TXISA_SEU1;TOXO ISAGA A - SEUIL
+PS_TXISA.PS_TXISA_TEC;TOXO ISAGA A - TECHNIQUE
+PS_TXISA.PS_TXISA_VAL;TOXO ISAGA A - Toxoplasmose IgA
+PS_TXISM.PS_TXISM_RES;TOXO ISAGA M - Résultat
+PS_TXISM.PS_TXISM_SEU;TOXO ISAGA M - SEUIL
+PS_TXISM.PS_TXISM_SEU1;TOXO ISAGA M - SEUIL
+PS_TXISM.PS_TXISM_TEC;TOXO ISAGA M - TECHNIQUE
+PS_TXISM.PS_TXISM_VAL;TOXO ISAGA M - Toxoplasmose IgM
+PS_TXPCINF.PS_TXPCINF_D;Informations: - Date de  naissance :
+PS_TXPCINF.PS_TXPCINF_DP;Informations: - Date de prélèvement :
+PS_TXPCINF.PS_TXPCINF_HP;Informations: - Heure de prélèvement :
+PS_TXPCINF.PS_TXPCINF_NAT;Informations: - Nature :
+PS_TXPCINF.PS_TXPCINF_N;Informations: - Nom de la patiente :
+PS_TXPCINF.PS_TXPCINF_NJ;Informations: - Nom de jeune fille :
+PS_TXPCINF.PS_TXPCINF_P;Informations: - Prénom(s) :
+PS_TXPCINF.PS_TXPCINF_REF;Informations: - Votre référence  :
+PS_TXSC_CM.PS_TXSC_CM;COMMENTAIRE TOXO SCREEN - COMMENTAIRE TOXO SCRENN
+PS_TXSC_CM.PS_TXSC_CM_TXT;COMMENTAIRE TOXO SCREEN - COMMENTAIRE TOXO SCREEN
+PS_TXSC.PS_TXSC_RES;TOXO SCREEN - Résultat
+PS_TXSC.PS_TXSC_SEU;TOXO SCREEN - SEUIL
+PS_TXSC.PS_TXSC_SEU1;TOXO SCREEN - SEUIL
+PS_TXSC.PS_TXSC_TEC;TOXO SCREEN - TECHNIQUE
+PS_TXSC.PS_TXSC_VAL;TOXO SCREEN - Toxoplasmose IgG (Toxo-screen)
+PS_VALID.PS_VALID;validation senior - Validation senior
+PS_WB_ASP.PS_WB_ASP_ELISA;WESTERN BLOT ASPERGILLOSE - Résultat ELISA Aspergillus
+PS_WB_ASP.PS_WB_ASP_P16;WESTERN BLOT ASPERGILLOSE -           p16
+PS_WB_ASP.PS_WB_ASP_P22;WESTERN BLOT ASPERGILLOSE -           p22
+PS_WB_ASP.PS_WB_ASP_P30;WESTERN BLOT ASPERGILLOSE -           p30
+PS_WB_ASP.PS_WB_ASP_RES;WESTERN BLOT ASPERGILLOSE - Western Blot Aspergillus
+PS_WB_ASP.PS_WB_ASP_TEC;WESTERN BLOT ASPERGILLOSE - Technique WB Aspergillus
+PS_WB_ASP.PS_WB_ASP_18_20;WESTERN BLOT ASPERGILLOSE -           p18-20
+PS_WB_BIL.PS_WB_BIL_ELISA;WESTERN BLOT BILHARZIOSE - Résultat ELISA Bilharziose
+PS_WB_BIL.PS_WB_BIL_P12-13;WESTERN BLOT BILHARZIOSE -       p12-13
+PS_WB_BIL.PS_WB_BIL_P14-15;WESTERN BLOT BILHARZIOSE -       p14-15
+PS_WB_BIL.PS_WB_BIL_P18;WESTERN BLOT BILHARZIOSE -       p18
+PS_WB_BIL.PS_WB_BIL_P22-24;WESTERN BLOT BILHARZIOSE -       p22-24
+PS_WB_BIL.PS_WB_BIL_P30-34;WESTERN BLOT BILHARZIOSE -       p30-34
+PS_WB_BIL.PS_WB_BIL_P9;WESTERN BLOT BILHARZIOSE -       p9
+PS_WB_BIL.PS_WB_BIL_TEC;WESTERN BLOT BILHARZIOSE - Technique:
+PS_WB_BIL.PS_WB_BIL;WESTERN BLOT BILHARZIOSE - Western Blot Bilharziose
+PS_WBRESTC.PS_WBRESTC;plus utilisé WESTERN BLOT TOXOCAROSE - RESULTAT WESTERN BLOT
+PS_WB_TOXC.PS_WB_TOXC_ELISA;WESTERN BLOT TOXOCAROSE - Résultat ELISA Toxocarose
+PS_WB_TOXC.PS_WB_TOXC_P24;WESTERN BLOT TOXOCAROSE -           P24
+PS_WB_TOXC.PS_WB_TOXC_P35;WESTERN BLOT TOXOCAROSE -           P35
+PS_WB_TOXC.PS_WB_TOXC_RES;WESTERN BLOT TOXOCAROSE - Résultat WB Toxocarose
+PS_WB_TOXC.PS_WB_TOXC_TEC;WESTERN BLOT TOXOCAROSE - Technique:
+PS_WBTRI.PS_WBTRI_P37;Western Blot Trichinellose -           p37
+PS_WBTRI.PS_WBTRI_P41;Western Blot Trichinellose -           p41
+PS_WBTRI.PS_WBTRI_P50;Western Blot Trichinellose -           p50
+PS_WBTRI.PS_WBTRI_RES;Western Blot Trichinellose - Western Blot Trichinellose
+PS_WBTRI.PS_WBTRI_TEC;Western Blot Trichinellose - Technique WB Trichinella
+PTN.PTN1;PRISTINAMYCINE - SIR
+PTN.PTN2;PRISTINAMYCINE - CMI
+PTN.PTN3;PRISTINAMYCINE - Diamètre
+PTZ36.PTZ361;PIPERACILLINE+TAZOBACTAM - SIR
+PTZ36.PTZ362;PIPERACILLINE+TAZOBACTAM - CMI
+PTZ36.PTZ363;PIPERACILLINE+TAZOBACTAM - Diamètre
+QDF.QDF1;QUINU-DALFO - SIR
+QDF.QDF2;QUINU-DALFO - CMI
+QDF.QDF3;QUINU-DALFO - Diamétre
+RAM30.RAM301;RIFAMPICINE. - SIR
+RAM30.RAM302;RIFAMPICINE. - CMI
+RAM30.RAM303;RIFAMPICINE. - Diamètre
+RB.RB1;RIFABUTINE - SIR
+RB.RB2;RIFABUTINE - CMI
+RB.RB3;RIFABUTINE - Diamètre
+RIF5.RIF51;RIFAMPICINE - SIR
+RIF5.RIF52;RIFAMPICINE - CMI
+RIF5.RIF53;RIFAMPICINE - Diamètre
+ROX.ROX1;ROXITHROMYCINE - SIR
+ROX.ROX2;ROXITHROMYCINE - CMI
+ROX.ROX3;ROXITHROMYCINE - Diamètre
+SAMR.SAMR1;COMMENTAIRE SAMR - Résultat SAMR
+SPT.SPT1;SPECTINOMYCINE - SIR
+SPT.SPT2;SPECTINOMYCINE - CMI
+SPT.SPT3;SPECTINOMYCINE - Diamètre
+STA_COM.STA_COM1;COMMENTAIRES ATB/STAPH - Technique
+STA_COM.STA_COM10;COMMENTAIRES ATB/STAPH - NXND R
+STA_COM.STA_COM2;COMMENTAIRES ATB/STAPH - Oxacilline
+STA_COM.STA_COM3;COMMENTAIRES ATB/STAPH - Péni G et Oxa
+STA_COM.STA_COM4;COMMENTAIRES ATB/STAPH - Antagonisme erythro/clinda
+STA_COM.STA_COM5;COMMENTAIRES ATB/STAPH - Ery R Clinda R et QDF S
+STA_COM.STA_COM6;COMMENTAIRES ATB/STAPH - Gisa
+STA_COM.STA_COM7;COMMENTAIRES ATB/STAPH - Cystite
+STA_COM.STA_COM8;COMMENTAIRES ATB/STAPH - Com libre
+STA_COM.STA_COM9;COMMENTAIRES ATB/STAPH - CMI glycopeptides
+STM_COM.STM_COM1;COMMENTAIRES ATB STM - Technique
+STM_COM.STM_COM2;COMMENTAIRES ATB STM - Com libre
+STR_COM.STR_COM1;COMMENTAIRES ATB STREPTOCOQUES - Technique
+STR_COM.STR_COM2;COMMENTAIRES ATB STREPTOCOQUES - Gentamycine
+STR_COM.STR_COM3;COMMENTAIRES ATB STREPTOCOQUES - Streptomycine
+STR_COM.STR_COM4;COMMENTAIRES ATB STREPTOCOQUES - Norfloxacine INACTIVE
+STR_COM.STR_COM5;COMMENTAIRES ATB STREPTOCOQUES - Com libre
+STR_COM.STR_COM6;COMMENTAIRES ATB STREPTOCOQUES - NXND R
+STRNG_COM.STRNG_COM1;COMMENTAIRES ATB STREPTOCOQUES NON GROUPABLES - Technique
+STRNG_COM.STRNG_COM2;COMMENTAIRES ATB STREPTOCOQUES NON GROUPABLES - Penicilline
+STRNG_COM.STRNG_COM3;COMMENTAIRES ATB STREPTOCOQUES NON GROUPABLES - Gentamycine
+STRNG_COM.STRNG_COM4;COMMENTAIRES ATB STREPTOCOQUES NON GROUPABLES - Streptomycine
+STRNG_COM.STRNG_COM5;COMMENTAIRES ATB STREPTOCOQUES NON GROUPABLES - Com libre
+STR_U_COM.STR_U_COM1;COMMENTAIRES ATB STR_U - Technique
+STR_U_COM.STR_U_COM2;COMMENTAIRES ATB STR_U - Penicilline
+STR_U_COM.STR_U_COM3;COMMENTAIRES ATB STR_U - Furanes
+STR_U_COM.STR_U_COM4;COMMENTAIRES ATB STR_U - Com libre
+SXT.SXT1;TRIMETH + SULFA - SIR
+SXT.SXT2;TRIMETH + SULFA - CMI
+SXT.SXT3;TRIMETH + SULFA - Diamètre
+TCC.TCC1;CLAVENTIN - SIR
+TCC.TCC2;CLAVENTIN - CMI
+TCC.TCC3;CLAVENTIN - Diamètre
+TECHATB.TECHATB1;TECHNIQUE ATB - Technique
+TECHATB.TECHATB2;TECHNIQUE ATB - Afiichage titre
+TEC.TEC1;TEICOPLANINE - SIR
+TEC.TEC2;TEICOPLANINE - CMI
+TEC.TEC3;TEICOPLANINE - Diamètre
+TEL.TEL1;TELITHROMYCINE - SIR
+TEL.TEL2;TELITHROMYCINE - CMI
+TEL.TEL3;TELITHROMYCINE - Diamètre
+TEM.TEM1;TEMOCILLINE - SIR
+TEM.TEM2;TEMOCILLINE - CMI
+TEM.TEM3;TEMOCILLINE - Diamètre
+TET.TET1;TETRACYCLINE - SIR
+TET.TET2;TETRACYCLINE - CMI
+TET.TET3;TETRACYCLINE - Diamètre
+TGC.TGC1;TIGECYCLINE - SIR
+TGC.TGC2;TIGECYCLINE - CMI
+TGC.TGC3;TIGECYCLINE - Diamètre
+TIC.TIC1;TICARCILLINE - SIR
+TIC.TIC2;TICARCILLINE - CMI
+TIC.TIC3;TICARCILLINE - Diamètre
+TMN.TMN1;TOBRAMYCINE - SIR
+TMN.TMN2;TOBRAMYCINE - CMI
+TMN.TMN3;TOBRAMYCINE - Diamètre
+TMP.TMP1;TRIMETHOPRIME - SIR
+TMP.TMP2;TRIMETHOPRIME - CMI
+TMP.TMP3;TRIMETHOPRIME - Diamètre
+V_MAT_NCPM.V_MAT_NCPM_COM;MAT NC PM SERO - Commentaire sur nature
+V_MAT_NCPM.V_MAT_NCPM;MAT NC PM SERO - Nature
+V_MAT_NCPM.V_MAT_NCPM_MAT;MAT NC PM SERO - Matériel
+V_MAT_NCPM.V_MAT_NCPM_NC;MAT NC PM SERO - Validation de la NC
+V_NAT_NCPM.V_NAT_NCPM_COM;NAT NC PM SERO - Commentaire sur Nature
+V_NAT_NCPM.V_NAT_NCPM;NAT NC PM SERO - Nature VIRO
+V_NAT_NCPM.V_NAT_NCPM2;NAT NC PM SERO - Nature VIRO2
+VNC.VNC1;VANCOMYCINE - SIR
+VNC.VNC2;VANCOMYCINE - CMI
+VNC.VNC3;VANCOMYCINE - Diamètre
+VO_MY.VO_MY_CMI;Voriconazole (VO) - CMI
+VO_MY.VO_MY_FAC;Voriconazole (VO) - Facturation
+VO_MY.VO_MY_SIR;Voriconazole (VO) - SIR
+V_PCRTVAL.V_PCRTVAL_COM;PCR Trichomonas vaginalis - PCRCT Commentaire:
+V_PCRTVAL.V_PCRTVAL_INT;PCR Trichomonas vaginalis - Interprétation
+V_PCRTVAL.V_PCRTVAL_MAT;PCR Trichomonas vaginalis - Matériel:
+V_PCRTVAL.V_PCRTVAL_NAT;PCR Trichomonas vaginalis - Nature:
+V_PCRTVAL.V_PCRTVAL_RES;PCR Trichomonas vaginalis - Génome Trichomonas vaginalis (TV)
+V_PCRTVAL.V_PCRTVAL_TEC;PCR Trichomonas vaginalis - PCR TV Technique
+V_PCRTVAL.V_PCRTVAL_VAL;PCR Trichomonas vaginalis - PCR TV Valeur
+V_PCRTVPA.V_PCRTVPA_COM;PCR Trichomonas vaginalis (Panther) - PCRCT Commentaire:
+V_PCRTVPA.V_PCRTVPA_INT;PCR Trichomonas vaginalis (Panther) - Interprétation
+V_PCRTVPA.V_PCRTVPA_MAT;PCR Trichomonas vaginalis (Panther) - Matériel:
+V_PCRTVPA.V_PCRTVPA_NAT;PCR Trichomonas vaginalis (Panther) - Nature:
+V_PCRTVPA.V_PCRTVPA_RES;PCR Trichomonas vaginalis (Panther) - Génome Trichomonas vaginalis (TV)
+V_PCRTVPA.V_PCRTVPA_TEC;PCR Trichomonas vaginalis (Panther) - PCR TV Technique
+V_PCRTVPA.V_PCRTVPA_VAL;PCR Trichomonas vaginalis (Panther) - PCR TV Valeur
+V.V1;ATBG VERIFIE CaSFM 2023 - ATBG VERIFIE CaSFM 2023
+ZZFLAMFA5.ZZFLAMFA5-COL;TD5 concaténation de résultats - TD5 Nb de colonies
+ZZFLAMFA5.ZZFLAMFA5-GERM;TD5 concaténation de résultats - TD5 Germe
+ZZFLAMFA5.ZZFLAMFA5-RECH;TD5 concaténation de résultats - TD5 Recherche
+ZZFLAMFA5.ZZFLAMFA5-REP;TD5 concaténation de résultats - TD5 Réponse
+ZZFLAMFA5.ZZFLAMFA5-RES1;TD5 concaténation de résultats - TD5 RESULTAT

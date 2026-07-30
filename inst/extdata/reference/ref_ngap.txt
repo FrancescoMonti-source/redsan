@@ -1,0 +1,204 @@
+CODEACTE;CODEACTE_LABEL
+AC1;Accouchement simple
+AC2;Accouchement gémellaire
+ACO;ACTES D OBSTETRIQUE
+ADA;ACTES D ANESTHESIE
+ADC;ACTES DE CHIRURGIE
+ADE;ACTES D ECHOGRAPHIE
+ADI;ACTES D IMAGERIE
+AMC;Acte par kinésithérapeute
+AMI;Acte infirmier
+AMIN;Acte infirmier nuit ENTRE 23h et 5h
+AMK;Acte par masseur kinésithérapeute
+AMO;Acte orthophoniste
+AMP;Acte pédicure
+AMY;Acte orthoptiste
+AP2;Admin.Produits,Prestations et Spe.Pharma
+APC;AVIS PONCTUEL DE CONSULTANT DU MEDECIN
+APU;AVIS PONCTUEL PU - PH
+APY;AVIS PONCTUEL NEUROPSY NEURO PSYCHIATRIE
+ATM;ACTES TECHNIQUES MEDICAUX
+ATUG;forfait urgences gyneco
+AXI;ACTES DE PROPHYLAXIE ET PREVENTION
+B;Analyse biologique
+BB;Analyse biologique
+BBP;Acte anatomie et cytologie pathologique
+BBR;Acte anapath avec marqueur
+BDC;Examen simple prévention dentaire
+BM;Acte immunologie avec marqueur
+BP;Acte anatomie et cytologie pathologique
+BR;Acte anapath avec marqueur
+BR2;Examen simple 1 ou 2 radio prév dentaire
+BR4;Examen simple 3 ou 4 radio prév dentaire
+C;Consultation de médecin
+CAA;Consultation anti-alcoologie
+CAPA;Consultation activité physique adaptée
+CCG;Consultation conseil génétique
+CCP;CONSULTATION DE CONTRACEPTION ET PREVENT
+CD;Consultation chirurgien dentiste
+CDE;Consultation de dépistage du mélanome
+CDIET;Consultation diététique
+CETP;Consultation d'éducation thérapeutique
+CG;Examens suivi de grossesse
+CGP;SUIVI GRAND PREMATURE
+CHYPN;Consultation hypnose
+CIDE;Consultation d'éducation infirmière
+CLYMP;Consultation IDE lymphologie
+CM0;Prothèse fixe métallique RAC 0
+CMM;Consultation de médecin ENTRE Oh et 6h
+CNON;Cs acte non réalisé
+CNP;Consultation neuropsychiatre
+CNUIT;Consultation de médecin ENTRE Oh et 6h
+CPMOT;Consultation psychomotricien
+CPSYC;Consultation psychologue
+CS;Consultation médecin spécialiste
+CSC;Consultation cardiologie
+CSE;CONS ANNUELLE SUIVI ENFANT AUTISTE
+CSF;Consultation sage-femme
+CSFN;Consultation de sage-femm ENTRE Oh et 6h
+CSO;CONSULTATION DE SUIVI DE L OBESITE
+CT0;Couronne transitoire RAC 0
+CT1;Couronne transitoire RAC modéré
+CTE;CONS REP TROUBLE SPECTRE ENF AUTISTE
+CZ0;Couronne zircone RAC 0
+CZ1;Couronne zircone RAC modéré
+D;Acte chirurgien dentiste
+DC;Acte chirurgien dentiste
+DEN;Acte dentaire
+EJE;Consultation educateur jeunes enfants
+END;ACTES D ENDODONTIE
+EPH;PATHOLOGIE CHRON.GRAVE,HANDIC.NEUROSENS.
+ERGO;Consultation ergotherapeute
+FDO28;Forfait orthodontie CMU sans attache
+FDO29;Forfait orthodontie CMU avec attache
+FDO37;Forfait orthodontie CMU attache + 16 ans
+FMRC;Forfait maladie rénale chronique
+FPE;FORFAIT PEDIATRIQUE
+FPI;Forfait Prestation Intermédiaire
+FSD;Forfait Sécurité Dermatologie FSD
+G;Consultation généraliste
+GATU;forfait urgences
+GFPE;Forfait pédiatrique
+GMGE;majo C géné avec maj carnet santé
+GMM;Consultation généraliste ENTRE Oh et 6h
+GMNO;Majo Nourrisson généraliste (0 à 2 ans)
+GMNP;Majo Nourrisson pédiatre (0 à 2 ans)
+GMPC;Majo Forfaitaire Prov. Praticien
+GMPCY;Majo Forfait Prov. Praticien PSY
+GMPJ;Majo Forfaitaire Prov. Praticien 2à16ans
+GMPJY;Majo Forfaitaire Prov. PSY 2à16ans
+GS;Consult généraliste spécialiste méd gale
+IC0;Inlay core RAC 0
+IC1;Inlay core RAC modéré
+ICO;INLAY-CORE
+IMP;POSE IMPLANTS OU MATERIEL IMPLANTOLOGIE
+IN1;Inlay onlay RAC modéré
+INO;ACTES INLAY-ONLAY
+K;Acte de chirurgie ou d'examen par médeci
+KB;Acte d'examen biologique
+KC;Acte de chirurgie
+KCC;Acte thérapeutique sanglant
+KCES;Césarienne
+KCRES;KC Résiduel
+KE;Acte d'échographie
+KERES;KE Résiduel
+KFD;Forfait macrobiopsie ass. par le vide
+KPSYC;Test psychologue
+KRES;K Résiduel
+KSSP;Actes sophrologue soins palliatifs
+MCC;majo coordination cardiologue
+MCG;majo coordination généraliste
+MCS;majo coordination spécialiste non PSY
+MCS3;majoration de coordination psy et neurol
+MEG;MAJORATION ENFANT 0-6 ans GENERALISTE
+MM;majo nuit C entre 00h00 à 6h
+MMI;majo nuit AMI entre 23h à 5h
+MNP;MAJORATION NOURRISSON PEDIATRIE
+MOP;MAJORATION PERSONNES AGEES
+MPC1;FORFAIT PROVISOIRE CLINICIEN SUR CS
+MPC2;FORFAIT PROVISOIRE CLINICIEN SUR CNP
+MPE;Majoration pédiatre enfant
+MSF;Majoration Sage-Femme
+ORT;Orthodontie par médecin
+P;Acte anapath médecin
+PA0;Prothèse amovible RAC 0
+PA1;Prothèse amovible RAC modéré
+PAM;PROTHESES AMOVIBLES DEFINITIVES METAL
+PAR;PROTHESES AMOVIBLES DEFINITIVES RESINE
+PB;Prélèvement sanguin par non médecin
+PDT;PROTHESES DENTAIRES PROVISOIRES
+PF0;Prothèse fixe RAC 0
+PF1;Prothèse fixe RAC modéré
+PFC;PROTHESES FIXES CERAMIQUES
+PFM;PROTHESES FIXES METALLIQUES
+POD;Acte podologue prevention diabetique
+PPCO;Primo Prescription Chimio Oral
+PRO;Acte de prothèse dentaire médecin
+PT0;Prothèse amovible transition RAC 0
+RA0;Réparation adjonction RAC 0
+RE1;Réparation prothèse RAC modéré
+RMN1;Forfait normal IRM anneau central
+RMN2;Forfait normal IRM pédiatrie
+RMN3;Forfait normal IRM3 anneau central
+RMN4;Forfait normal IRM4 anneau central
+RMR1;Forfait réduit IRM anneau central
+RMR2;Forfait réduit IRM pédiatrie
+RMR3;Forfait réduit IRM3 anneau central
+RMR4;Forfait réduit IRM4 anneau central
+RNO;BILAN VISUEL DELEGATION ORTHOP/OPHTALMO
+RPN;REPARATIONS SUR PROTHESE
+RS0;Répar prothèse adjointe simple RAC 0
+SC;Soins conservateurs par dentiste
+SCM;Soins conservateurs par médecin
+SCN1;Forfait scanner salle Roentgen
+SCN1L;Forfait scanner salle Roentgen libéral
+SCN2;Forfait scanner salle Hounsfield
+SCN3;Forfait norm scanner PHILIPS  BG UF 2520
+SCN3L;Forfait norm scan lib PHILIPS BG UF 2520
+SCN4;Forfait scanner rez de jardin UF 2541
+SCN5;Forfait scanner St-Julien UF 2592
+SCR1;Forfait réduit scanner neuro UF 2551
+SCR12;Forf réduit seuil 2 scan neuro UF 2551
+SCR1L;Forfait réduit scanner neuro UF 2551 lib
+SCR2;Forfait réduit scanner neuro UF 2516
+SCR23;Forf réduit seuil 3 scan neuro UF 2516
+SCR3;Forfait réd scanner Philips BG UF 2520
+SCR33;Forfait réd seuil 3 scan Phil BG UF 2520
+SCR3L;Forfait réd scan lib PHILIPS BG UF 2520
+SCR4;Forfait réduit scanner urgence UF 2541
+SCR42;Forf réduit seuil 2 scan urgence UF 2541
+SCR43;Forf réduit seuil 3 scan urgence UF 2541
+SCR5;Forfait réduit scanner St-Julien UF 2592
+SCR52;Forf réduit seuil 2 scan St-Julien-2592
+SCR53;Forf réduit seuil 3 scan St-julien-2592
+SDE;SOINS DENTAIRES
+SE1;Forfait Securite et Envment Hospit. SE1
+SE2;Forfait Securite et Envment Hospit. SE2
+SE3;Forfait Securite et Envment Hospit. SE3
+SE5;Forfait Securite et Envment Hospit. SE5
+SE6;Forfait Securite et Envment Hospit. SE6
+SF;Acte obstétrical par sage-femme
+SFI;Soins infirmiers par sage-femme
+SP;Séances suivi post natal
+SPR;Acte de prothèse dentaire par dentiste
+SU1;Suppl prothèse métallique RAC modéré
+TB;Prélèvement sanguin par technicien labo
+TDS;PARODONTOLOGIE ACTES TISSUS SOUTIEN DENT
+TE1;TELE EXPERTISE NIVEAU 1
+TE2;TELE EXPERTISE NIVEAU 2
+TLCG;TELECONSULTATION MEDECIN GENERALISTE
+TLCP;TELECONSULTATION NEUROPSY NEURO PSYCHIA
+TLCS;TELECONSULTATION MEDECIN SPECIALISE
+TLE;TELE EXPERTISE
+TO;Orthodontie par chirurgien-dentiste
+TSI1;TELESURVEILLANCE INCLUSION ICC
+TSI7;TELESURVEILLANCE INCLUSION PROTH CARD
+TSM7;TELESURVEILLANCE PORTEUR PROTHESE CARD
+TSS7;TELESURVEILLANCE SORTIE PROTH CARD
+VAC;Vaccination grippe A H1N1
+VDE;VIDEOCAPSULE
+Z1;Acte radiologie par électroradiologiste
+Z1RES;Z1 Résiduel
+Z3;Acte radiologie par omnipraticien
+Z3RES;Z3 Résiduel
+ZM;Mammographie dépistage Réseau EMMA

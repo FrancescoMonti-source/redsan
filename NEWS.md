@@ -1,5 +1,12 @@
 # redsan 0.3.0
 
+- Add seven packaged references: `bact` (bacteriology analytes, kept separate
+  from `bio` because shared `TYPEANA` codes carry module-specific labels),
+  `csarr` and `ngap` (act nomenclatures now part of the derived `actes`
+  reference, so `label_pmsi()` applies them through `NOMENCLATURE + CODEACTE`),
+  and `ghm`, `modeent`, `modesort`, `rectypes` for columns `redsan` already
+  normalizes but does not label automatically.
+
 - Add `edsan_references()` and `edsan_reference()` for the code mappings
   distributed with the package.
 - Add `label_pmsi()` to enrich normalized diagnoses with CIM-10 labels and acts

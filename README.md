@@ -103,6 +103,14 @@ receive a missing label.
 automatically; the same helpers can enrich older normalized artifacts without
 replacing their source codes.
 
+Not every mapping has a labelling helper. `ghm`, `modeent`, `modesort`, and
+`rectypes` describe columns that `redsan` already normalizes (`GHM`, `MODEENT`,
+and `MODESORT` in `pmsi$main`, `RECTYPE` in DOCEDS) but are not joined
+automatically; `bact` describes the EDSAN `bact` module, which `redsan` does not
+retrieve yet. All of them are available through `edsan_reference()` for explicit
+joins. A code whose label the source system leaves undocumented is retained with
+an `NA` label rather than dropped.
+
 ```r
 edsan_references()
 
@@ -115,7 +123,8 @@ biology_labelled <- label_biol(biology)
 
 `label_biol()` uses `TYPEANA` for the biology reference. `label_pmsi()` uses
 `diag = CODE` for CIM-10 and
-`NOMENCLATURE + CODEACTE` for the combined CCAM/CDAM reference. Unmatched codes
+`NOMENCLATURE + CODEACTE` for the combined acts reference, which covers CCAM,
+CDAM, CSARR, and NGAP. Unmatched codes
 are retained with an `NA` label. The underlying references remain available
 for custom joins:
 
