@@ -160,7 +160,26 @@
     df$NUMRES <- suppressWarnings(as.numeric(as.character(df$NUMRES)))
   }
 
+  # TYPEANA arrives in the same one-element-list shape from raw payloads. It is
+  # the key joined against the packaged biology reference, so it has to be atomic
+  # character: a list column makes that join fail on incompatible types.
+  if ("TYPEANA" %in% names(df)) {
+    df$TYPEANA <- .edsan_flatten_code_column(df$TYPEANA)
+  }
+
   df
+}
+
+# Raw API payloads store each scalar in a one-element list, so result columns can
+# reach normalization as list columns. Flatten to character, keeping the
+# multi-value convention used when preparing PMSI records.
+.edsan_flatten_code_column <- function(x) {
+  if (!is.list(x)) return(as.character(x))
+  vapply(x, function(value) {
+    if (is.null(value) || length(value) == 0L) return(NA_character_)
+    if (length(value) > 1L) return(paste(as.character(value), collapse = ";"))
+    as.character(value)[[1L]]
+  }, character(1), USE.NAMES = FALSE)
 }
 
 #' Process BIOL results
@@ -206,11 +225,16 @@ process_biol <- function(data) {
 #' unmatched labels as `NA`. An existing `TYPEANA_LABEL` column is refreshed
 #' from the packaged reference.
 #'
+#' A `TYPEANA` column that raw EDSAN payloads expose as a one-element list per
+#' row is flattened to character before matching, since the reference key must be
+#' atomic. Values holding several codes are collapsed with `;`, as when preparing
+#' PMSI records, and empty values become `NA`.
+#'
 #' @param biology A normalized biology data frame containing `TYPEANA`, normally
 #'   returned by [process_biol()].
 #'
-#' @return The input biology data frame with `TYPEANA_LABEL` added. All other
-#'   columns and rows are preserved.
+#' @return The input biology data frame with `TYPEANA_LABEL` added, and `TYPEANA`
+#'   as character. All other columns and rows are preserved.
 #'
 #' @examples
 #' biology <- data.frame(
@@ -235,6 +259,10 @@ label_biol <- function(biology) {
       )
     }
   }
+
+  # Older artifacts, and raw payloads normalized outside `process_biol()`, can
+  # still carry TYPEANA as a one-element list column, which the join cannot use.
+  biology$TYPEANA <- .edsan_flatten_code_column(biology$TYPEANA)
 
   biology %>%
     dplyr::select(-dplyr::any_of("TYPEANA_LABEL")) %>%

@@ -8,6 +8,12 @@
 - Add `label_biol()` to enrich normalized biology results with
   `TYPEANA_LABEL`. `process_biol()` reuses it for new outputs, while older
   artifacts can call it directly.
+- Flatten `TYPEANA` to character when normalizing biology and virology results.
+  Raw EDSAN payloads wrap each scalar in a one-element list, so `TYPEANA` reached
+  the reference join as a list column and `process_biol()` failed with
+  "Can't join `x$TYPEANA` with `y$TYPEANA` due to incompatible types".
+  `label_biol()` applies the same flattening, so older artifacts can be labelled
+  directly.
 - Keep BIOL and VIRO batch results that the backend returns already in table
   form: `get_edsan()` bound them through `purrr::list_flatten()`, which exploded
   the table into a list of columns and silently dropped every row. Such batches

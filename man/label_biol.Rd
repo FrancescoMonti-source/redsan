@@ -11,8 +11,8 @@ label_biol(biology)
 returned by \code{\link[=process_biol]{process_biol()}}.}
 }
 \value{
-The input biology data frame with \code{TYPEANA_LABEL} added. All other
-columns and rows are preserved.
+The input biology data frame with \code{TYPEANA_LABEL} added, and \code{TYPEANA}
+as character. All other columns and rows are preserved.
 }
 \description{
 Enriches normalized biology rows with the analyte labels distributed with
@@ -24,6 +24,11 @@ Results are matched to the biology reference by \code{TYPEANA}, producing
 \code{TYPEANA_LABEL}. The join is exact, preserves every biology row and leaves
 unmatched labels as \code{NA}. An existing \code{TYPEANA_LABEL} column is refreshed
 from the packaged reference.
+
+A \code{TYPEANA} column that raw EDSAN payloads expose as a one-element list per
+row is flattened to character before matching, since the reference key must be
+atomic. Values holding several codes are collapsed with \code{;}, as when preparing
+PMSI records, and empty values become \code{NA}.
 }
 \examples{
 biology <- data.frame(
