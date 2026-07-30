@@ -8,6 +8,10 @@
 - Add `label_biol()` to enrich normalized biology results with
   `TYPEANA_LABEL`. `process_biol()` reuses it for new outputs, while older
   artifacts can call it directly.
+- Keep BIOL and VIRO batch results that the backend returns already in table
+  form: `get_edsan()` bound them through `purrr::list_flatten()`, which exploded
+  the table into a list of columns and silently dropped every row. Such batches
+  are now row-bound and normalized as the result tables they are.
 - Guarantee `TYPEANA_LABEL` in every event bundle: `build_event_bundles()`
   applies `label_biol()` to a `biol` source that carries `TYPEANA` without the
   label, so bundles built from older biology artifacts match those retrieved by

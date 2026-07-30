@@ -534,7 +534,20 @@
     return(dplyr::distinct(out))
   }
 
-  out <- purrr::list_flatten(purrr::compact(results))
+  kept <- purrr::compact(results)
+
+  # BIOL and VIRO payloads normally arrive as lists of exams, which
+  # `list_flatten()` merges across batches. A backend that answers with results
+  # already in table form is equally valid -- `.biol_results()` accepts that
+  # shape -- but flattening a data.frame explodes it into a bare list of columns
+  # that the normalizer then drops, losing every row without a warning. Bind
+  # those batches instead and let the normalizer see the table it supports.
+  if (module %in% c("biol", "viro") && length(kept) > 0 &&
+      all(vapply(kept, is.data.frame, logical(1)))) {
+    return(select_requested(dplyr::bind_rows(kept)))
+  }
+
+  out <- purrr::list_flatten(kept)
   if (is.data.frame(out)) {
     out <- select_requested(out)
   }
