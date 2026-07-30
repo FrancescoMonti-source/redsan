@@ -25,6 +25,10 @@ Retrieval is fail-fast. If any requested module cannot be retrieved,
 no partial bundle collection is returned. Each selected module is retrieved
 once for the complete \code{event_ids} vector and then partitioned locally. Empty
 normalized module results are retained in every affected bundle.
+
+Modules are retrieved with \code{process = TRUE}, so reference labels added by the
+module processors are present in every bundle: \code{biol} carries \code{TYPEANA_LABEL}
+from \code{\link[=label_biol]{label_biol()}} and PMSI carries the labels added by \code{\link[=label_pmsi]{label_pmsi()}}.
 }
 \examples{
 \dontrun{

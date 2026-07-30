@@ -8,6 +8,11 @@
 - Add `label_biol()` to enrich normalized biology results with
   `TYPEANA_LABEL`. `process_biol()` reuses it for new outputs, while older
   artifacts can call it directly.
+- Guarantee `TYPEANA_LABEL` in every event bundle: `build_event_bundles()`
+  applies `label_biol()` to a `biol` source that carries `TYPEANA` without the
+  label, so bundles built from older biology artifacts match those retrieved by
+  `get_event_bundle()` and `get_event_bundles()`. `get_event_bundle()` and
+  `build_event_bundle()` now delegate their whole body to the plural forms.
 - Rename the module selector of `get_event_bundle()` and
   `get_event_bundles()` from `sources` to `modules`; `sources` continues to
   mean normalized payloads in bundle construction and rendering.

@@ -36,6 +36,12 @@ boundary. PMSI retains its \code{main}, \code{actes}, and \code{diag} tables.
 Every table being partitioned must contain \code{EVTID}, including each of the
 \code{main}, \code{actes}, and \code{diag} PMSI tables. Empty tables are retained. All rows
 and columns belonging to the requested event are preserved.
+
+A \code{biol} source carrying \code{TYPEANA} without \code{TYPEANA_LABEL} is labelled with
+\code{\link[=label_biol]{label_biol()}} before partitioning, so bundles built from biology artifacts
+normalized before labelling existed carry the same columns as bundles built
+from \code{\link[=get_event_bundles]{get_event_bundles()}}. Existing \code{TYPEANA_LABEL} values are left as they
+are, and a \code{biol} source without \code{TYPEANA} is passed through untouched.
 }
 \examples{
 sources <- list(

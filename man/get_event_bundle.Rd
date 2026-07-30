@@ -23,6 +23,11 @@ selected module for one \code{EVTID} and returns the bundle directly rather than
 inside a named collection.
 }
 \details{
+This function only forwards to \code{\link[=get_event_bundles]{get_event_bundles()}} and unwraps the single
+bundle, so retrieval, normalization, and reference labelling behave exactly as
+in the plural form: \code{biol} carries \code{TYPEANA_LABEL} from \code{\link[=label_biol]{label_biol()}} and
+PMSI carries the labels added by \code{\link[=label_pmsi]{label_pmsi()}}.
+
 Retrieval is fail-fast. If any selected module cannot be retrieved, no
 partial bundle is returned. Empty normalized module tables are retained.
 }

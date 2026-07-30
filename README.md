@@ -151,6 +151,14 @@ bundle$sources$pmsi$diag
 bundle$sources$biol
 ```
 
+`get_event_bundle()` is a wrapper around `get_event_bundles()`: it retrieves
+through the same code path and only unwraps the single bundle, so normalization
+and reference labels are identical in both forms. `bundle$sources$biol`
+therefore carries `TYPEANA_LABEL` and the PMSI tables carry their CIM-10 and
+CCAM/CDAM labels. `build_event_bundles()` also labels a `biol` source that
+carries `TYPEANA` without `TYPEANA_LABEL`, so bundles assembled from biology
+artifacts normalized before labelling existed expose the same columns.
+
 Printing the bundle reports compact row counts while leaving the normalized
 source objects unchanged. Retrieval is fail-fast: if one requested module
 fails, `get_event_bundle()` does not return a silently partial bundle.

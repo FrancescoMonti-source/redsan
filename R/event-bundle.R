@@ -15,6 +15,14 @@
   event_ids
 }
 
+.validate_single_event_id <- function(event_id) {
+  event_id <- .validate_event_ids(event_id, "event_id")
+  if (length(event_id) != 1L) {
+    stop("`event_id` must contain exactly one EVTID.", call. = FALSE)
+  }
+  event_id
+}
+
 .resolve_event_bundle_modules <- function(modules) {
   available <- .edsan_supported_modules()
   if (identical(modules, "all")) return(available)
@@ -52,6 +60,20 @@
          call. = FALSE)
   }
   sources
+}
+
+# Bundles must expose the same labelled columns whichever entry point produced
+# them. `get_edsan(process = TRUE)` already applies `label_biol()`, so retrieval
+# arrives labelled, but bundles are also built from artifacts normalized before
+# labelling existed. Labelling here keeps the bundle contract single-sourced:
+# every biology source carrying `TYPEANA` also carries `TYPEANA_LABEL`. Existing
+# labels are kept as they are, and sources whose grain has no `TYPEANA` at all
+# are left untouched.
+.label_event_bundle_source <- function(source, source_name) {
+  if (!identical(source_name, "biol") || !is.data.frame(source)) return(source)
+  if ("TYPEANA_LABEL" %in% names(source)) return(source)
+  if (!"TYPEANA" %in% names(source) && nrow(source) > 0L) return(source)
+  label_biol(source)
 }
 
 .slice_event_table <- function(x, event_id, label) {
@@ -114,6 +136,12 @@
 #' `main`, `actes`, and `diag` PMSI tables. Empty tables are retained. All rows
 #' and columns belonging to the requested event are preserved.
 #'
+#' A `biol` source carrying `TYPEANA` without `TYPEANA_LABEL` is labelled with
+#' [label_biol()] before partitioning, so bundles built from biology artifacts
+#' normalized before labelling existed carry the same columns as bundles built
+#' from [get_event_bundles()]. Existing `TYPEANA_LABEL` values are left as they
+#' are, and a `biol` source without `TYPEANA` is passed through untouched.
+#'
 #' @examples
 #' sources <- list(
 #'   doceds = tibble::tibble(
@@ -138,6 +166,9 @@
 build_event_bundles <- function(event_ids, sources) {
   event_ids <- .validate_event_ids(event_ids)
   sources <- .validate_event_bundle_sources(sources)
+  sources[] <- lapply(names(sources), function(source_name) {
+    .label_event_bundle_source(sources[[source_name]], source_name)
+  })
   created_at <- Sys.time()
 
   bundles <- lapply(event_ids, function(event_id) {
@@ -155,11 +186,7 @@ build_event_bundles <- function(event_ids, sources) {
 #' @param event_id One non-missing EDSAN `EVTID`.
 #' @export
 build_event_bundle <- function(event_id, sources) {
-  event_id <- .validate_event_ids(event_id, "event_id")
-  if (length(event_id) != 1L) {
-    stop("`event_id` must contain exactly one EVTID.", call. = FALSE)
-  }
-  build_event_bundles(event_id, sources)[[1L]]
+  build_event_bundles(.validate_single_event_id(event_id), sources)[[1L]]
 }
 
 #' Retrieve normalized EDSAN sources for several events
@@ -178,6 +205,10 @@ build_event_bundle <- function(event_id, sources) {
 #' no partial bundle collection is returned. Each selected module is retrieved
 #' once for the complete `event_ids` vector and then partitioned locally. Empty
 #' normalized module results are retained in every affected bundle.
+#'
+#' Modules are retrieved with `process = TRUE`, so reference labels added by the
+#' module processors are present in every bundle: `biol` carries `TYPEANA_LABEL`
+#' from [label_biol()] and PMSI carries the labels added by [label_pmsi()].
 #'
 #' @examples
 #' \dontrun{
@@ -221,6 +252,11 @@ get_event_bundles <- function(event_ids, modules = "all") {
 #'   DOCEDS, BIOL, and VIRO remain normalized tibbles.
 #'
 #' @details
+#' This function only forwards to [get_event_bundles()] and unwraps the single
+#' bundle, so retrieval, normalization, and reference labelling behave exactly as
+#' in the plural form: `biol` carries `TYPEANA_LABEL` from [label_biol()] and
+#' PMSI carries the labels added by [label_pmsi()].
+#'
 #' Retrieval is fail-fast. If any selected module cannot be retrieved, no
 #' partial bundle is returned. Empty normalized module tables are retained.
 #'
@@ -235,11 +271,7 @@ get_event_bundles <- function(event_ids, modules = "all") {
 #'
 #' @export
 get_event_bundle <- function(event_id, modules = "all") {
-  event_id <- .validate_event_ids(event_id, "event_id")
-  if (length(event_id) != 1L) {
-    stop("`event_id` must contain exactly one EVTID.", call. = FALSE)
-  }
-  get_event_bundles(event_id, modules)[[1L]]
+  get_event_bundles(.validate_single_event_id(event_id), modules)[[1L]]
 }
 
 .event_bundle_count <- function(x) {
