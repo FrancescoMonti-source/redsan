@@ -15,17 +15,18 @@ edsan_references <- function() {
   tibble::tibble(
     name = c(
       "actes", "bact", "bio", "ccam", "cdam", "cim10", "csarr", "ghm",
-      "modeent", "modesort", "ngap", "rectypes", "uf", "uf2um", "um"
+      "modeent", "modesort", "ngap", "rectypes", "uf", "uf2um",
+      "uf2umpmsi", "um"
     ),
     scope = c(
       "derived", "edsan", "edsan", "national", "national",
       "national", "national", "national", "national", "national",
-      "national", "local", "local", "local", "local"
+      "national", "local", "local", "local", "local", "local"
     ),
     key = c(
       "NOMENCLATURE + CODEACTE", "TYPEANA", "TYPEANA", "CODEACTE", "CODEACTE",
       "CODE", "CODEACTE", "GHM", "MODEENT", "MODESORT",
-      "CODEACTE", "RECTYPE", "SEJUF", "SEJUF", "SEJUM"
+      "CODEACTE", "RECTYPE", "SEJUF", "SEJUF", "SEJUF", "SEJUM"
     ),
     description = c(
       "Combined CCAM, CDAM, CSARR, and NGAP acts with explicit nomenclature",
@@ -41,7 +42,8 @@ edsan_references <- function() {
       "NGAP procedure codes",
       "Document type codes",
       "Functional unit codes",
-      "Functional-unit to medical-unit mapping",
+      "Functional-unit to EDSAN medical-unit mapping",
+      "Current functional-unit to EDSAN and PMSI medical-unit mapping",
       "Medical unit codes"
     )
   )
@@ -63,6 +65,7 @@ edsan_references <- function() {
     rectypes = c("RECTYPE", "RECTYPE_LABEL"),
     uf = c("SEJUF", "SEJUF_LABEL"),
     uf2um = c("SEJUF", "SEJUM"),
+    uf2umpmsi = c("SEJUF", "SEJUM", "UM_PMSI"),
     um = c("SEJUM", "SEJUM_LABEL")
   )
 }
@@ -88,14 +91,15 @@ edsan_references <- function() {
     stringsAsFactors = FALSE
   )
 
-  if (ncol(out) != 2L) {
+  expected <- .edsan_reference_columns(name)
+  if (ncol(out) != length(expected)) {
     stop(
-      "Reference `", name, "` must contain exactly two columns.",
+      "Reference `", name, "` must contain exactly ", length(expected),
+      " columns.",
       call. = FALSE
     )
   }
 
-  expected <- .edsan_reference_columns(name)
   if (!identical(names(out), expected)) {
     stop(
       "Reference `", name, "` must have columns ",
@@ -131,6 +135,11 @@ edsan_references <- function() {
 #' separate from `bio`: some `TYPEANA` codes appear in both with a different
 #' label, and only the module the rows come from settles which one applies.
 #'
+#' `uf2umpmsi` is the current local bridge from EDSAN `SEJUF` to both the EDSAN
+#' organizational unit (`SEJUM`) and the CORA/PMSI medical unit (`UM_PMSI`). It
+#' is a dated local snapshot, not a national PMSI reference and not a substitute
+#' for a historized UF-to-UM join when analysing older stays.
+#'
 #' A reference may carry a missing label for a code that the source system leaves
 #' undocumented, as several `rectypes` entries do. Codes are never dropped for
 #' that reason.
@@ -140,13 +149,16 @@ edsan_references <- function() {
 #' @return A tibble preserving native reference headers: `TYPEANA` for biology
 #'   and bacteriology, `CODEACTE` for acts, `CODE` for CIM-10, `GHM` for
 #'   diagnosis-related groups, `MODEENT` / `MODESORT` for PMSI stay modes,
-#'   `RECTYPE` for document types, and `SEJUF` / `SEJUM` for organizational
-#'   mappings. Label columns use the corresponding `_LABEL` suffix. The derived
-#'   `actes` reference adds `NOMENCLATURE`.
+#'   `RECTYPE` for document types, and `SEJUF` / `SEJUM` / `UM_PMSI` for local
+#'   organizational mappings. Label columns use the corresponding `_LABEL`
+#'   suffix. The derived `actes` reference adds `NOMENCLATURE`.
 #'
 #' @examples
 #' cim10 <- edsan_reference("cim10")
 #' utils::head(cim10)
+#'
+#' uf_pmsi <- edsan_reference("uf2umpmsi")
+#' utils::head(uf_pmsi)
 #'
 #' actes <- edsan_reference("actes")
 #' utils::head(actes)
