@@ -1,5 +1,11 @@
 # redsan 0.3.0
 
+- Add `label_doceds()`, applied by `process_doceds()` and guaranteed on every
+  event bundle, joining `RECTYPE` against the packaged `rectypes` reference to
+  add `RECTYPE_LABEL`. Documents now carry an authoritative type label the same
+  way biology carries `TYPEANA_LABEL`. A payload without `RECTYPE` is left
+  untouched.
+
 - Add seven packaged references: `bact` (bacteriology analytes, kept separate
   from `bio` because shared `TYPEANA` codes carry module-specific labels),
   `csarr` and `ngap` (act nomenclatures now part of the derived `actes`

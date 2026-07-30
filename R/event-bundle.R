@@ -63,17 +63,23 @@
 }
 
 # Bundles must expose the same labelled columns whichever entry point produced
-# them. `get_edsan(process = TRUE)` already applies `label_biol()`, so retrieval
-# arrives labelled, but bundles are also built from artifacts normalized before
-# labelling existed. Labelling here keeps the bundle contract single-sourced:
-# every biology source carrying `TYPEANA` also carries `TYPEANA_LABEL`. Existing
-# labels are kept as they are, and sources whose grain has no `TYPEANA` at all
-# are left untouched.
+# them. `get_edsan(process = TRUE)` already applies the module labellers, so
+# retrieval arrives labelled, but bundles are also built from artifacts
+# normalized before labelling existed. Labelling here keeps the bundle contract
+# single-sourced: every source carrying the reference key also carries its
+# label. Existing labels are kept as they are, and sources whose grain has no
+# key column at all are left untouched.
+.EVENT_BUNDLE_LABELLERS <- list(
+  biol = list(key = "TYPEANA", label = "TYPEANA_LABEL"),
+  doceds = list(key = "RECTYPE", label = "RECTYPE_LABEL")
+)
+
 .label_event_bundle_source <- function(source, source_name) {
-  if (!identical(source_name, "biol") || !is.data.frame(source)) return(source)
-  if ("TYPEANA_LABEL" %in% names(source)) return(source)
-  if (!"TYPEANA" %in% names(source) && nrow(source) > 0L) return(source)
-  label_biol(source)
+  spec <- .EVENT_BUNDLE_LABELLERS[[source_name]]
+  if (is.null(spec) || !is.data.frame(source)) return(source)
+  if (spec$label %in% names(source)) return(source)
+  if (!spec$key %in% names(source) && nrow(source) > 0L) return(source)
+  switch(source_name, biol = label_biol(source), doceds = label_doceds(source))
 }
 
 .slice_event_table <- function(x, event_id, label) {
