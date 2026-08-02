@@ -13,7 +13,7 @@ edsan_reference(name)
 A tibble preserving native reference headers: \code{TYPEANA} for biology
 and bacteriology, \code{CODEACTE} for acts, \code{CODE} for CIM-10, \code{GHM} for
 diagnosis-related groups, \code{MODEENT} / \code{MODESORT} for PMSI stay modes,
-\code{RECTYPE} for document types, and \code{SEJUF} / \code{SEJUM} for
+\code{RECTYPE} for document types, and \code{SEJUF} / \code{SEJUM} / \code{UM_PMSI} for local
 organizational mappings. Label columns use the corresponding \verb{_LABEL}
 suffix. The derived \code{actes} reference adds \code{NOMENCLATURE}.
 }
@@ -22,16 +22,19 @@ Returns one normalized reference table. Reference keys must be unique.
 Native codes are kept as character, including leading zeroes.
 }
 \details{
-\code{actes} is derived from the separate \code{ccam}, \code{cdam},
-\code{csarr}, and \code{ngap} references and adds a \code{NOMENCLATURE} column.
-It is not stored as an independent source of truth. The same \code{CODEACTE} may
-exist in more than one nomenclature, which is why the combined key includes
-\code{NOMENCLATURE}.
+\code{actes} is derived from the separate \code{ccam}, \code{cdam}, \code{csarr}, and \code{ngap}
+references and adds a \code{NOMENCLATURE} column. It is not stored as an
+independent source of truth. The same \code{CODEACTE} may exist in more than one
+nomenclature, which is why the combined key includes \code{NOMENCLATURE}.
 
-\code{bact} covers the bacteriology analytes of the EDSAN \code{bact} module and
-is kept separate from \code{bio}: some \code{TYPEANA} codes appear in both with a
-different label, and only the module the rows come from settles which one
-applies.
+\code{bact} covers the bacteriology analytes of the EDSAN \code{bact} module and is kept
+separate from \code{bio}: some \code{TYPEANA} codes appear in both with a different
+label, and only the module the rows come from settles which one applies.
+
+\code{uf2umpmsi} is the current local bridge from EDSAN \code{SEJUF} to both the EDSAN
+organizational unit (\code{SEJUM}) and the CORA/PMSI medical unit (\code{UM_PMSI}). It
+is a dated local snapshot, not a national PMSI reference and not a substitute
+for a historized UF-to-UM join when analysing older stays.
 
 A reference may carry a missing label for a code that the source system leaves
 undocumented, as several \code{rectypes} entries do. Codes are never dropped for
@@ -40,6 +43,9 @@ that reason.
 \examples{
 cim10 <- edsan_reference("cim10")
 utils::head(cim10)
+
+uf_pmsi <- edsan_reference("uf2umpmsi")
+utils::head(uf_pmsi)
 
 actes <- edsan_reference("actes")
 utils::head(actes)
