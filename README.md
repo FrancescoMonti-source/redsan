@@ -194,6 +194,49 @@ The renderer preserves all rows and columns of the selected sources. It does
 not decide which information is clinically relevant and does not construct a
 model-specific prompt.
 
+## Trimming DOCEDS boilerplate
+
+A DOCEDS document is mostly not clinical text. A consultation letter is fifty
+lines of letterhead, correspondence block and RGPD notice around one paragraph,
+plus whatever residue the Word template left behind. `trim_doceds_text()`
+removes that frame from one document and reports exactly what it took.
+
+```r
+trimmed <- trim_doceds_text(bundle$sources$doceds$RECTXT[[1L]])
+trimmed$text                  # what survives
+trimmed$net_removed_chars     # the only total in the list
+trimmed$removed_intervals     # every span removed, in original coordinates
+```
+
+This is normalization, not selection: it removes the administrative frame and
+is meant never to touch what a clinician wrote. Which documents are worth
+reading, and what counts as evidence, belong to whoever consumes the bundle.
+
+Two properties are the reason it can be trusted, and both are worth knowing
+before changing anything here:
+
+- **Every rule contributes spans, none edits the string.** Candidate spans are
+  collected in the coordinates of the original document, lines carrying a
+  measured constant (`TA : 130/80`, `Poids : 144 kg`) are subtracted from them,
+  and what survives is applied in one pass. That is what makes removals
+  auditable and order-independent, and what lets a family that swallowed a vital
+  sign give it back.
+- **Every per-rule count is standalone.** They measure what a rule would remove
+  on its own, so they overlap each other and must not be summed. Only
+  `net_removed_chars` is a total. `doceds_family_chars()` aggregates the
+  per-family counts across documents on the same basis.
+
+`near_total_match_detected` is a diagnostic for one failure — a rule that ran
+away on an unseen layout and matched essentially the whole document — and not a
+safety margin. A document losing 99.4 percent is not clinically different from
+one losing 99.6.
+
+The families are **site-specific** to the Rouen corpus they were measured
+against, and a family that fires on nothing is wrong rather than inapplicable.
+`tools/` holds the three instruments that priced them and that check they take
+no clinical prose, with the measured baseline and the reasoning in
+`tools/README.md`. Read it before adding or widening a family.
+
 ## Privacy
 
 Request only the fields needed for the task. Keep patient-derived exports,

@@ -1,7 +1,7 @@
 Package: redsan
 Type: Package
 Title: Retrieve and Normalize EDSAN Warehouse Data
-Version: 0.3.0
+Version: 0.4.0
 Authors@R: c(
     person(
       given = "Francesco",
@@ -15,7 +15,9 @@ Maintainer: Francesco Monti-source <58150610+FrancescoMonti-source@users.noreply
 Description: Retrieves and normalizes EDSAN health data warehouse modules for
     downstream analysis. The package records module-level source contracts,
     batches live API calls, and prepares PMSI and biology/virology payloads into stable
-    analysis tables while preserving native identifiers.
+    analysis tables while preserving native identifiers. Document text is
+    normalized the same way, by removing the administrative frame around
+    clinical prose and reporting exactly what was removed.
 License: file LICENSE
 Encoding: UTF-8
 Imports:
@@ -26,6 +28,7 @@ Imports:
     magrittr,
     purrr,
     rlang,
+    stats,
     stringi,
     stringr,
     tibble,

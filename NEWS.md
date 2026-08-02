@@ -1,3 +1,30 @@
+# redsan 0.4.0
+
+- Add `trim_doceds_text()`, which removes the administrative frame from one
+  DOCEDS document — letterhead, correspondence block, RGPD notice, unfilled
+  identity banner, page furniture, pasted laboratory table, and the placeholder
+  and fill-run residue a Word template leaves behind — and reports every span it
+  took in the coordinates of the original document. Add `doceds_family_chars()`
+  to aggregate the per-family counts across documents.
+
+  The rules were measured against a corpus of 64,871 documents and 205 M
+  characters, where they remove 36.9 percent of it. They come from
+  `redsancoding`, which had been carrying document normalization it should only
+  have been consuming. Nothing about what they match changed in the move.
+
+  Two properties are the reason this can be trusted, and both are load-bearing:
+  every rule contributes spans rather than editing the string, so lines carrying
+  a measured constant are subtracted before a single cut is applied; and every
+  per-rule count is standalone and overlapping, so only `net_removed_chars` is a
+  total. The families are site-specific to that corpus, and a family that fires
+  on nothing there is wrong rather than inapplicable.
+
+- Add `tools/`, the three instruments the trimming rules are priced and policed
+  by: an exploration of what noise still reaches a reader, a per-family
+  measurement, and a prose audit that reads every removed span looking for
+  clinical narrative. `tools/README.md` records the measured baseline, the
+  residue that was accepted with its number, and the reasoning behind each rule.
+
 # redsan 0.3.0
 
 - Add `label_doceds()`, applied by `process_doceds()` and guaranteed on every
