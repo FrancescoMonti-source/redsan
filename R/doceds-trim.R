@@ -652,9 +652,11 @@ doceds_family_chars <- function(per_document) {
 #'   `preamble_rule` and `boilerplate_rule` name the rule sets;
 #'   `preamble_limit_chars` is how early the letter date has to appear to be
 #'   treated as a frame boundary; `boilerplate_families` names every family in
-#'   the order they are applied; and `near_total_share` with
-#'   `near_total_min_chars` are the diagnostic that abandons a trim which matched
-#'   essentially the whole document.
+#'   the order they are applied; `inline_rules` gives the patterns of the two
+#'   rules that act inside a line rather than on whole ones, which have patterns
+#'   instead of family names; and `near_total_share` with `near_total_min_chars`
+#'   are the diagnostic that abandons a trim which matched essentially the whole
+#'   document.
 #'
 #' @examples
 #' spec <- doceds_trim_spec()
@@ -670,6 +672,10 @@ doceds_trim_spec <- function() {
     preamble_limit_chars = .DOCEDS_PREAMBLE_LIMIT,
     boilerplate_rule = .DOCEDS_BOILERPLATE_RULE,
     boilerplate_families = names(.DOCEDS_BOILERPLATE_PATTERNS),
+    inline_rules = c(
+      field = .DOCEDS_FIELD_PATTERN,
+      rule_run = .DOCEDS_RULE_RUN_PATTERN
+    ),
     near_total_share = .DOCEDS_NEAR_TOTAL_SHARE,
     near_total_min_chars = .DOCEDS_NEAR_TOTAL_MIN_CHARS
   )

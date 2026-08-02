@@ -11,9 +11,11 @@ A list: \code{package} and \code{version} identify the installed rules;
 \code{preamble_rule} and \code{boilerplate_rule} name the rule sets;
 \code{preamble_limit_chars} is how early the letter date has to appear to be
 treated as a frame boundary; \code{boilerplate_families} names every family in
-the order they are applied; and \code{near_total_share} with
-\code{near_total_min_chars} are the diagnostic that abandons a trim which matched
-essentially the whole document.
+the order they are applied; \code{inline_rules} gives the patterns of the two
+rules that act inside a line rather than on whole ones, which have patterns
+instead of family names; and \code{near_total_share} with \code{near_total_min_chars}
+are the diagnostic that abandons a trim which matched essentially the whole
+document.
 }
 \description{
 Reports the identity and the thresholds of the rules \code{\link[=trim_doceds_text]{trim_doceds_text()}}

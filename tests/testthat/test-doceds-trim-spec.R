@@ -14,6 +14,10 @@ test_that("the spec reports the rules that actually run", {
     spec$boilerplate_families,
     names(.DOCEDS_BOILERPLATE_PATTERNS)
   )
+  expect_identical(
+    spec$inline_rules,
+    c(field = .DOCEDS_FIELD_PATTERN, rule_run = .DOCEDS_RULE_RUN_PATTERN)
+  )
 })
 
 test_that("the spec identifies the installed rules", {
