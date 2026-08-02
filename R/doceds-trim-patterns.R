@@ -11,7 +11,11 @@
 # purpose. They are meant to be read by a person checking whether a rule can
 # reach clinical prose, and `\uxxxx` escapes would make that impossible.
 
-.DOCEDS_PREAMBLE_RULE <- "rouen-bois-guillaume-v1"
+# The name of a rule set, and only its name. What version of it ran is derived
+# from the rules themselves — see `.doceds_rules_digest()` — because a version
+# in a string here is a fact somebody has to remember, and the one thing it must
+# never do is stay the same while the rules change.
+.DOCEDS_PREAMBLE_RULE <- "rouen-bois-guillaume"
 # How early the letter date has to appear to be a frame boundary rather than a
 # date inside prose. Measured rather than chosen: three quarters of the
 # documents carry the marker at all, and among those it sits at 583 characters
@@ -22,7 +26,6 @@
 # trims a document that is not a letter, set too low it only leaves noise in
 # the prompt.
 .DOCEDS_PREAMBLE_LIMIT <- 3000L
-.DOCEDS_EXCLUDED_RECTYPES <- c("OPROOM", "BT")
 # Above this share of a document, the trim is abandoned rather than applied.
 #
 # This is a diagnostic for one failure — a rule that ran away on a layout nobody
@@ -310,7 +313,8 @@
   ")"
 )
 
-.DOCEDS_BOILERPLATE_RULE <- "approved-boilerplate-families-v3"
+# A name, not a version. See `.DOCEDS_PREAMBLE_RULE`.
+.DOCEDS_BOILERPLATE_RULE <- "approved-boilerplate-families"
 .DOCEDS_BOILERPLATE_PATTERNS <- list(
   rgpd = paste0(
     "(?is)(?:",

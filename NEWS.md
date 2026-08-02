@@ -27,6 +27,25 @@
   their own copy of a rule name — a copy reports what the caller believes ran,
   which stops being true the moment the two drift apart.
 
+  `digest` is the field to compare, because it is the one nobody maintains. It
+  is derived from every pattern and threshold the trimmer holds, and the set it
+  covers is derived too — read from the namespace rather than listed, so a
+  pattern added tomorrow enters it without anybody remembering to say so. The
+  rule names carry no version for the same reason: a version written into a
+  string can only fail in one direction, by staying put while the rules move.
+  `approved-boilerplate-families-v3` is now `approved-boilerplate-families`, and
+  `rouen-bois-guillaume-v1` is `rouen-bois-guillaume`.
+
+  The digest is taken over the rules' UTF-8 bytes rather than over the R objects,
+  which matters more than it sounds: hashing the objects made it depend on each
+  string's encoding flag, and R sets that from the locale. The patterns carry
+  accented characters, so the same rules hashed differently depending on how they
+  were loaded — in one session 16 strings were flagged `unknown` and 32 `UTF-8`.
+  Two machines would have reported identical rules as different ones.
+
+  What the digest does not cover is the code that applies the rules; `version`
+  is what records that.
+
 - Add `tools/`, the three instruments the trimming rules are priced and policed
   by: an exploration of what noise still reaches a reader, a per-family
   measurement, and a prose audit that reads every removed span looking for

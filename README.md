@@ -231,6 +231,14 @@ away on an unseen layout and matched essentially the whole document — and not 
 safety margin. A document losing 99.4 percent is not clinically different from
 one losing 99.6.
 
+`doceds_trim_spec()` reports which rules ran, for a caller that wants to record
+what produced a result alongside the result. Compare its `digest`: it is derived
+from every pattern and threshold the trimmer holds, and the set it covers is
+read from the namespace rather than listed, so a rule added tomorrow enters it
+by itself. The rule names carry no version on purpose — a version somebody has
+to remember can only fail by staying put while the rules move. What the digest
+does not cover is the code applying the rules, which is what `version` records.
+
 The families are **site-specific** to the Rouen corpus they were measured
 against, and a family that fires on nothing is wrong rather than inapplicable.
 `tools/` holds the three instruments that priced them and that check they take

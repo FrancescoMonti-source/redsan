@@ -632,6 +632,82 @@ doceds_family_chars <- function(per_document) {
   totals[order(-totals)]
 }
 
+# Every constant that decides what gets removed, in a stable order.
+#
+# The set is derived from the namespace rather than listed, and that is the whole
+# point: a list would be one more thing to remember, and it would go stale
+# exactly when it mattered — somebody adds a pattern, forgets the list, and the
+# identity keeps claiming the rules are what they were. Naming a constant
+# `.DOCEDS_*` is enough to put it under this.
+#
+# Sorted, so the digest describes the rules and not the order they happen to be
+# defined in.
+.doceds_rule_objects <- function(env = asNamespace("redsan")) {
+  names <- sort(grep("^\\.DOCEDS_", ls(env, all.names = TRUE), value = TRUE))
+  mget(names, envir = env)
+}
+
+# The rules flattened to one canonical string: each constant's name, then the
+# name and value of every element in it.
+#
+# The separators are C0 control bytes, because they are the one thing a pattern
+# here cannot contain, and a separator's whole job is to make two different rule
+# sets impossible to flatten to the same text. Built from their byte values
+# rather than written as literals: a control character sitting in source is
+# invisible to whoever reads this next and does not survive every editor.
+#
+# Deliberately not named `.DOCEDS_*`. It is punctuation for the digest, not a
+# rule, and a constant with that prefix would end up inside the very thing it
+# helps compute.
+.doceds_digest_separators <- function() {
+  stats::setNames(
+    vapply(1:4, function(byte) rawToChar(as.raw(byte)), character(1)),
+    c("constant", "element", "between_elements", "between_constants")
+  )
+}
+
+.doceds_rule_text <- function(objects) {
+  sep <- .doceds_digest_separators()
+  paste0(
+    vapply(
+      seq_along(objects),
+      function(i) {
+        value <- objects[[i]]
+        paste0(
+          names(objects)[[i]],
+          sep[["constant"]],
+          paste0(
+            names(value),
+            sep[["element"]],
+            as.character(unlist(value)),
+            collapse = sep[["between_elements"]]
+          )
+        )
+      },
+      character(1)
+    ),
+    collapse = sep[["between_constants"]]
+  )
+}
+
+# What the rules are, as one value that cannot be maintained by hand.
+#
+# It hashes UTF-8 **bytes**, not R objects, and that is not fussiness. Hashing
+# the objects made the digest depend on how each string happened to be flagged
+# rather than on what it said: the patterns carry accented characters, R marks
+# them `unknown` in a UTF-8 locale and `UTF-8` elsewhere, and the two hash
+# differently. The same rules on two machines would have reported themselves as
+# different rules — the one failure a provenance field must not have.
+#
+# It covers the patterns and the thresholds — everything that decides what is
+# removed. It does **not** cover the code that applies them: a change to
+# `.remove_text_intervals()` leaves this untouched, and the package version is
+# what records that. Two runs agreeing here agree about the recognition rules,
+# which is the question the audit downstream asks.
+.doceds_rules_digest <- function(env = asNamespace("redsan")) {
+  rlang::hash(charToRaw(enc2utf8(.doceds_rule_text(.doceds_rule_objects(env)))))
+}
+
 #' Which trimming rules ran, and with which limits
 #'
 #' Reports the identity and the thresholds of the rules [trim_doceds_text()]
@@ -648,7 +724,22 @@ doceds_family_chars <- function(per_document) {
 #' a rule name or a threshold reports what it believes ran, which is the same
 #' thing as reporting nothing once the two drift apart.
 #'
+#' `digest` is the field to compare, because it is the one nobody maintains. It
+#' is derived from every pattern and threshold the trimmer holds, so a rule that
+#' changes changes it whether or not anyone remembered to say so. It is taken
+#' over the rules' UTF-8 bytes, so two machines running the same rules agree on
+#' it whatever their locale. `preamble_rule`
+#' and `boilerplate_rule` are names and are deliberately not versioned — a
+#' version written into a string is a fact somebody has to remember, and its only
+#' possible failure is the one that matters: staying put while the rules move.
+#'
+#' What `digest` does **not** cover is the code that applies the rules. A change
+#' to how spans are merged or removed leaves it untouched; `version` is what
+#' records that. Two runs agreeing on both agree about the whole trimming.
+#'
 #' @return A list: `package` and `version` identify the installed rules;
+#'   `digest` identifies the rules themselves, derived from them rather than
+#'   declared;
 #'   `preamble_rule` and `boilerplate_rule` name the rule sets;
 #'   `preamble_limit_chars` is how early the letter date has to appear to be
 #'   treated as a frame boundary; `boilerplate_families` names every family in
@@ -668,6 +759,7 @@ doceds_trim_spec <- function() {
   list(
     package = "redsan",
     version = as.character(utils::packageVersion("redsan")),
+    digest = .doceds_rules_digest(),
     preamble_rule = .DOCEDS_PREAMBLE_RULE,
     preamble_limit_chars = .DOCEDS_PREAMBLE_LIMIT,
     boilerplate_rule = .DOCEDS_BOILERPLATE_RULE,

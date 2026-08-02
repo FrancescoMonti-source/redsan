@@ -8,6 +8,8 @@ doceds_trim_spec()
 }
 \value{
 A list: \code{package} and \code{version} identify the installed rules;
+\code{digest} identifies the rules themselves, derived from them rather than
+declared;
 \code{preamble_rule} and \code{boilerplate_rule} name the rule sets;
 \code{preamble_limit_chars} is how early the letter date has to appear to be
 treated as a frame boundary; \code{boilerplate_families} names every family in
@@ -31,6 +33,19 @@ one that cannot, which matters when the numbers are being compared over time.
 Read it rather than copying the values. A consumer that keeps its own copy of
 a rule name or a threshold reports what it believes ran, which is the same
 thing as reporting nothing once the two drift apart.
+
+\code{digest} is the field to compare, because it is the one nobody maintains. It
+is derived from every pattern and threshold the trimmer holds, so a rule that
+changes changes it whether or not anyone remembered to say so. It is taken
+over the rules' UTF-8 bytes, so two machines running the same rules agree on
+it whatever their locale. \code{preamble_rule}
+and \code{boilerplate_rule} are names and are deliberately not versioned — a
+version written into a string is a fact somebody has to remember, and its only
+possible failure is the one that matters: staying put while the rules move.
+
+What \code{digest} does \strong{not} cover is the code that applies the rules. A change
+to how spans are merged or removed leaves it untouched; \code{version} is what
+records that. Two runs agreeing on both agree about the whole trimming.
 }
 \examples{
 spec <- doceds_trim_spec()
