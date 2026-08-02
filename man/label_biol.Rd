@@ -27,7 +27,7 @@ from the packaged reference.
 
 A \code{TYPEANA} column that raw EDSAN payloads expose as a one-element list per
 row is flattened to character before matching, since the reference key must be
-atomic. Values holding several codes are collapsed with \code{;}, as when preparing
+atomic. Values holding several codes are collapsed with \verb{;}, as when preparing
 PMSI records, and empty values become \code{NA}.
 }
 \examples{

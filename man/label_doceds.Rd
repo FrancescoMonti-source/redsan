@@ -20,15 +20,14 @@ matching \code{RECTYPE} against the packaged \code{rectypes} reference.
 }
 \details{
 The join is exact, preserves every document row and leaves unmatched labels
-as \code{NA}. An existing \code{RECTYPE_LABEL} column is refreshed from the
-packaged reference. Several \code{rectypes} entries are documented with an
-empty label in the source system; those keep \code{NA} rather than being
-dropped.
+as \code{NA}. An existing \code{RECTYPE_LABEL} column is refreshed from the packaged
+reference. Several \code{rectypes} entries are documented with an empty label in
+the source system; those keep \code{NA} rather than being dropped.
 
-A \code{RECTYPE} column that raw EDSAN payloads expose as a one-element list
-per row is flattened to character before matching, since the reference key
-must be atomic. Values holding several codes are collapsed with \verb{;}, and
-empty values become \code{NA}.
+A \code{RECTYPE} column that raw EDSAN payloads expose as a one-element list per
+row is flattened to character before matching, since the reference key must
+be atomic. Values holding several codes are collapsed with \verb{;}, and empty
+values become \code{NA}.
 }
 \examples{
 documents <- data.frame(
