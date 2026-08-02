@@ -19,6 +19,14 @@
   total. The families are site-specific to that corpus, and a family that fires
   on nothing there is wrong rather than inapplicable.
 
+- Add `doceds_trim_spec()`, reporting the rule names, the thresholds and the
+  family list the trimmer actually applies, together with the installed package
+  version. A trimmed document is not self-describing: two runs a year apart can
+  differ because the families changed, because a bound moved, or because neither
+  did. Consumers that record provenance should read this rather than keeping
+  their own copy of a rule name — a copy reports what the caller believes ran,
+  which stops being true the moment the two drift apart.
+
 - Add `tools/`, the three instruments the trimming rules are priced and policed
   by: an exploration of what noise still reaches a reader, a per-family
   measurement, and a prose audit that reads every removed span looking for

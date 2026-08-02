@@ -631,3 +631,46 @@ doceds_family_chars <- function(per_document) {
   totals <- tapply(as.integer(counts), names(counts), sum)
   totals[order(-totals)]
 }
+
+#' Which trimming rules ran, and with which limits
+#'
+#' Reports the identity and the thresholds of the rules [trim_doceds_text()]
+#' applies, so a caller can record what produced a trimmed text alongside the
+#' text itself.
+#'
+#' @details
+#' A trimmed document is not self-describing: two runs a year apart can differ
+#' because the families changed, because a bound moved, or because neither did.
+#' A saved result that records this alongside its numbers can be told apart from
+#' one that cannot, which matters when the numbers are being compared over time.
+#'
+#' Read it rather than copying the values. A consumer that keeps its own copy of
+#' a rule name or a threshold reports what it believes ran, which is the same
+#' thing as reporting nothing once the two drift apart.
+#'
+#' @return A list: `package` and `version` identify the installed rules;
+#'   `preamble_rule` and `boilerplate_rule` name the rule sets;
+#'   `preamble_limit_chars` is how early the letter date has to appear to be
+#'   treated as a frame boundary; `boilerplate_families` names every family in
+#'   the order they are applied; and `near_total_share` with
+#'   `near_total_min_chars` are the diagnostic that abandons a trim which matched
+#'   essentially the whole document.
+#'
+#' @examples
+#' spec <- doceds_trim_spec()
+#' spec$boilerplate_rule
+#' spec$boilerplate_families
+#'
+#' @export
+doceds_trim_spec <- function() {
+  list(
+    package = "redsan",
+    version = as.character(utils::packageVersion("redsan")),
+    preamble_rule = .DOCEDS_PREAMBLE_RULE,
+    preamble_limit_chars = .DOCEDS_PREAMBLE_LIMIT,
+    boilerplate_rule = .DOCEDS_BOILERPLATE_RULE,
+    boilerplate_families = names(.DOCEDS_BOILERPLATE_PATTERNS),
+    near_total_share = .DOCEDS_NEAR_TOTAL_SHARE,
+    near_total_min_chars = .DOCEDS_NEAR_TOTAL_MIN_CHARS
+  )
+}
