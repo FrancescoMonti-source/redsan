@@ -269,11 +269,17 @@
 #' exactly what it took.
 #'
 #' @details
-#' The rules only ever remove the administrative frame around clinical text:
-#' letterheads, correspondence blocks, RGPD notices, unfilled identity banners,
-#' page furniture, and the placeholders and fill runs a Word template leaves
-#' behind. Nothing here is meant to touch what a clinician wrote, and the
-#' instruments under `tools/` exist to keep checking that it does not.
+#' The administrative rules remove letterheads, correspondence blocks, RGPD
+#' notices, unfilled identity banners, page furniture, and the placeholders and
+#' fill runs a Word template leaves behind. They are meant not to touch what a
+#' clinician wrote, and the instruments under `tools/` exist to keep checking
+#' that boundary.
+#'
+#' The optional `lab_table` family is different. With
+#' `remove_lab_tables = TRUE` it removes recognised pasted laboratory tables,
+#' which can contain clinician-authored clinical values. This is an explicit
+#' evidence-scope policy, not part of the administrative-frame guarantee. It is
+#' enabled by default and can be disabled by the caller.
 #'
 #' Every rule contributes candidate spans in the coordinates of the **original**
 #' document rather than editing the string. Lines carrying a measured constant —
@@ -298,6 +304,9 @@
 #' @param text One document's text, normally one `RECTXT` value. Length 0, `NA`
 #'   and `""` return the input unchanged with zeroed counts. A longer vector is
 #'   an error rather than a silent `NA`: map over it with [lapply()].
+#' @param remove_lab_tables Whether to remove recognised pasted laboratory
+#'   tables. Defaults to `TRUE`. Set `FALSE` when that source content must remain
+#'   visible.
 #'
 #' @return A list. `text` is what survives; `net_removed_chars` is the exact
 #'   difference in characters between the input and it, and is the **only
@@ -332,7 +341,8 @@
 #' trimmed$net_removed_chars
 #'
 #' @export
-trim_doceds_text <- function(text) {
+trim_doceds_text <- function(text, remove_lab_tables = TRUE) {
+  remove_lab_tables <- .doceds_remove_lab_tables(remove_lab_tables)
   text <- as.character(text)
   if (length(text) > 1L) {
     stop(
@@ -397,17 +407,18 @@ trim_doceds_text <- function(text) {
   }
   removed_prefix <- if (within_limit) first - preamble_start else 0L
 
+  patterns <- .doceds_boilerplate_patterns(remove_lab_tables)
   by_family <- lapply(
-    names(.DOCEDS_BOILERPLATE_PATTERNS),
+    names(patterns),
     function(family) {
       .regex_intervals(
         text,
-        .DOCEDS_BOILERPLATE_PATTERNS[[family]],
+        patterns[[family]],
         family
       )
     }
   )
-  names(by_family) <- names(.DOCEDS_BOILERPLATE_PATTERNS)
+  names(by_family) <- names(patterns)
   boilerplate <- do.call(
     rbind,
     by_family
@@ -705,7 +716,30 @@ doceds_family_chars <- function(per_document) {
 # what records that. Two runs agreeing here agree about the recognition rules,
 # which is the question the audit downstream asks.
 .doceds_rules_digest <- function(env = asNamespace("redsan")) {
-  rlang::hash(charToRaw(enc2utf8(.doceds_rule_text(.doceds_rule_objects(env)))))
+  digest::digest(
+    charToRaw(enc2utf8(.doceds_rule_text(.doceds_rule_objects(env)))),
+    algo = "sha256",
+    serialize = FALSE
+  )
+}
+
+.doceds_remove_lab_tables <- function(remove_lab_tables) {
+  if (
+    !is.logical(remove_lab_tables) ||
+      length(remove_lab_tables) != 1L ||
+      is.na(remove_lab_tables)
+  ) {
+    stop("`remove_lab_tables` must be TRUE or FALSE.", call. = FALSE)
+  }
+  remove_lab_tables
+}
+
+.doceds_boilerplate_patterns <- function(remove_lab_tables) {
+  patterns <- .DOCEDS_BOILERPLATE_PATTERNS
+  if (!remove_lab_tables) {
+    patterns[["lab_table"]] <- NULL
+  }
+  patterns
 }
 
 #' Which trimming rules ran, and with which limits
@@ -713,6 +747,9 @@ doceds_family_chars <- function(per_document) {
 #' Reports the identity and the thresholds of the rules [trim_doceds_text()]
 #' applies, so a caller can record what produced a trimmed text alongside the
 #' text itself.
+#'
+#' @param remove_lab_tables Whether the optional pasted-laboratory-table family
+#'   is active. Defaults to `TRUE`, matching [trim_doceds_text()].
 #'
 #' @details
 #' A trimmed document is not self-describing: two runs a year apart can differ
@@ -726,9 +763,10 @@ doceds_family_chars <- function(per_document) {
 #'
 #' `digest` is the field to compare, because it is the one nobody maintains. It
 #' is derived from every pattern and threshold the trimmer holds, so a rule that
-#' changes changes it whether or not anyone remembered to say so. It is taken
-#' over the rules' UTF-8 bytes, so two machines running the same rules agree on
-#' it whatever their locale. `preamble_rule`
+#' changes changes it whether or not anyone remembered to say so. It is a
+#' SHA-256 digest of the canonical rule text's UTF-8 bytes, computed without R
+#' serialization, so two machines running the same rules agree on it whatever
+#' their locale. `preamble_rule`
 #' and `boilerplate_rule` are names and are deliberately not versioned — a
 #' version written into a string is a fact somebody has to remember, and its only
 #' possible failure is the one that matters: staying put while the rules move.
@@ -738,8 +776,9 @@ doceds_family_chars <- function(per_document) {
 #' records that. Two runs agreeing on both agree about the whole trimming.
 #'
 #' @return A list: `package` and `version` identify the installed rules;
-#'   `digest` identifies the rules themselves, derived from them rather than
-#'   declared;
+#'   `digest`, `digest_algorithm`, and `digest_schema` identify the rules
+#'   themselves, derived from them rather than declared; `remove_lab_tables`
+#'   records whether the optional laboratory-table family was active;
 #'   `preamble_rule` and `boilerplate_rule` name the rule sets;
 #'   `preamble_limit_chars` is how early the letter date has to appear to be
 #'   treated as a frame boundary; `boilerplate_families` names every family in
@@ -755,20 +794,24 @@ doceds_family_chars <- function(per_document) {
 #' spec$boilerplate_families
 #'
 #' @export
-doceds_trim_spec <- function() {
+doceds_trim_spec <- function(remove_lab_tables = TRUE) {
+  remove_lab_tables <- .doceds_remove_lab_tables(remove_lab_tables)
   list(
     package = "redsan",
     version = as.character(utils::packageVersion("redsan")),
     digest = .doceds_rules_digest(),
+    digest_algorithm = "sha256",
+    digest_schema = "doceds-rule-text-v1",
     preamble_rule = .DOCEDS_PREAMBLE_RULE,
     preamble_limit_chars = .DOCEDS_PREAMBLE_LIMIT,
     boilerplate_rule = .DOCEDS_BOILERPLATE_RULE,
-    boilerplate_families = names(.DOCEDS_BOILERPLATE_PATTERNS),
+    boilerplate_families = names(.doceds_boilerplate_patterns(remove_lab_tables)),
     inline_rules = c(
       field = .DOCEDS_FIELD_PATTERN,
       rule_run = .DOCEDS_RULE_RUN_PATTERN
     ),
     near_total_share = .DOCEDS_NEAR_TOTAL_SHARE,
-    near_total_min_chars = .DOCEDS_NEAR_TOTAL_MIN_CHARS
+    near_total_min_chars = .DOCEDS_NEAR_TOTAL_MIN_CHARS,
+    remove_lab_tables = remove_lab_tables
   )
 }

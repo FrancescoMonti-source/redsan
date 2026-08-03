@@ -208,9 +208,12 @@ trimmed$net_removed_chars     # the only total in the list
 trimmed$removed_intervals     # every span removed, in original coordinates
 ```
 
-This is normalization, not selection: it removes the administrative frame and
-is meant never to touch what a clinician wrote. Which documents are worth
-reading, and what counts as evidence, belong to whoever consumes the bundle.
+The administrative families are normalization: they remove the document frame
+and are meant never to touch what a clinician wrote. The optional `lab_table`
+family is deliberately different. With `remove_lab_tables = TRUE` (the default),
+it removes recognised pasted laboratory tables, including the clinical values
+they contain. That switch is an explicit evidence-scope policy and can be set to
+`FALSE` when those tables must remain visible.
 
 Two properties are the reason it can be trusted, and both are worth knowing
 before changing anything here:
@@ -232,17 +235,19 @@ safety margin. A document losing 99.4 percent is not clinically different from
 one losing 99.6.
 
 `doceds_trim_spec()` reports which rules ran, for a caller that wants to record
-what produced a result alongside the result. Compare its `digest`: it is derived
-from every pattern and threshold the trimmer holds, and the set it covers is
-read from the namespace rather than listed, so a rule added tomorrow enters it
-by itself. The rule names carry no version on purpose — a version somebody has
-to remember can only fail by staying put while the rules move. What the digest
-does not cover is the code applying the rules, which is what `version` records.
+what produced a result alongside the result. Compare its `digest`: it is a
+SHA-256 digest, computed with `digest::digest()` over canonical UTF-8 rule bytes
+with R serialization disabled. It covers every pattern and threshold the
+trimmer holds, and the set is read from the namespace rather than listed, so a
+rule added tomorrow enters it by itself. The rule names carry no version on
+purpose — a version somebody has to remember can only fail by staying put while
+the rules move. What the digest does not cover is the code applying the rules,
+which is what `version` records.
 
 The families are **site-specific** to the Rouen corpus they were measured
 against, and a family that fires on nothing is wrong rather than inapplicable.
-`tools/` holds the three instruments that priced them and that check they take
-no clinical prose, with the measured baseline and the reasoning in
+`tools/` holds the three instruments that priced them and check the
+administrative boundary, with the measured baseline and the reasoning in
 `tools/README.md`. Read it before adding or widening a family.
 
 ## Privacy

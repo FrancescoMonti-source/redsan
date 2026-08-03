@@ -40,6 +40,15 @@ test_that("a pasted results table is removed and the prose around it is not", {
   expect_true("lab_table" %in% cleaned$boilerplate_families)
 })
 
+test_that("pasted results tables can be retained explicitly", {
+  text <- lab_document()
+  kept <- trim_doceds_text(text, remove_lab_tables = FALSE)
+
+  expect_identical(kept$text, text)
+  expect_false(kept$boilerplate_removed)
+  expect_false("lab_table" %in% kept$boilerplate_families)
+})
+
 test_that("the table ends where the table ends", {
   # A sentence right after the last result line must survive. The run stops at
   # the first line that is neither an indented group title nor a result.
