@@ -58,9 +58,10 @@ test_that("the local PMSI unit bridge is one row per SEJUF", {
   ref <- edsan_reference("uf2umpmsi")
 
   expect_identical(names(ref), c("SEJUF", "SEJUM", "UM_PMSI"))
-  expect_identical(nrow(ref), 203L)
+  expect_identical(nrow(ref), 197L)
   expect_identical(anyDuplicated(ref$SEJUF), 0L)
-  expect_identical(length(unique(ref$UM_PMSI)), 199L)
+  expect_identical(length(unique(ref$SEJUM)), 54L)
+  expect_identical(length(unique(ref$UM_PMSI)), 193L)
   expect_identical(
     ref$UM_PMSI[match(c("5522", "5622", "5623", "6245"), ref$SEJUF)],
     c("5530", "5618", "5619", "6241")
