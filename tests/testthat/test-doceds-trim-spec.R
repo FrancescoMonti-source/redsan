@@ -18,6 +18,7 @@ test_that("the spec reports the rules that actually run", {
     spec$inline_rules,
     c(field = .DOCEDS_FIELD_PATTERN, rule_run = .DOCEDS_RULE_RUN_PATTERN)
   )
+  expect_true(spec$remove_lab_tables)
 })
 
 test_that("the spec identifies the installed rules", {
@@ -26,7 +27,20 @@ test_that("the spec identifies the installed rules", {
   expect_identical(spec$package, "redsan")
   expect_identical(spec$version, as.character(utils::packageVersion("redsan")))
   expect_identical(spec$digest, .doceds_rules_digest())
-  expect_match(spec$digest, "^[0-9a-f]{32}$")
+  expect_match(spec$digest, "^[0-9a-f]{64}$")
+  expect_identical(spec$digest_algorithm, "sha256")
+  expect_identical(spec$digest_schema, "doceds-rule-text-v1")
+})
+
+test_that("the optional laboratory-table family is recorded", {
+  default <- doceds_trim_spec()
+  without_tables <- doceds_trim_spec(remove_lab_tables = FALSE)
+
+  expect_true(default$remove_lab_tables)
+  expect_false(without_tables$remove_lab_tables)
+  expect_true("lab_table" %in% default$boilerplate_families)
+  expect_false("lab_table" %in% without_tables$boilerplate_families)
+  expect_identical(default$digest, without_tables$digest)
 })
 
 test_that("the rule names carry no version", {
@@ -48,6 +62,20 @@ fake_rules <- function(...) {
   for (name in names(values)) assign(name, values[[name]], envir = env)
   env
 }
+
+test_that("the rules digest is SHA-256 over canonical UTF-8 bytes", {
+  rules <- fake_rules(.DOCEDS_A = "one", .DOCEDS_B = 3000L)
+  canonical <- .doceds_rule_text(.doceds_rule_objects(rules))
+
+  expect_identical(
+    .doceds_rules_digest(rules),
+    digest::digest(
+      charToRaw(enc2utf8(canonical)),
+      algo = "sha256",
+      serialize = FALSE
+    )
+  )
+})
 
 test_that("a rule that changes changes the digest", {
   before <- .doceds_rules_digest(fake_rules(

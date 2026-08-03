@@ -4,12 +4,17 @@
 \alias{doceds_trim_spec}
 \title{Which trimming rules ran, and with which limits}
 \usage{
-doceds_trim_spec()
+doceds_trim_spec(remove_lab_tables = TRUE)
+}
+\arguments{
+\item{remove_lab_tables}{Whether the optional pasted-laboratory-table family
+is active. Defaults to \code{TRUE}, matching \code{\link[=trim_doceds_text]{trim_doceds_text()}}.}
 }
 \value{
 A list: \code{package} and \code{version} identify the installed rules;
-\code{digest} identifies the rules themselves, derived from them rather than
-declared;
+\code{digest}, \code{digest_algorithm}, and \code{digest_schema} identify the rules
+themselves, derived from them rather than declared; \code{remove_lab_tables}
+records whether the optional laboratory-table family was active;
 \code{preamble_rule} and \code{boilerplate_rule} name the rule sets;
 \code{preamble_limit_chars} is how early the letter date has to appear to be
 treated as a frame boundary; \code{boilerplate_families} names every family in
@@ -36,9 +41,10 @@ thing as reporting nothing once the two drift apart.
 
 \code{digest} is the field to compare, because it is the one nobody maintains. It
 is derived from every pattern and threshold the trimmer holds, so a rule that
-changes changes it whether or not anyone remembered to say so. It is taken
-over the rules' UTF-8 bytes, so two machines running the same rules agree on
-it whatever their locale. \code{preamble_rule}
+changes changes it whether or not anyone remembered to say so. It is a
+SHA-256 digest of the canonical rule text's UTF-8 bytes, computed without R
+serialization, so two machines running the same rules agree on it whatever
+their locale. \code{preamble_rule}
 and \code{boilerplate_rule} are names and are deliberately not versioned — a
 version written into a string is a fact somebody has to remember, and its only
 possible failure is the one that matters: staying put while the rules move.

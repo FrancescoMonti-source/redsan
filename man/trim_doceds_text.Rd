@@ -4,12 +4,16 @@
 \alias{trim_doceds_text}
 \title{Remove the administrative frame from one DOCEDS document}
 \usage{
-trim_doceds_text(text)
+trim_doceds_text(text, remove_lab_tables = TRUE)
 }
 \arguments{
 \item{text}{One document's text, normally one \code{RECTXT} value. Length 0, \code{NA}
 and \code{""} return the input unchanged with zeroed counts. A longer vector is
 an error rather than a silent \code{NA}: map over it with \code{\link[=lapply]{lapply()}}.}
+
+\item{remove_lab_tables}{Whether to remove recognised pasted laboratory
+tables. Defaults to \code{TRUE}. Set \code{FALSE} when that source content must remain
+visible.}
 }
 \value{
 A list. \code{text} is what survives; \code{net_removed_chars} is the exact
@@ -37,11 +41,17 @@ residue and the fill-character runs from one document's text, and reports
 exactly what it took.
 }
 \details{
-The rules only ever remove the administrative frame around clinical text:
-letterheads, correspondence blocks, RGPD notices, unfilled identity banners,
-page furniture, and the placeholders and fill runs a Word template leaves
-behind. Nothing here is meant to touch what a clinician wrote, and the
-instruments under \verb{tools/} exist to keep checking that it does not.
+The administrative rules remove letterheads, correspondence blocks, RGPD
+notices, unfilled identity banners, page furniture, and the placeholders and
+fill runs a Word template leaves behind. They are meant not to touch what a
+clinician wrote, and the instruments under \verb{tools/} exist to keep checking
+that boundary.
+
+The optional \code{lab_table} family is different. With
+\code{remove_lab_tables = TRUE} it removes recognised pasted laboratory tables,
+which can contain clinician-authored clinical values. This is an explicit
+evidence-scope policy, not part of the administrative-frame guarantee. It is
+enabled by default and can be disabled by the caller.
 
 Every rule contributes candidate spans in the coordinates of the \strong{original}
 document rather than editing the string. Lines carrying a measured constant —
