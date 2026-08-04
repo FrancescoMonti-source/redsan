@@ -635,7 +635,7 @@ trim_doceds_text <- function(text, remove_lab_tables = TRUE) {
 #'
 #' @export
 doceds_family_chars <- function(per_document) {
-  counts <- unlist(per_document)
+  counts <- unlist(unname(per_document), use.names = TRUE)
   if (!length(counts)) {
     return(stats::setNames(integer(), character()))
   }
