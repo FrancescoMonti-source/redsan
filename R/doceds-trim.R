@@ -640,6 +640,7 @@ doceds_family_chars <- function(per_document) {
     return(stats::setNames(integer(), character()))
   }
   totals <- tapply(as.integer(counts), names(counts), sum)
+  totals <- c(totals)
   totals[order(-totals)]
 }
 
