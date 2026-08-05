@@ -14,15 +14,25 @@ test_that("real identifiers are classified from their local format", {
   )
 })
 
-test_that("explicit real identifier types are checked against the format", {
+test_that("explicit id_type overrides automatic format detection", {
   expect_identical(
     redsan:::.edsan_ct_validate_explicit_his_type(c("00123", "00456"), "IPP"),
     c("IPP", "IPP")
   )
-  expect_error(
-    redsan:::.edsan_ct_validate_explicit_his_type("00123", "IEP"),
-    "conflicts"
+
+  result <- NULL
+  expect_warning(
+    result <- redsan:::.edsan_ct_validate_explicit_his_type("00123", "IEP"),
+    "id_type"
   )
+  expect_identical(result, "IEP")
+
+  result2 <- NULL
+  expect_warning(
+    result2 <- redsan:::.edsan_ct_validate_explicit_his_type("98765", "IPP"),
+    "id_type"
+  )
+  expect_identical(result2, "IPP")
 })
 
 test_that("EDSaN CT dispatches NIP and CPAGE correctly", {
@@ -99,8 +109,67 @@ test_that("missing and multiple correspondences remain explicit", {
   expect_identical(out$output_id[-1L], c("IEP-1", "IEP-2"))
 })
 
+test_that("a NULL backend response is a hard failure, not a missing match", {
+  fake_call <- function(api_fct, api_type, api_query, env, ks_path) NULL
+
+  expect_error(
+    redsan:::.edsan_ct_translate(
+      ids = "00123",
+      input_types = "IPP",
+      direction = "his_to_edsan",
+      call = fake_call
+    ),
+    "call failed"
+  )
+})
+
+test_that("an error payload from EDSaN CT is a hard failure, not a missing match", {
+  fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
+    list(status = 500, message = "Internal Server Error")
+  }
+
+  expect_error(
+    redsan:::.edsan_ct_translate(
+      ids = "00123",
+      input_types = "IPP",
+      direction = "his_to_edsan",
+      call = fake_call
+    ),
+    "Internal Server Error"
+  )
+})
+
+test_that("an unrecognized response shape is a hard failure, not a missing match", {
+  fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
+    list(unrelated_key = "unexpected")
+  }
+
+  expect_error(
+    redsan:::.edsan_ct_translate(
+      ids = "00123",
+      input_types = "IPP",
+      direction = "his_to_edsan",
+      call = fake_call
+    ),
+    "unrecognized response shape"
+  )
+})
+
+test_that("an explicit empty response remains a genuine not_found", {
+  fake_call <- function(api_fct, api_type, api_query, env, ks_path) list()
+
+  out <- redsan:::.edsan_ct_translate(
+    ids = "00123",
+    input_types = "IPP",
+    direction = "his_to_edsan",
+    call = fake_call
+  )
+
+  expect_identical(out$status, "not_found")
+})
+
 test_that("public functions validate before contacting the backend", {
   expect_error(edsan_pseudonymize(123456), "must be character")
-  expect_error(edsan_pseudonymize("00123", id_type = "IEP"), "conflicts")
+  expect_error(edsan_reidentify(123456, id_type = "PATID"), "must be character")
   expect_error(edsan_reidentify("EVT-1"), "id_type")
 })

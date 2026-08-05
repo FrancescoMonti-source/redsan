@@ -7,19 +7,26 @@
 edsan_reidentify(ids, id_type, env = "edsan-ct", ks_path = NULL)
 }
 \arguments{
-\item{ids}{EDSaN \code{PATID} or \code{EVTID} values.}
+\item{ids}{EDSaN \code{PATID} or \code{EVTID} values. Must be character; numeric input
+can silently alter identifier values through double-precision conversion.}
 
 \item{id_type}{Input type: \code{"PATID"} or \code{"EVTID"}.}
 
 \item{env}{EDSaN CT web-service environment name.}
 
-\item{ks_path}{Optional d2imr keystore path. When \code{NULL}, the active path is resolved and passed explicitly, avoiding the invalid default in some d2imr versions.}
+\item{ks_path}{Optional d2imr keystore path. When \code{NULL}, the active path is
+resolved and passed explicitly, avoiding the invalid default in some d2imr
+versions.}
 }
 \value{
-A tibble retaining every input and reporting matched, not-found, or multiple correspondences.
+A tibble retaining every input and reporting matched, not-found, or
+multiple correspondences. \code{not-found} is only reported for a valid EDSaN
+CT response with no correspondence; a backend failure or error response
+raises an error instead.
 }
 \description{
-Translates \code{PATID} to \code{IPP} or \code{EVTID} to \code{IEP}. The pseudonymized domains cannot be distinguished safely from the value alone, so \code{id_type} is required.
+Translates \code{PATID} to \code{IPP} or \code{EVTID} to \code{IEP}. The pseudonymized domains
+cannot be distinguished safely from the value alone, so \code{id_type} is required.
 }
 \details{
 This function deliberately exposes real hospital identifiers.

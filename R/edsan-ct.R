@@ -21,8 +21,8 @@
                                    digits_only = FALSE) {
   if (require_character && !is.character(ids)) {
     stop(
-      "`ids` must be character. Automatic IPP/IEP detection depends on the ",
-      "leading zeroes of IPP values.",
+      "`ids` must be character. Numeric input can lose IPP leading zeroes ",
+      "or alter identifier values through double-precision conversion.",
       call. = FALSE
     )
   }
@@ -47,12 +47,16 @@
 
 .edsan_ct_validate_explicit_his_type <- function(ids, id_type) {
   id_type <- match.arg(id_type, c("IPP", "IEP"))
+  # `ids` is already shape-validated (character, digit strings) by the caller.
+  # The only confirmed local invariant is "IPP starts with `00`"; an explicit
+  # `id_type` overrides automatic detection rather than being rejected by it.
   detected <- .edsan_ct_detect_his_types(ids)
-  if (any(detected != id_type)) {
-    stop(
-      "`id_type = \"", id_type,
-      "\"` conflicts with the local format: IPP values start with `00`; ",
-      "IEP values do not.",
+  mismatched <- detected != id_type
+  if (any(mismatched)) {
+    warning(
+      "`id_type = \"", id_type, "\"` was supplied for ", sum(mismatched),
+      " identifier(s) that do not match the local `00 = IPP` format ",
+      "heuristic. Proceeding with the explicit `id_type`.",
       call. = FALSE
     )
   }
@@ -95,11 +99,41 @@
   )
 }
 
+.edsan_ct_is_error_payload <- function(response) {
+  nm <- names(response)
+  if (is.null(nm) || !("status" %in% nm)) return(FALSE)
+  status <- response[["status"]]
+  is.numeric(status) && length(status) == 1L && !is.na(status) &&
+    (status < 200 || status >= 300)
+}
+
+.edsan_ct_error_message <- function(response) {
+  msg <- response[["message"]]
+  if (is.null(msg)) msg <- response[["error"]]
+  if (is.null(msg)) msg <- paste("HTTP status", response[["status"]])
+  paste(as.character(msg), collapse = " ")
+}
+
 .edsan_ct_parse_values <- function(response, input_id, api_type) {
-  if (is.null(response) || length(response) == 0L) return(character())
+  if (is.null(response)) {
+    stop(
+      "EDSaN CT call failed for identifier `", input_id,
+      "` (no response from the backend). Check keystore, network, and ",
+      "authentication rather than treating this as a missing correspondence.",
+      call. = FALSE
+    )
+  }
   if (!is.list(response)) {
     stop("EDSaN CT returned an unexpected non-list response.", call. = FALSE)
   }
+  if (.edsan_ct_is_error_payload(response)) {
+    stop(
+      "EDSaN CT returned an error for identifier `", input_id, "`: ",
+      .edsan_ct_error_message(response),
+      call. = FALSE
+    )
+  }
+  if (length(response) == 0L) return(character())
 
   response_names <- names(response)
   if (!is.null(response_names) && input_id %in% response_names) {
@@ -109,7 +143,11 @@
               !nzchar(response_names[[1L]]))) {
     node <- response[[1L]]
   } else {
-    return(character())
+    stop(
+      "EDSaN CT returned an unrecognized response shape for identifier `",
+      input_id, "`.",
+      call. = FALSE
+    )
   }
 
   if (is.list(node) && !is.null(names(node)) && api_type %in% names(node)) {
@@ -181,17 +219,21 @@
 #' Uses EDSaN CT to translate patient identifiers (`IPP`) to `PATID` and stay
 #' identifiers (`IEP`) to `EVTID`. When `id_type` is omitted, each identifier is
 #' classified from the local invariant: IPP starts with `00`; every other digit
-#' string is treated as IEP.
+#' string is treated as IEP. An explicit `id_type` overrides this detection; it
+#' only warns, and never errors, when a value does not match the heuristic.
 #'
 #' @param ids Real hospital identifiers. Must be character so IPP leading zeroes
 #'   cannot be lost.
-#' @param id_type Optional explicit input type: `"IPP"` or `"IEP"`.
+#' @param id_type Optional explicit input type: `"IPP"` or `"IEP"`. Takes
+#'   precedence over automatic detection.
 #' @param env EDSaN CT web-service environment name.
 #' @param ks_path Optional d2imr keystore path. When `NULL`, the active path is
 #'   resolved and passed explicitly, avoiding the invalid default in some d2imr
 #'   versions.
 #' @return A tibble retaining every input and reporting matched, not-found, or
-#'   multiple correspondences.
+#'   multiple correspondences. `not-found` is only reported for a valid EDSaN
+#'   CT response with no correspondence; a backend failure or error response
+#'   raises an error instead.
 #' @export
 edsan_pseudonymize <- function(ids, id_type = NULL,
                                env = "edsan-ct", ks_path = NULL) {
@@ -216,16 +258,19 @@ edsan_pseudonymize <- function(ids, id_type = NULL,
 #' Translates `PATID` to `IPP` or `EVTID` to `IEP`. The pseudonymized domains
 #' cannot be distinguished safely from the value alone, so `id_type` is required.
 #'
-#' @param ids EDSaN `PATID` or `EVTID` values.
+#' @param ids EDSaN `PATID` or `EVTID` values. Must be character; numeric input
+#'   can silently alter identifier values through double-precision conversion.
 #' @param id_type Input type: `"PATID"` or `"EVTID"`.
 #' @inheritParams edsan_pseudonymize
 #' @return A tibble retaining every input and reporting matched, not-found, or
-#'   multiple correspondences.
+#'   multiple correspondences. `not-found` is only reported for a valid EDSaN
+#'   CT response with no correspondence; a backend failure or error response
+#'   raises an error instead.
 #' @details This function deliberately exposes real hospital identifiers.
 #' @export
 edsan_reidentify <- function(ids, id_type,
                              env = "edsan-ct", ks_path = NULL) {
-  ids <- .edsan_ct_validate_ids(ids)
+  ids <- .edsan_ct_validate_ids(ids, require_character = TRUE)
   id_type <- match.arg(id_type, c("PATID", "EVTID"))
   out <- .edsan_ct_translate(
     ids, rep.int(id_type, length(ids)), "edsan_to_his", env, ks_path
