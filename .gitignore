@@ -8,3 +8,7 @@ R/moza_price_history_append.csv
 ..Rcheck/
 *.tar.gz
 *.bak
+
+# Claude Code local state (not shared project config)
+.claude/settings.local.json
+.claude/data/
