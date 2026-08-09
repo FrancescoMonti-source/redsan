@@ -279,7 +279,7 @@
 #' `remove_lab_tables = TRUE` it removes recognised pasted laboratory tables,
 #' which can contain clinician-authored clinical values. This is an explicit
 #' evidence-scope policy, not part of the administrative-frame guarantee. It is
-#' enabled by default and can be disabled by the caller.
+#' disabled by default and must be enabled by the caller.
 #'
 #' Every rule contributes candidate spans in the coordinates of the **original**
 #' document rather than editing the string. Lines carrying a measured constant —
@@ -305,8 +305,8 @@
 #'   and `""` return the input unchanged with zeroed counts. A longer vector is
 #'   an error rather than a silent `NA`: map over it with [lapply()].
 #' @param remove_lab_tables Whether to remove recognised pasted laboratory
-#'   tables. Defaults to `TRUE`. Set `FALSE` when that source content must remain
-#'   visible.
+#'   tables. Defaults to `FALSE`; set it to `TRUE` only when removing those
+#'   tables is part of the caller's evidence-scope policy.
 #'
 #' @return A list. `text` is what survives; `net_removed_chars` is the exact
 #'   difference in characters between the input and it, and is the **only
@@ -341,7 +341,7 @@
 #' trimmed$net_removed_chars
 #'
 #' @export
-trim_doceds_text <- function(text, remove_lab_tables = TRUE) {
+trim_doceds_text <- function(text, remove_lab_tables = FALSE) {
   remove_lab_tables <- .doceds_remove_lab_tables(remove_lab_tables)
   text <- as.character(text)
   if (length(text) > 1L) {
@@ -750,7 +750,7 @@ doceds_family_chars <- function(per_document) {
 #' text itself.
 #'
 #' @param remove_lab_tables Whether the optional pasted-laboratory-table family
-#'   is active. Defaults to `TRUE`, matching [trim_doceds_text()].
+#'   is active. Defaults to `FALSE`, matching [trim_doceds_text()].
 #'
 #' @details
 #' A trimmed document is not self-describing: two runs a year apart can differ
@@ -795,7 +795,7 @@ doceds_family_chars <- function(per_document) {
 #' spec$boilerplate_families
 #'
 #' @export
-doceds_trim_spec <- function(remove_lab_tables = TRUE) {
+doceds_trim_spec <- function(remove_lab_tables = FALSE) {
   remove_lab_tables <- .doceds_remove_lab_tables(remove_lab_tables)
   list(
     package = "redsan",

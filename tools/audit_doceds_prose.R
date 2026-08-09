@@ -108,7 +108,7 @@ DOCEDS_PROSE_MARKERS <- paste0(
 # cut, were invisible to it: that is how a rule reading every French quotation
 # as a Word merge field survived an audit whose whole purpose is catching it.
 .doceds_removed_spans <- function(one) {
-  redsan::trim_doceds_text(one)$removed_intervals[
+  redsan::trim_doceds_text(one, remove_lab_tables = TRUE)$removed_intervals[
     , c("start", "end", "family"),
     drop = FALSE
   ]

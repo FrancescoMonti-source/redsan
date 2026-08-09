@@ -128,7 +128,7 @@ test_that("a pasted results table is still removed whole", {
     sep = "\n"
   )
 
-  cleaned <- trim_doceds_text(text)
+  cleaned <- trim_doceds_text(text, remove_lab_tables = TRUE)
 
   expect_match(cleaned$text, "fonction renale reste stable", fixed = TRUE)
   expect_false(grepl("Ferritine", cleaned$text, fixed = TRUE))

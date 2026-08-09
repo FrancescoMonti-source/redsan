@@ -128,7 +128,7 @@ measure_doceds_families <- function(text, sample_size = 3000L, seed = 1L) {
 #' @param one A single raw `RECTXT`.
 #' @param context Characters of surrounding text to show around each removal.
 show_doceds_removals <- function(one, context = 80L) {
-  trimmed <- redsan::trim_doceds_text(one)
+  trimmed <- redsan::trim_doceds_text(one, remove_lab_tables = TRUE)
   # Every span that was actually removed, the preamble and the inline rules
   # among them, reported by the projection in original coordinates. This used to
   # read `boilerplate_intervals` and re-derive the preamble beside it, which

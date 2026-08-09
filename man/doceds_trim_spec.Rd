@@ -4,11 +4,11 @@
 \alias{doceds_trim_spec}
 \title{Which trimming rules ran, and with which limits}
 \usage{
-doceds_trim_spec(remove_lab_tables = TRUE)
+doceds_trim_spec(remove_lab_tables = FALSE)
 }
 \arguments{
 \item{remove_lab_tables}{Whether the optional pasted-laboratory-table family
-is active. Defaults to \code{TRUE}, matching \code{\link[=trim_doceds_text]{trim_doceds_text()}}.}
+is active. Defaults to \code{FALSE}, matching \code{\link[=trim_doceds_text]{trim_doceds_text()}}.}
 }
 \value{
 A list: \code{package} and \code{version} identify the installed rules;

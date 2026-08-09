@@ -29,7 +29,7 @@ test_that("a pasted results table is removed and the prose around it is not", {
   # trade-off is written down in README.md rather than left to be inferred from
   # this test: a stale value that cannot be reliably dated is a worse basis for
   # a code than no value.
-  cleaned <- trim_doceds_text(lab_document())
+  cleaned <- trim_doceds_text(lab_document(), remove_lab_tables = TRUE)
 
   expect_match(cleaned$text, "Compte rendu de consultation.", fixed = TRUE)
   expect_match(cleaned$text, "fonction renale reste stable", fixed = TRUE)
@@ -53,7 +53,8 @@ test_that("the table ends where the table ends", {
   # A sentence right after the last result line must survive. The run stops at
   # the first line that is neither an indented group title nor a result.
   cleaned <- trim_doceds_text(
-    lab_document("Creatininemie en hausse, majoration du furosemide a 80 mg/j.")
+    lab_document("Creatininemie en hausse, majoration du furosemide a 80 mg/j."),
+    remove_lab_tables = TRUE
   )
 
   expect_match(cleaned$text, "majoration du furosemide", fixed = TRUE)

@@ -210,10 +210,10 @@ trimmed$removed_intervals     # every span removed, in original coordinates
 
 The administrative families are normalization: they remove the document frame
 and are meant never to touch what a clinician wrote. The optional `lab_table`
-family is deliberately different. With `remove_lab_tables = TRUE` (the default),
-it removes recognised pasted laboratory tables, including the clinical values
-they contain. That switch is an explicit evidence-scope policy and can be set to
-`FALSE` when those tables must remain visible.
+family is deliberately different. It is disabled by default because it removes
+recognised pasted laboratory tables, including the clinical values they contain.
+Callers that deliberately exclude those tables from their evidence scope must
+request `remove_lab_tables = TRUE` explicitly.
 
 Two properties are the reason it can be trusted, and both are worth knowing
 before changing anything here:

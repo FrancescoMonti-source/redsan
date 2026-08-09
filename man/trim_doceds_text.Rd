@@ -4,7 +4,7 @@
 \alias{trim_doceds_text}
 \title{Remove the administrative frame from one DOCEDS document}
 \usage{
-trim_doceds_text(text, remove_lab_tables = TRUE)
+trim_doceds_text(text, remove_lab_tables = FALSE)
 }
 \arguments{
 \item{text}{One document's text, normally one \code{RECTXT} value. Length 0, \code{NA}
@@ -12,8 +12,8 @@ and \code{""} return the input unchanged with zeroed counts. A longer vector is
 an error rather than a silent \code{NA}: map over it with \code{\link[=lapply]{lapply()}}.}
 
 \item{remove_lab_tables}{Whether to remove recognised pasted laboratory
-tables. Defaults to \code{TRUE}. Set \code{FALSE} when that source content must remain
-visible.}
+tables. Defaults to \code{FALSE}; set it to \code{TRUE} only when removing those
+tables is part of the caller's evidence-scope policy.}
 }
 \value{
 A list. \code{text} is what survives; \code{net_removed_chars} is the exact
@@ -51,7 +51,7 @@ The optional \code{lab_table} family is different. With
 \code{remove_lab_tables = TRUE} it removes recognised pasted laboratory tables,
 which can contain clinician-authored clinical values. This is an explicit
 evidence-scope policy, not part of the administrative-frame guarantee. It is
-enabled by default and can be disabled by the caller.
+disabled by default and must be enabled by the caller.
 
 Every rule contributes candidate spans in the coordinates of the \strong{original}
 document rather than editing the string. Lines carrying a measured constant —

@@ -12,13 +12,13 @@ test_that("the spec reports the rules that actually run", {
   expect_identical(spec$near_total_min_chars, .DOCEDS_NEAR_TOTAL_MIN_CHARS)
   expect_identical(
     spec$boilerplate_families,
-    names(.DOCEDS_BOILERPLATE_PATTERNS)
+    setdiff(names(.DOCEDS_BOILERPLATE_PATTERNS), "lab_table")
   )
   expect_identical(
     spec$inline_rules,
     c(field = .DOCEDS_FIELD_PATTERN, rule_run = .DOCEDS_RULE_RUN_PATTERN)
   )
-  expect_true(spec$remove_lab_tables)
+  expect_false(spec$remove_lab_tables)
 })
 
 test_that("the spec identifies the installed rules", {
@@ -34,13 +34,13 @@ test_that("the spec identifies the installed rules", {
 
 test_that("the optional laboratory-table family is recorded", {
   default <- doceds_trim_spec()
-  without_tables <- doceds_trim_spec(remove_lab_tables = FALSE)
+  with_tables <- doceds_trim_spec(remove_lab_tables = TRUE)
 
-  expect_true(default$remove_lab_tables)
-  expect_false(without_tables$remove_lab_tables)
-  expect_true("lab_table" %in% default$boilerplate_families)
-  expect_false("lab_table" %in% without_tables$boilerplate_families)
-  expect_identical(default$digest, without_tables$digest)
+  expect_false(default$remove_lab_tables)
+  expect_true(with_tables$remove_lab_tables)
+  expect_false("lab_table" %in% default$boilerplate_families)
+  expect_true("lab_table" %in% with_tables$boilerplate_families)
+  expect_identical(default$digest, with_tables$digest)
 })
 
 test_that("the rule names carry no version", {

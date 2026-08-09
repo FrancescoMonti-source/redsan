@@ -202,7 +202,7 @@ explore_repeated_doceds <- function(
   for (i in seq_len(nrow(docs))) {
     text <- docs$RECTXT[[i]]
     if (pre_trim) {
-      text <- redsan::trim_doceds_text(text)$text
+      text <- redsan::trim_doceds_text(text, remove_lab_tables = TRUE)$text
     }
     fingerprinted <- .doceds_window_shingles(
       text,
