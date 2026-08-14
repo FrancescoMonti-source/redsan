@@ -15,19 +15,23 @@ test_that("registered identifiers remain opaque character coordinates", {
     "pmsi/main" = pmsi$main,
     "pmsi/actes" = pmsi$actes,
     "pmsi/diag" = pmsi$diag,
-    "biol/results" = process_biol(list(c(
-      ids,
-      list(
-        DATEXAM = "2024-01-01",
-        RESULTATS = data.frame(TYPEANA = "K.K", NUMRES = 5)
+    "biol/results" = process_biol(list(
+      `300000` = c(
+        ids,
+        list(
+          DATEXAM = "2024-01-01",
+          RESULTATS = data.frame(TYPEANA = "K.K", NUMRES = 5)
+        )
       )
-    ))),
-    "viro/results" = process_viro(list(list(
-      PATID = 100000,
-      EVTID = 200000,
-      DATEPRELEV = "2024-01-01",
-      RESULTATS = data.frame(TYPEANA = "PCR", STRRES = "negative")
-    )))
+    )),
+    "viro/results" = process_viro(list(
+      `300000` = list(
+        PATID = 100000,
+        EVTID = 200000,
+        DATEPRELEV = "2024-01-01",
+        RESULTATS = data.frame(TYPEANA = "PCR", STRRES = "negative")
+      )
+    ))
   )
   registry <- edsan_sources()
   identifier_columns <- unlist(
@@ -54,6 +58,6 @@ test_that("registered identifiers remain opaque character coordinates", {
   )))
   expect_setequal(
     unique(unlist(identifier_columns, use.names = FALSE)),
-    c("1", "100000", "200000", "300000")
+    c("100000", "200000", "300000")
   )
 })

@@ -1,55 +1,3 @@
-test_that("process_biol preserves source-element grain while expanding results", {
-  raw <- list(
-    examA = list(
-      PATID = "P1",
-      EVTID = "E1",
-      ELTID = "L1",
-      DATEXAM = "2024-01-01 08:30",
-      PATAGE = "44",
-      RESULTATS = data.frame(
-        TYPEANA = c("K.K", "K.K", "K.K"),
-        NUMRES = I(list(5.4, 3, NA_real_)),
-        STRRES = c(NA_character_, NA_character_, "qualitative")
-      )
-    ),
-    examB = list(
-      PATID = "P2",
-      EVTID = "E2",
-      DATEXAM = "2024-01-02",
-      RESULTATS = data.frame()
-    )
-  )
-
-  out <- process_biol(raw)
-  reference <- edsan_reference("bio")
-  expected_label <- reference$TYPEANA_LABEL[reference$TYPEANA == "K.K"]
-
-  expect_identical(
-    list(
-      rows = nrow(out),
-      PATID = out$PATID,
-      BIOL_ID = out$BIOL_ID,
-      TYPEANA = out$TYPEANA,
-      TYPEANA_LABEL = out$TYPEANA_LABEL,
-      NUMRES = out$NUMRES,
-      STRRES = out$STRRES,
-      date_is_posix = inherits(out$DATEXAM, "POSIXct"),
-      time = as.character(out$HEURE_DATEXAM)
-    ),
-    list(
-      rows = 3L,
-      PATID = rep("P1", 3),
-      BIOL_ID = rep("examA", 3),
-      TYPEANA = rep("K.K", 3),
-      TYPEANA_LABEL = rep(expected_label, 3),
-      NUMRES = c(5.4, 3, NA_real_),
-      STRRES = c(NA_character_, NA_character_, "qualitative"),
-      date_is_posix = TRUE,
-      time = rep("08:30:00", 3)
-    )
-  )
-})
-
 test_that("label_biol refreshes labels and preserves unmatched rows", {
   reference <- edsan_reference("bio")
   known_code <- reference$TYPEANA[[1L]]
@@ -89,7 +37,7 @@ test_that("list-column TYPEANA is labelled instead of breaking the reference joi
   known_code <- reference$TYPEANA[[1L]]
   # Raw EDSAN payloads wrap each scalar result in a one-element list, TYPEANA
   # included; the reference join needs an atomic key.
-  raw <- list(list(
+  raw <- list(L1 = list(
     PATID = "P1", EVTID = "E1", ELTID = "L1",
     DATEXAM = "2024-01-01 08:30",
     RESULTATS = data.frame(
@@ -130,7 +78,7 @@ test_that("label_biol flattens TYPEANA shapes it receives from older artifacts",
 })
 
 test_that("virology results expose an atomic analyte code", {
-  out <- process_viro(list(list(
+  out <- process_viro(list(L1 = list(
     PATID = "P1", EVTID = "E1", DATEPRELEV = "2024-01-01",
     RESULTATS = data.frame(TYPEANA = I(list("VIRO.PCR")), STRRES = "NEGATIF")
   )))

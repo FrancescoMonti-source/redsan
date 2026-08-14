@@ -13,8 +13,9 @@ count_idtriplets(
 \item{data}{A data frame containing EDSAN identifiers.}
 
 \item{cols}{Character vector of identifier columns to count. When omitted,
-available columns among \code{PATID}, \code{EVTID}, \code{ELTID}, \code{BIOL_ID}, \code{DOC_ID},
-\code{PMSI_ID}, and \code{VIRO_ID} are detected case-insensitively.}
+available columns among \code{PATID}, \code{EVTID}, \code{ELTID}, \code{DOC_ID}, and \code{PMSI_ID}
+are detected case-insensitively. Legacy \code{BIOL_ID} and \code{VIRO_ID} columns are
+also recognized for artifacts created before \code{ELTID} became canonical.}
 }
 \value{
 \code{NULL}, invisibly. The counts are printed to the console.

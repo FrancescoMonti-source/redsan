@@ -21,7 +21,7 @@ If \code{DATEXAM} is present, it is parsed into \code{POSIXct} and \code{HEURE_D
 (\code{hms}) is derived only when an explicit time is present in the raw string.
 }
 \examples{
-raw <- list(list(
+raw <- list(L1 = list(
   PATID="P1", EVTID="E1", ELTID="L1",
   DATEXAM="2020-01-01 08:30",
   RESULTATS=data.frame(TYPEANA="K.K", NUMRES=4.2)

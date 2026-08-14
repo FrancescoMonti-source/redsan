@@ -40,7 +40,7 @@ test_that("event bundles isolate rows at the EVTID boundary", {
   )
 })
 
-test_that("bundles label biology retrieved before TYPEANA_LABEL existed", {
+test_that("bundles upgrade legacy element IDs and biology labels", {
   reference <- edsan_reference("bio")
   known_code <- reference$TYPEANA[[1L]]
   known_label <- reference$TYPEANA_LABEL[[1L]]
@@ -48,8 +48,14 @@ test_that("bundles label biology retrieved before TYPEANA_LABEL existed", {
   sources <- list(
     biol = tibble::tibble(
       EVTID = c("E1", "E2"),
+      ELTID = c("B1", "B2"),
+      BIOL_ID = c("B1", "B2"),
       TYPEANA = c(known_code, "FAIT_MAISON"),
       NUMRES = c(4.2, 1)
+    ),
+    viro = tibble::tibble(
+      EVTID = c("E1", "E2"),
+      VIRO_ID = c("V1", "V2")
     )
   )
 
@@ -57,6 +63,10 @@ test_that("bundles label biology retrieved before TYPEANA_LABEL existed", {
 
   expect_identical(bundles[["E1"]]$sources$biol$TYPEANA_LABEL, known_label)
   expect_identical(bundles[["E2"]]$sources$biol$TYPEANA_LABEL, NA_character_)
+  expect_identical(bundles[["E1"]]$sources$biol$ELTID, "B1")
+  expect_identical(bundles[["E1"]]$sources$viro$ELTID, "V1")
+  expect_false("BIOL_ID" %in% names(bundles[["E1"]]$sources$biol))
+  expect_false("VIRO_ID" %in% names(bundles[["E1"]]$sources$viro))
   expect_identical(
     build_event_bundle("E1", sources)$sources$biol$TYPEANA_LABEL,
     known_label
@@ -84,7 +94,7 @@ test_that("empty biology sources still expose the labelled columns", {
 
   expect_identical(
     names(bundle$sources$biol),
-    c("TYPEANA", "TYPEANA_LABEL")
+    c("ELTID", "TYPEANA", "TYPEANA_LABEL")
   )
   expect_identical(nrow(bundle$sources$biol), 0L)
 })

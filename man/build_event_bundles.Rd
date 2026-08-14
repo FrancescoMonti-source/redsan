@@ -29,7 +29,8 @@ returns the single bundle directly. Each bundle is a list with:
 }
 \description{
 Partitions already available normalized source objects by \code{EVTID}. No EDSAN
-retrieval is performed and no rows or columns are selected beyond the event
+retrieval is performed. Legacy \code{BIOL_ID} and \code{VIRO_ID} columns are renamed to
+canonical \code{ELTID}; otherwise no rows or columns are selected beyond the event
 boundary. PMSI retains its \code{main}, \code{actes}, and \code{diag} tables.
 }
 \details{
@@ -42,6 +43,9 @@ A \code{biol} source carrying \code{TYPEANA} without \code{TYPEANA_LABEL} is lab
 normalized before labelling existed carry the same columns as bundles built
 from \code{\link[=get_event_bundles]{get_event_bundles()}}. Existing \code{TYPEANA_LABEL} values are left as they
 are, and a \code{biol} source without \code{TYPEANA} is passed through untouched.
+Biology and virology artifacts using the former \code{BIOL_ID} or \code{VIRO_ID} names
+are upgraded to \code{ELTID}. When an artifact contains both names, their values
+must agree and only \code{ELTID} is retained.
 }
 \examples{
 sources <- list(
@@ -52,7 +56,7 @@ sources <- list(
   ),
   biol = tibble::tibble(
     EVTID = c("E1", "E2"),
-    BIOL_ID = c("B1", "B2"),
+    ELTID = c("B1", "B2"),
     NUMRES = c(12.3, 9.8)
   )
 )

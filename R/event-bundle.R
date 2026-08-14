@@ -62,13 +62,10 @@
   sources
 }
 
-# Bundles must expose the same labelled columns whichever entry point produced
-# them. `get_edsan(process = TRUE)` already applies the module labellers, so
-# retrieval arrives labelled, but bundles are also built from artifacts
-# normalized before labelling existed. Labelling here keeps the bundle contract
-# single-sourced: every source carrying the reference key also carries its
-# label. Existing labels are kept as they are, and sources whose grain has no
-# key column at all are left untouched.
+# Bundles must expose the same normalized columns whichever entry point produced
+# them. New retrieval already uses ELTID and applies module labellers; artifacts
+# created before that contract may still carry BIOL_ID or VIRO_ID or lack a
+# reference label. Upgrade both differences once at this boundary.
 .EVENT_BUNDLE_LABELLERS <- list(
   biol = list(key = "TYPEANA", label = "TYPEANA_LABEL"),
   doceds = list(key = "RECTYPE", label = "RECTYPE_LABEL")
@@ -123,7 +120,8 @@
 #' Build event bundles from normalized EDSAN sources
 #'
 #' Partitions already available normalized source objects by `EVTID`. No EDSAN
-#' retrieval is performed and no rows or columns are selected beyond the event
+#' retrieval is performed. Legacy `BIOL_ID` and `VIRO_ID` columns are renamed to
+#' canonical `ELTID`; otherwise no rows or columns are selected beyond the event
 #' boundary. PMSI retains its `main`, `actes`, and `diag` tables.
 #'
 #' @param event_ids Non-empty vector of unique EDSAN `EVTID` values.
@@ -147,6 +145,9 @@
 #' normalized before labelling existed carry the same columns as bundles built
 #' from [get_event_bundles()]. Existing `TYPEANA_LABEL` values are left as they
 #' are, and a `biol` source without `TYPEANA` is passed through untouched.
+#' Biology and virology artifacts using the former `BIOL_ID` or `VIRO_ID` names
+#' are upgraded to `ELTID`. When an artifact contains both names, their values
+#' must agree and only `ELTID` is retained.
 #'
 #' @examples
 #' sources <- list(
@@ -157,7 +158,7 @@
 #'   ),
 #'   biol = tibble::tibble(
 #'     EVTID = c("E1", "E2"),
-#'     BIOL_ID = c("B1", "B2"),
+#'     ELTID = c("B1", "B2"),
 #'     NUMRES = c(12.3, 9.8)
 #'   )
 #' )
@@ -173,7 +174,8 @@ build_event_bundles <- function(event_ids, sources) {
   event_ids <- .validate_event_ids(event_ids)
   sources <- .validate_event_bundle_sources(sources)
   sources[] <- lapply(names(sources), function(source_name) {
-    .label_event_bundle_source(sources[[source_name]], source_name)
+    source <- .edsan_canonicalize_eltid(sources[[source_name]], source_name)
+    .label_event_bundle_source(source, source_name)
   })
   created_at <- Sys.time()
 

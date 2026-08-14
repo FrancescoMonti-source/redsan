@@ -17,11 +17,14 @@ edsan_sources("pmsi")
 edsan_sources("pmsi", "diag")
 ```
 
-The registry records each module's normalized table, row grain, native
-identifiers, query date keys, default batching key, and source time kind.
+The registry records each module's normalized table, row grain, identifiers,
+query date keys, default batching key, and source time kind.
 Across modules, each `ELTID` belongs to exactly one `EVTID`, and each `EVTID`
 belongs to exactly one `PATID`. This provenance relationship does not imply
 that `ELTID` alone is always sufficient for normalized row uniqueness.
+All normalized modules expose that source-element coordinate as `ELTID`.
+`BIOL_ID` and `VIRO_ID` are accepted only when reading older biology and
+virology artifacts and are converted to `ELTID` at normalization or bundling.
 
 Current modules:
 
@@ -166,7 +169,8 @@ and reference labels are identical in both forms. `bundle$sources$biol`
 therefore carries `TYPEANA_LABEL` and the PMSI tables carry their CIM-10 and
 CCAM/CDAM labels. `build_event_bundles()` also labels a `biol` source that
 carries `TYPEANA` without `TYPEANA_LABEL`, so bundles assembled from biology
-artifacts normalized before labelling existed expose the same columns.
+artifacts normalized before labelling existed expose the same columns. It also
+renames legacy `BIOL_ID` and `VIRO_ID` columns to canonical `ELTID`.
 
 Printing the bundle reports compact row counts while leaving the normalized
 source objects unchanged. Retrieval is fail-fast: if one requested module
