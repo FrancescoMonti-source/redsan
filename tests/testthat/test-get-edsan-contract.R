@@ -75,7 +75,8 @@ test_that("biology results returned in table form survive combination", {
   out <- get_edsan("biol", query = list(EVTID = "E1"))
 
   expect_identical(nrow(out), 2L)
-  expect_identical(out$BIOL_ID, c("B1", "B2"))
+  expect_identical(out$ELTID, c("B1", "B2"))
+  expect_false("BIOL_ID" %in% names(out))
   expect_identical(
     out$TYPEANA_LABEL,
     c(reference$TYPEANA_LABEL[[1L]], NA_character_)
@@ -84,7 +85,7 @@ test_that("biology results returned in table form survive combination", {
 
 test_that("biology results returned as exam lists still flatten across batches", {
   raw <- list(
-    list(
+    L1 = list(
       PATID = "P1", EVTID = "E1", ELTID = "L1",
       RESULTATS = data.frame(TYPEANA = "FAIT_MAISON", NUMRES = 1)
     )

@@ -17,11 +17,11 @@ numeric.
 }
 \description{
 Flattens VIRO results from the EDSaN API into a single tibble. VIRO shares
-the BIOL result shape but uses \code{VIRO_ID} for source traceability and
+the BIOL result shape, exposes source traceability through \code{ELTID}, and uses
 \code{DATEPRELEV} as its source date.
 }
 \examples{
-raw <- list(list(
+raw <- list(L1 = list(
   PATID = "P1", EVTID = "E1",
   DATEPRELEV = "2024-01-01 08:30",
   RESULTATS = data.frame(ANALYTE = "PCR", STRRES = "NEGATIF")

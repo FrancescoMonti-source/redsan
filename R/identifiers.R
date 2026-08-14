@@ -6,8 +6,9 @@
 #'
 #' @param data A data frame containing EDSAN identifiers.
 #' @param cols Character vector of identifier columns to count. When omitted,
-#'   available columns among `PATID`, `EVTID`, `ELTID`, `BIOL_ID`, `DOC_ID`,
-#'   `PMSI_ID`, and `VIRO_ID` are detected case-insensitively.
+#'   available columns among `PATID`, `EVTID`, `ELTID`, `DOC_ID`, and `PMSI_ID`
+#'   are detected case-insensitively. Legacy `BIOL_ID` and `VIRO_ID` columns are
+#'   also recognized for artifacts created before `ELTID` became canonical.
 #'
 #' @return `NULL`, invisibly. The counts are printed to the console.
 #'

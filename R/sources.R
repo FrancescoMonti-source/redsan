@@ -10,8 +10,8 @@
       c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID"),
-      c("PATID", "EVTID", "ELTID", "BIOL_ID"),
-      c("PATID", "EVTID", "VIRO_ID")
+      c("PATID", "EVTID", "ELTID"),
+      c("PATID", "EVTID", "ELTID")
     ),
     source_time_kind = c("point", "interval", "point", "interval", "point", "point"),
     source_time_start = c("RECDATE", "DATENT", "DATEACTE", "DATENT", "DATEXAM", "DATEPRELEV"),
@@ -39,7 +39,7 @@
         "PATID + EVTID limits from the complete main table."
       ),
       "Biology results; analyte/value/unit columns depend on the returned payload.",
-      "Virology results; BIOL-like payload with VIRO_ID traceability and DATEPRELEV point time."
+      "Virology results; BIOL-like payload with ELTID traceability and DATEPRELEV point time."
     )
   )
 }
@@ -79,6 +79,45 @@
     ))
   }
   as.character(x)
+}
+
+# BIOL_ID and VIRO_ID were historical names for the same source coordinate as
+# ELTID. New normalizers expose only ELTID; accepting the aliases here lets the
+# bundle boundary upgrade already-normalized artifacts in one place.
+.edsan_canonicalize_eltid <- function(data, module) {
+  legacy_id <- switch(
+    module,
+    biol = "BIOL_ID",
+    viro = "VIRO_ID",
+    NULL
+  )
+  if (is.null(legacy_id) || !is.data.frame(data)) {
+    return(data)
+  }
+  if (!legacy_id %in% names(data)) {
+    if (nrow(data) == 0L && !"ELTID" %in% names(data)) {
+      data$ELTID <- character()
+    }
+    return(data)
+  }
+
+  legacy_values <- .edsan_as_identifier(data[[legacy_id]])
+  if ("ELTID" %in% names(data)) {
+    eltid_values <- .edsan_as_identifier(data$ELTID)
+    if (!identical(unname(eltid_values), unname(legacy_values))) {
+      stop(
+        "`", legacy_id, "` and `ELTID` must contain the same values.",
+        call. = FALSE
+      )
+    }
+    data$ELTID <- eltid_values
+    data[[legacy_id]] <- NULL
+    return(data)
+  }
+
+  names(data)[names(data) == legacy_id] <- "ELTID"
+  data$ELTID <- legacy_values
+  data
 }
 
 .edsan_normalize_identifier_columns <- function(data, module, table = NULL) {

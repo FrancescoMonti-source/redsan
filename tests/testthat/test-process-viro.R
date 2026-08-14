@@ -23,16 +23,16 @@ test_that("process_viro uses VIRO source identity and sampling time", {
   expect_identical(
     list(
       rows = nrow(out),
-      VIRO_ID = out$VIRO_ID,
-      has_ELTID = "ELTID" %in% names(out),
+      ELTID = out$ELTID,
+      has_VIRO_ID = "VIRO_ID" %in% names(out),
       result = out$STRRES,
       date_is_posix = inherits(out$DATEPRELEV, "POSIXct"),
       time = as.character(out$HEURE_DATEPRELEV)
     ),
     list(
       rows = 2L,
-      VIRO_ID = rep("viroA", 2),
-      has_ELTID = FALSE,
+      ELTID = rep("viroA", 2),
+      has_VIRO_ID = FALSE,
       result = c("positive", "negative"),
       date_is_posix = TRUE,
       time = rep("08:30:00", 2)

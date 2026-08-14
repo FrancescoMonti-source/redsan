@@ -9,27 +9,27 @@
 #' - missing `RESULTATS`
 #' - `RESULTATS` is a data.frame with zero rows
 #'
-#' The `BIOL_ID` column is derived from the list names/indices via `purrr::imap()`
-#' and can be used to keep traceability to the source exam entry within the input
-#' list.
+#' The `ELTID` column is derived from the list names via `purrr::imap()`
+#' and keeps traceability to the source exam entry within the input list.
 #'
 #' @param data List of BIOL API entries. Each element is expected to be a list
 #'   containing metadata fields (e.g., `PATID`, `EVTID`, ...) and a `RESULTATS`
 #'   element (data.frame-like) holding lab results.
 #'
 #' @return A list of tibbles (possibly empty). Each tibble has:
-#' - metadata columns: `PATID`, `EVTID`, `ELTID`, `BIOL_ID`, `DATEXAM`, `SEJUM`,
+#' - metadata columns: `PATID`, `EVTID`, `ELTID`, `DATEXAM`, `SEJUM`,
 #'   `SEJUF`, `PATBD`, `PATAGE`, `PATSEX`, `CSTE_LABO`
 #' - all columns present in `RESULTATS`
 #'
 #' @examples
 #' x <- list(
-#'   examA = list(
+#'   L1 = list(
 #'     PATID = "P1", EVTID = "E1", ELTID = "L1",
 #'     DATEXAM = "2020-01-01 08:30", CSTE_LABO = "LAB1",
 #'     RESULTATS = data.frame(ANALYTE = "Hb", VALEUR = "13.2")
 #'   ),
-#'   examB = list(PATID = "P2", RESULTATS = data.frame())  # dropped
+#'   L2 = list(PATID = "P2", EVTID = "E2", ELTID = "L2",
+#'             RESULTATS = data.frame())  # dropped
 #' )
 #' out <- .biol_prepare(x)
 #' length(out)  # 1
@@ -40,9 +40,14 @@
 #' @importFrom dplyr bind_cols
 #' @keywords internal
 #' @noRd
-.biol_prepare <- function(data, id_col = "BIOL_ID", date_col = "DATEXAM", extra_meta = "ELTID") {
+.biol_prepare <- function(data, date_col = "DATEXAM") {
   # data: list of lab exams; each element has metadata + RESULTATS (data.frame)
-  identifiers <- c("PATID", "EVTID", id_col, extra_meta)
+  if (length(data) > 0L &&
+      (is.null(names(data)) || anyNA(names(data)) ||
+       any(!nzchar(names(data))) || anyDuplicated(names(data)))) {
+    stop("Raw BIOL/VIRO entries must be uniquely named by ELTID.", call. = FALSE)
+  }
+  identifiers <- c("PATID", "EVTID")
   get_value <- function(entry, name) {
     value <- entry[[name]]
     if (is.null(value) || length(value) == 0) return(NA_character_)
@@ -52,15 +57,21 @@
     as.character(value)[[1]]
   }
 
-  purrr::imap(data, function(entry, biol_id) {
+  purrr::imap(data, function(entry, eltid) {
     if (is.null(entry) || !is.list(entry)) return(NULL)
+    eltid <- .edsan_as_identifier(eltid)[[1]]
+    if (!is.null(entry$ELTID) && length(entry$ELTID) > 0L &&
+        !identical(.edsan_as_identifier(entry$ELTID)[[1]], eltid)) {
+      stop("A raw entry name and its ELTID must contain the same value.",
+           call. = FALSE)
+    }
     results <- entry$RESULTATS
     if (is.null(results) || (is.data.frame(results) && nrow(results) == 0)) return(NULL)
 
     meta <- tibble::tibble(
       PATID = get_value(entry, "PATID"),
       EVTID = get_value(entry, "EVTID"),
-      .SOURCE_ID = .edsan_as_identifier(biol_id)[[1]],
+      ELTID = eltid,
       .SOURCE_DATE = get_value(entry, date_col),
       SEJUM = get_value(entry, "SEJUM"),
       SEJUF = get_value(entry, "SEJUF"),
@@ -70,21 +81,7 @@
       CSTE_LABO = get_value(entry, "CSTE_LABO")
     )
 
-    names(meta)[names(meta) == ".SOURCE_ID"] <- id_col
     names(meta)[names(meta) == ".SOURCE_DATE"] <- date_col
-
-    for (col in rev(extra_meta)) {
-      if (!col %in% names(meta)) {
-        existing_names <- names(meta)
-        evtid_position <- match("EVTID", existing_names)
-        meta[[col]] <- get_value(entry, col)
-        meta <- meta[c(
-          existing_names[seq_len(evtid_position)],
-          col,
-          existing_names[-seq_len(evtid_position)]
-        )]
-      }
-    }
 
     # Ensure results is a tibble
     res_tbl <- tibble::as_tibble(results)
@@ -117,7 +114,7 @@
 #'   `POSIXct` and a `HEURE_DATEXAM` (`hms`) column is added.
 #'
 #' @examples
-#' raw <- list(list(
+#' raw <- list(L1 = list(
 #'   PATID="P1", EVTID="E1", ELTID="L1",
 #'   DATEXAM="2020-01-01 08:30",
 #'   RESULTATS=data.frame(ANALYTE="Hb", VALEUR="13.2")
@@ -131,10 +128,10 @@
 #' @importFrom dplyr bind_rows
 #' @keywords internal
 #' @noRd
-.biol_results <- function(data, id_col = "BIOL_ID", date_col = "DATEXAM", extra_meta = "ELTID") {
+.biol_results <- function(data, date_col = "DATEXAM") {
   # Accept either raw list (API chunks) or already prepared list of tibbles
   if (is.list(data) && !is.data.frame(data)) {
-    rows <- .biol_prepare(data, id_col = id_col, date_col = date_col, extra_meta = extra_meta)
+    rows <- .biol_prepare(data, date_col = date_col)
     if (length(rows) == 0) return(tibble::tibble())
     df <- dplyr::bind_rows(rows)
   } else {
@@ -196,7 +193,7 @@
 #'   numeric. Qualitative result fields such as `STRRES` are preserved.
 #'
 #' @examples
-#' raw <- list(list(
+#' raw <- list(L1 = list(
 #'   PATID="P1", EVTID="E1", ELTID="L1",
 #'   DATEXAM="2020-01-01 08:30",
 #'   RESULTATS=data.frame(TYPEANA="K.K", NUMRES=4.2)
@@ -207,7 +204,7 @@
 process_biol <- function(data) {
   label_biol(
     .edsan_normalize_identifier_columns(
-      .biol_results(data),
+      .edsan_canonicalize_eltid(.biol_results(data), "biol"),
       "biol",
       "results"
     )
@@ -272,7 +269,7 @@ label_biol <- function(biology) {
 #' Process VIRO results
 #'
 #' Flattens VIRO results from the EDSaN API into a single tibble. VIRO shares
-#' the BIOL result shape but uses `VIRO_ID` for source traceability and
+#' the BIOL result shape, exposes source traceability through `ELTID`, and uses
 #' `DATEPRELEV` as its source date.
 #'
 #' @param data List of VIRO API entries (raw exams with `RESULTATS`) or a
@@ -283,7 +280,7 @@ label_biol <- function(biology) {
 #'   numeric.
 #'
 #' @examples
-#' raw <- list(list(
+#' raw <- list(L1 = list(
 #'   PATID = "P1", EVTID = "E1",
 #'   DATEPRELEV = "2024-01-01 08:30",
 #'   RESULTATS = data.frame(ANALYTE = "PCR", STRRES = "NEGATIF")
@@ -293,11 +290,9 @@ label_biol <- function(biology) {
 #' @export
 process_viro <- function(data) {
   .edsan_normalize_identifier_columns(
-    .biol_results(
-      data,
-      id_col = "VIRO_ID",
-      date_col = "DATEPRELEV",
-      extra_meta = character()
+    .edsan_canonicalize_eltid(
+      .biol_results(data, date_col = "DATEPRELEV"),
+      "viro"
     ),
     "viro",
     "results"
