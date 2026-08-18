@@ -138,6 +138,15 @@
     df <- tibble::as_tibble(data)
   }
 
+  # EDSAN wraps scalar result fields in one-element lists. A normalized result
+  # table is atomic: flatten every such column here, once, rather than teaching
+  # each downstream consumer how NULL and multi-value cells are represented.
+  list_columns <- vapply(df, is.list, logical(1))
+  df[list_columns] <- lapply(
+    df[list_columns],
+    .edsan_flatten_scalar_column
+  )
+
   # Parse source date and compute HEURE_* (only if time was explicit in raw string)
   if (date_col %in% names(df)) {
     raw <- as.character(df[[date_col]])
@@ -161,7 +170,7 @@
   # the key joined against the packaged biology reference, so it has to be atomic
   # character: a list column makes that join fail on incompatible types.
   if ("TYPEANA" %in% names(df)) {
-    df$TYPEANA <- .edsan_flatten_code_column(df$TYPEANA)
+    df$TYPEANA <- .edsan_flatten_scalar_column(df$TYPEANA)
   }
 
   df
@@ -170,7 +179,7 @@
 # Raw API payloads store each scalar in a one-element list, so result columns can
 # reach normalization as list columns. Flatten to character, keeping the
 # multi-value convention used when preparing PMSI records.
-.edsan_flatten_code_column <- function(x) {
+.edsan_flatten_scalar_column <- function(x) {
   if (!is.list(x)) return(as.character(x))
   vapply(x, function(value) {
     if (is.null(value) || length(value) == 0L) return(NA_character_)
@@ -259,7 +268,7 @@ label_biol <- function(biology) {
 
   # Older artifacts, and raw payloads normalized outside `process_biol()`, can
   # still carry TYPEANA as a one-element list column, which the join cannot use.
-  biology$TYPEANA <- .edsan_flatten_code_column(biology$TYPEANA)
+  biology$TYPEANA <- .edsan_flatten_scalar_column(biology$TYPEANA)
 
   biology %>%
     dplyr::select(-dplyr::any_of("TYPEANA_LABEL")) %>%

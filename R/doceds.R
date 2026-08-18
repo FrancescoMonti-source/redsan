@@ -89,7 +89,7 @@ label_doceds <- function(documents) {
     }
   }
 
-  documents$RECTYPE <- .edsan_flatten_code_column(documents$RECTYPE)
+  documents$RECTYPE <- .edsan_flatten_scalar_column(documents$RECTYPE)
 
   documents %>%
     dplyr::select(-dplyr::any_of("RECTYPE_LABEL")) %>%

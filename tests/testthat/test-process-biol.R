@@ -56,6 +56,27 @@ test_that("list-column TYPEANA is labelled instead of breaking the reference joi
   expect_identical(out$NUMRES, c(4.2, 1))
 })
 
+test_that("process_biol makes wrapped scalar result fields atomic", {
+  raw <- list(L1 = list(
+    PATID = "P1", EVTID = "E1", ELTID = "L1",
+    DATEXAM = "2024-01-01 08:30",
+    RESULTATS = data.frame(
+      TYPEANA = I(list("A", "B", "C")),
+      NUMRES = I(list(NA_real_, NA_real_, NA_real_)),
+      STRRES = I(list("positif", NULL, c("faible", "douteux"))),
+      UNITE = I(list("UI/mL", NULL, "")),
+      CMT = I(list(NULL, "commentaire", NULL))
+    )
+  ))
+
+  out <- process_biol(raw)
+
+  expect_false(any(vapply(out, is.list, logical(1))))
+  expect_identical(out$STRRES, c("positif", NA_character_, "faible;douteux"))
+  expect_identical(out$UNITE, c("UI/mL", NA_character_, ""))
+  expect_identical(out$CMT, c(NA_character_, "commentaire", NA_character_))
+})
+
 test_that("label_biol flattens TYPEANA shapes it receives from older artifacts", {
   reference <- edsan_reference("bio")
   known_code <- reference$TYPEANA[[1L]]
