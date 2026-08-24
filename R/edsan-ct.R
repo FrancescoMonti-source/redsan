@@ -225,7 +225,7 @@
         input_type = rep.int(input_types[[i]], length(values)),
         output_id = values,
         output_type = rep.int(type_spec$output_type, length(values)),
-        status = rep.int(status, length(values), length(values)),
+        status = rep.int(status, length(values)),
         n_matches = rep.int(length(values), length(values))
       )
     }
