@@ -223,3 +223,178 @@
 query_icca <- function(sql, params = NULL, connection = NULL) {
   .icca_query(sql = sql, params = params, connection = connection)
 }
+
+# High-level pseudonymized ICCA retrieval ------------------------------------
+
+.icca_validate_evtids <- function(evtids) {
+  if (!is.character(evtids)) {
+    stop("`evtids` must be character EDSaN EVTID values.", call. = FALSE)
+  }
+  if (length(evtids) == 0L) return(character())
+
+  evtids <- trimws(evtids)
+  if (anyNA(evtids) || any(!nzchar(evtids))) {
+    stop("`evtids` must not contain missing or empty values.", call. = FALSE)
+  }
+  unique(evtids)
+}
+
+.icca_empty_encounter <- function() {
+  tibble::tibble(
+    EVTID = character(),
+    encounterId = integer(),
+    patientId = integer(),
+    episodeId = integer(),
+    gender = character(),
+    primaryDiagnosis = character(),
+    isArchived = logical(),
+    systemId = integer()
+  )
+}
+
+.icca_evtid_map <- function(evtids, env = "edsan-ct", ks_path = NULL,
+                            reidentify = edsan_reidentify) {
+  mapping <- reidentify(
+    evtids,
+    id_type = "EVTID",
+    env = env,
+    ks_path = ks_path
+  )
+
+  required <- c(
+    "EDSAN_ID", "EDSAN_TYPE", "HIS_ID", "HIS_TYPE", "status", "n_matches"
+  )
+  if (!is.data.frame(mapping) || !all(required %in% names(mapping))) {
+    stop("EDSaN CT returned an invalid EVTID-to-IEP mapping table.", call. = FALSE)
+  }
+
+  represented <- unique(as.character(mapping$EDSAN_ID))
+  if (!all(evtids %in% represented)) {
+    stop("EDSaN CT did not return a row for every requested EVTID.", call. = FALSE)
+  }
+
+  bad <- is.na(mapping$HIS_ID) |
+    mapping$EDSAN_TYPE != "EVTID" |
+    mapping$HIS_TYPE != "IEP" |
+    mapping$status != "matched" |
+    mapping$n_matches != 1L
+
+  counts <- table(as.character(mapping$EDSAN_ID))
+  duplicated_mapping <- names(counts)[counts != 1L]
+  bad_ids <- unique(c(as.character(mapping$EDSAN_ID[bad]), duplicated_mapping))
+  bad_ids <- bad_ids[!is.na(bad_ids) & nzchar(bad_ids)]
+
+  if (length(bad_ids)) {
+    stop(
+      "Each EVTID must map to exactly one IEP before ICCA retrieval. ",
+      "Unresolved or ambiguous EVTID(s): ",
+      paste(bad_ids, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  out <- tibble::tibble(
+    EVTID = as.character(mapping$EDSAN_ID),
+    .IEP = as.character(mapping$HIS_ID)
+  )
+  out[match(evtids, out$EVTID), , drop = FALSE]
+}
+
+.icca_get_encounter <- function(evtids, connection = NULL,
+                                env = "edsan-ct", ks_path = NULL,
+                                reidentify = edsan_reidentify,
+                                query = query_icca) {
+  evtids <- .icca_validate_evtids(evtids)
+  if (!length(evtids)) return(.icca_empty_encounter())
+
+  mapping <- .icca_evtid_map(
+    evtids,
+    env = env,
+    ks_path = ks_path,
+    reidentify = reidentify
+  )
+  ieps <- unique(mapping$.IEP)
+
+  placeholders <- paste(rep("?", length(ieps)), collapse = ", ")
+  sql <- paste(
+    "SELECT",
+    "  encounterId,",
+    "  patientId,",
+    "  episodeId,",
+    "  encounterNumber,",
+    "  gender,",
+    "  primaryDiagnosis,",
+    "  isArchived,",
+    "  systemId",
+    "FROM CISReportingDB.dbo.D_Encounter",
+    paste0("WHERE encounterNumber IN (", placeholders, ")")
+  )
+
+  rows <- query(sql = sql, params = ieps, connection = connection)
+  if (!is.data.frame(rows) || !("encounterNumber" %in% names(rows))) {
+    stop("ICCA encounter query returned an invalid result shape.", call. = FALSE)
+  }
+  if (!nrow(rows)) return(.icca_empty_encounter())
+
+  rows <- tibble::as_tibble(rows)
+  rows$encounterNumber <- as.character(rows$encounterNumber)
+  map_index <- match(rows$encounterNumber, mapping$.IEP)
+  if (anyNA(map_index)) {
+    stop(
+      "ICCA returned an encounter outside the requested IEP set.",
+      call. = FALSE
+    )
+  }
+
+  rows$EVTID <- mapping$EVTID[map_index]
+  rows <- rows[, c("EVTID", setdiff(names(rows), c("EVTID", "encounterNumber"))),
+               drop = FALSE]
+  tibble::as_tibble(rows)
+}
+
+#' Retrieve ICCA data by EDSaN EVTID
+#'
+#' Retrieves ICCA rows for pseudonymized EDSaN stay identifiers. `redsan`
+#' reidentifies each EVTID to its IEP only long enough to filter ICCA, then
+#' replaces the IEP with the original EVTID before returning data.
+#'
+#' @param evtids Character vector of EDSaN EVTID values.
+#' @param source ICCA source to retrieve. Currently only `"encounter"` is
+#'   implemented and validated.
+#' @param connection Optional existing ICCA DBI connection, forwarded to
+#'   [query_icca()]. A caller-supplied connection is never closed by `redsan`.
+#' @param env EDSaN CT web-service environment name.
+#' @param ks_path Optional d2imr keystore path for EDSaN CT correspondence.
+#'
+#' @return A tibble keyed by `EVTID`. For `source = "encounter"`, the returned
+#'   fields are `EVTID`, `encounterId`, `patientId`, `episodeId`, `gender`,
+#'   `primaryDiagnosis`, `isArchived`, and `systemId`.
+#'
+#' @details
+#' Retrieval is fail-closed with respect to identity: every requested EVTID must
+#' map to exactly one IEP. Missing or multiple CT correspondences stop before an
+#' ICCA query is executed. `character(0)` returns an empty result immediately and
+#' never produces an unfiltered ICCA query.
+#'
+#' The encounter query deliberately does not request `lifeTimeNumber` (IPP),
+#' `accountNumber`, patient names, or date of birth. `encounterNumber` (IEP) is
+#' requested only as a transient join key and is removed before the result is
+#' returned.
+#'
+#' @examples
+#' \dontrun{
+#' get_icca("357015848")
+#' get_icca(c("357015848", "123456789"), source = "encounter")
+#' }
+#'
+#' @export
+get_icca <- function(evtids, source = "encounter", connection = NULL,
+                     env = "edsan-ct", ks_path = NULL) {
+  source <- match.arg(source, "encounter")
+  .icca_get_encounter(
+    evtids,
+    connection = connection,
+    env = env,
+    ks_path = ks_path
+  )
+}
