@@ -36,6 +36,9 @@ Imports:
     tidyr,
     utils
 Suggests:
+    DBI,
+    httr,
+    odbc,
     reticulate,
     testthat (>= 3.0.0)
 Enhances:
