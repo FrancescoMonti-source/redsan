@@ -4,34 +4,36 @@
 \alias{query_icca}
 \title{Execute a read-only query against ICCA}
 \usage{
-query_icca(sql, params = NULL, d2im_keystore_path = NULL)
+query_icca(sql, params = NULL, connection = NULL)
 }
 \arguments{
 \item{sql}{One SQL Server \code{SELECT} statement. Common table expressions
 (\code{WITH ... SELECT ...}) are accepted. Multiple statements and write
 operations are rejected.}
 
-\item{params}{Optional positional values for \code{\%s} placeholders understood by
-the underlying \code{pymssql} driver.}
+\item{params}{Optional positional values for \code{?} placeholders. Values are
+passed to \code{\link[DBI:dbGetQuery]{DBI::dbGetQuery()}} as bound parameters.}
 
-\item{d2im_keystore_path}{Optional path to a \strong{Python d2im} keystore. This is
-not the R \code{d2imr} keystore format used by \code{\link[=edsan_pseudonymize]{edsan_pseudonymize()}} and
-\code{\link[=edsan_reidentify]{edsan_reidentify()}}. When \code{NULL}, d2impy uses its configured default.}
+\item{connection}{Optional existing DBI connection. When \code{NULL}, \code{redsan}
+opens an ICCA connection using FreeTDS and the active \code{d2imr} keystore,
+then closes it after the query. A caller-supplied connection is never
+closed by \code{query_icca()}.}
 }
 \value{
 A tibble containing the SQL Server result.
 }
 \description{
-Executes one parameterized read-only SQL Server query against the CHU ICCAJ
-database through the Python \code{d2im} client. The function is intentionally
+Executes one parameterized read-only SQL Server query against the CHU ICCA
+database using native R DBI/ODBC access. The function is intentionally
 low-level: it exposes source access without adding clinical concept
 definitions or pseudonymization logic.
 }
 \details{
-ICCA access requires the optional R package \code{reticulate} and a Python
-environment where the CHU \code{d2im} package and \code{pymssql} are importable.
-\code{redsan} calls \code{d2im.dbc.edsan_dbc.sqlserver_execute_query()} with
-\code{Database.ICCAJ} and requests a pandas result for conversion to R.
+Automatic connection setup requires the optional packages \code{DBI}, \code{odbc}, and
+\code{d2imr}, a registered FreeTDS ODBC driver, and the following keys in the
+active d2imr keystore: \code{db.iccaadu.srv}, \code{db.iccaadu.port},
+\code{db.iccaadu.usr}, and \code{db.iccaadu.pwd}. The target database is
+\code{CISReportingDB} and the default TDS protocol version is \code{7.4}.
 
 The read-only validation is an accidental-write guard, not a SQL security
 sandbox. Database permissions remain the authoritative access control.
@@ -40,14 +42,14 @@ sandbox. Database permissions remain the authoritative access control.
 \dontrun{
 # Connectivity/schema smoke test: returns zero rows and no patient data.
 query_icca(
-  "SELECT TOP 0 encounterid FROM CISReportingDB.dbo.D_Encounter"
+  "SELECT TOP 0 encounterId FROM CISReportingDB.dbo.D_Encounter"
 )
 
 query_icca(
   paste(
-    "SELECT TOP 10 encounterid, encounternumber",
+    "SELECT TOP 10 encounterId, encounterNumber",
     "FROM CISReportingDB.dbo.D_Encounter",
-    "WHERE encounternumber = \%s"
+    "WHERE encounterNumber = ?"
   ),
   params = "123456789"
 )
