@@ -47,9 +47,6 @@
 
 .edsan_ct_validate_explicit_his_type <- function(ids, id_type) {
   id_type <- match.arg(id_type, c("IPP", "IEP"))
-  # `ids` is already shape-validated (character, digit strings) by the caller.
-  # The only confirmed local invariant is "IPP starts with `00`"; an explicit
-  # `id_type` overrides automatic detection rather than being rejected by it.
   detected <- .edsan_ct_detect_his_types(ids)
   mismatched <- detected != id_type
   if (any(mismatched)) {
@@ -90,12 +87,34 @@
       call. = FALSE
     )
   }
-  backend$call(
-    api_fct = api_fct,
-    api_mod = api_type,
-    api_query = api_query,
-    env = env,
-    ks_path = ks_path
+
+  invoke <- function() {
+    backend$call(
+      api_fct = api_fct,
+      api_mod = api_type,
+      api_query = api_query,
+      env = env,
+      ks_path = ks_path
+    )
+  }
+
+  if (!identical(env, "edsan-ct")) return(invoke())
+
+  if (!requireNamespace("httr", quietly = TRUE)) {
+    stop(
+      "EDSaN CT access in the Podsan environment requires the optional package `httr`.",
+      call. = FALSE
+    )
+  }
+
+  # The current internal EDSaN CT endpoint presents a certificate whose subject
+  # does not match its DNS hostname. d2imr already disables peer verification;
+  # scope the additional hostname workaround to this one CT call rather than
+  # changing the process-wide httr configuration. A finite timeout also prevents
+  # a stalled CT backend from hanging the R session indefinitely.
+  httr::with_config(
+    httr::config(ssl_verifyhost = 0L, timeout = 30),
+    invoke()
   )
 }
 
