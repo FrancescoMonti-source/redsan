@@ -220,13 +220,46 @@ test_that("ICCA encounter retrieval uses transient IEPs and returns EVTIDs", {
   expect_false("encounterNumber" %in% names(out))
 })
 
-test_that("ICCA retrieval stops before SQL on unresolved CT mappings", {
-  sql_called <- FALSE
-  fake_query <- function(...) {
-    sql_called <<- TRUE
-    stop("should not be called")
+test_that("ICCA retrieval trusts multiple mappings returned by CT", {
+  seen_params <- NULL
+  fake_multiple <- function(ids, id_type, env, ks_path) {
+    tibble::tibble(
+      EDSAN_ID = c("EVT-1", "EVT-1"),
+      EDSAN_TYPE = "EVTID",
+      HIS_ID = c("IEP-1", "IEP-2"),
+      HIS_TYPE = "IEP",
+      status = "multiple_matches",
+      n_matches = 2L
+    )
+  }
+  fake_query <- function(sql, params, connection) {
+    seen_params <<- params
+    data.frame(
+      encounterId = c(1L, 2L),
+      patientId = c(10L, 10L),
+      episodeId = c(100L, 200L),
+      encounterNumber = c("IEP-1", "IEP-2"),
+      gender = c("F", "F"),
+      primaryDiagnosis = c("A", "B"),
+      isArchived = c(FALSE, FALSE),
+      systemId = c(7L, 7L),
+      stringsAsFactors = FALSE
+    )
   }
 
+  out <- redsan:::.icca_get_encounter(
+    "EVT-1",
+    reidentify = fake_multiple,
+    query = fake_query
+  )
+
+  expect_identical(seen_params, c("IEP-1", "IEP-2"))
+  expect_identical(out$EVTID, c("EVT-1", "EVT-1"))
+  expect_identical(out$encounterId, c(1L, 2L))
+})
+
+test_that("EVTIDs without CT mappings produce no ICCA query", {
+  sql_called <- FALSE
   fake_missing <- function(ids, id_type, env, ks_path) {
     tibble::tibble(
       EDSAN_ID = ids,
@@ -238,64 +271,15 @@ test_that("ICCA retrieval stops before SQL on unresolved CT mappings", {
     )
   }
 
-  expect_error(
-    redsan:::.icca_get_encounter(
-      "EVT-1",
-      reidentify = fake_missing,
-      query = fake_query
-    ),
-    "exactly one IEP"
+  out <- redsan:::.icca_get_encounter(
+    "EVT-1",
+    reidentify = fake_missing,
+    query = function(...) {
+      sql_called <<- TRUE
+      stop("should not be called")
+    }
   )
+
   expect_false(sql_called)
-})
-
-test_that("ICCA retrieval rejects multiple IEPs for one EVTID", {
-  fake_multiple <- function(ids, id_type, env, ks_path) {
-    tibble::tibble(
-      EDSAN_ID = rep(ids, 2L),
-      EDSAN_TYPE = "EVTID",
-      HIS_ID = c("IEP-1", "IEP-2"),
-      HIS_TYPE = "IEP",
-      status = "multiple_matches",
-      n_matches = 2L
-    )
-  }
-
-  expect_error(
-    redsan:::.icca_get_encounter(
-      "EVT-1",
-      reidentify = fake_multiple,
-      query = function(...) stop("SQL must not run")
-    ),
-    "exactly one IEP"
-  )
-})
-
-test_that("ICCA retrieval rejects rows outside the requested IEP set", {
-  fake_reidentify <- function(ids, id_type, env, ks_path) {
-    tibble::tibble(
-      EDSAN_ID = ids,
-      EDSAN_TYPE = "EVTID",
-      HIS_ID = "IEP-1",
-      HIS_TYPE = "IEP",
-      status = "matched",
-      n_matches = 1L
-    )
-  }
-  fake_query <- function(sql, params, connection) {
-    data.frame(
-      encounterNumber = "IEP-OTHER",
-      encounterId = 1L,
-      stringsAsFactors = FALSE
-    )
-  }
-
-  expect_error(
-    redsan:::.icca_get_encounter(
-      "EVT-1",
-      reidentify = fake_reidentify,
-      query = fake_query
-    ),
-    "outside the requested IEP set"
-  )
+  expect_identical(nrow(out), 0L)
 })
