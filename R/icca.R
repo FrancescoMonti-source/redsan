@@ -15,11 +15,11 @@
 
   sql <- trimws(sql)
   sql_without_trailing_semicolon <- sub(";\\s*$", "", sql, perl = TRUE)
-  if (grepl(";", sql_without_trailing_semicolon, fixed = TRUE)) {
+  check <- trimws(.icca_sql_for_validation(sql_without_trailing_semicolon))
+  if (grepl(";", check, fixed = TRUE)) {
     stop("`query_icca()` accepts exactly one SQL statement.", call. = FALSE)
   }
 
-  check <- trimws(.icca_sql_for_validation(sql_without_trailing_semicolon))
   if (!grepl("(?is)^(select\\b|with\\b)", check, perl = TRUE)) {
     stop("`query_icca()` accepts read-only SELECT queries (including CTEs) only.",
          call. = FALSE)
