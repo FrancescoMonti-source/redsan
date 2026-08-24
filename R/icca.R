@@ -50,90 +50,124 @@
   unname(as.list(params))
 }
 
-.icca_python_module <- local({
-  module <- NULL
+.icca_require_namespace <- function(package, purpose) {
+  if (!requireNamespace(package, quietly = TRUE)) {
+    stop(
+      "ICCA ", purpose, " requires the optional package `", package, "`.",
+      call. = FALSE
+    )
+  }
+}
 
-  function() {
-    if (!is.null(module)) return(module)
+.icca_keystore_value <- function(key) {
+  .icca_require_namespace("d2imr", "connection setup")
 
-    if (!requireNamespace("reticulate", quietly = TRUE)) {
+  getter <- tryCatch(
+    getExportedValue("d2imr", "d2im_keystore.get"),
+    error = function(e) NULL
+  )
+  if (!is.function(getter)) {
+    stop(
+      "Package `d2imr` must export `d2im_keystore.get()` for ICCA connection setup.",
+      call. = FALSE
+    )
+  }
+
+  value <- tryCatch(
+    getter(key),
+    error = function(e) {
       stop(
-        "ICCA access requires the optional package `reticulate` and the CHU ",
-        "Python environment containing `d2im`/`pymssql`.",
+        "Could not read ICCA connection key `", key, "` from the d2imr keystore: ",
+        conditionMessage(e),
         call. = FALSE
       )
     }
-
-    python_dir <- system.file("python", package = "redsan")
-    if (!nzchar(python_dir)) {
-      stop("The packaged ICCA Python backend could not be located.", call. = FALSE)
-    }
-
-    module <<- tryCatch(
-      reticulate::import_from_path(
-        "redsan_icca_backend",
-        path = python_dir,
-        convert = TRUE
-      ),
-      error = function(e) {
-        stop(
-          "Could not load the ICCA Python backend. Ensure reticulate is using ",
-          "the CHU Python environment where `d2im` and `pymssql` are available. ",
-          "Underlying error: ", conditionMessage(e),
-          call. = FALSE
-        )
-      }
+  )
+  value <- as.character(value)
+  if (length(value) != 1L || is.na(value) || !nzchar(value)) {
+    stop(
+      "Required ICCA connection key `", key,
+      "` is missing or empty in the active d2imr keystore.",
+      call. = FALSE
     )
-    module
   }
-})
+  value
+}
 
-.icca_python_execute <- function(sql, params = NULL, d2im_keystore_path = NULL) {
-  module <- .icca_python_module()
+.icca_connect <- function(driver = "FreeTDS", database = "CISReportingDB",
+                          tds_version = "7.4") {
+  .icca_require_namespace("DBI", "connection setup")
+  .icca_require_namespace("odbc", "connection setup")
 
-  result <- tryCatch(
-    module$execute_sql(
-      sql = sql,
-      params = params,
-      keystore_path = d2im_keystore_path
+  server <- .icca_keystore_value("db.iccaadu.srv")
+  port_raw <- .icca_keystore_value("db.iccaadu.port")
+  user <- .icca_keystore_value("db.iccaadu.usr")
+  password <- .icca_keystore_value("db.iccaadu.pwd")
+
+  port <- suppressWarnings(as.integer(port_raw))
+  if (length(port) != 1L || is.na(port) || port < 1L || port > 65535L) {
+    stop(
+      "ICCA connection key `db.iccaadu.port` is not a valid TCP port.",
+      call. = FALSE
+    )
+  }
+
+  tryCatch(
+    DBI::dbConnect(
+      odbc::odbc(),
+      Driver = driver,
+      Server = server,
+      Port = port,
+      Database = database,
+      UID = user,
+      PWD = password,
+      TDS_Version = tds_version
     ),
+    error = function(e) {
+      stop("Could not connect to ICCA: ", conditionMessage(e), call. = FALSE)
+    }
+  )
+}
+
+.icca_execute <- function(connection, sql, params = NULL) {
+  .icca_require_namespace("DBI", "query execution")
+  if (is.null(params)) {
+    DBI::dbGetQuery(connection, sql)
+  } else {
+    DBI::dbGetQuery(connection, sql, params = params)
+  }
+}
+
+.icca_disconnect <- function(connection) {
+  .icca_require_namespace("DBI", "connection cleanup")
+  DBI::dbDisconnect(connection)
+}
+
+.icca_query <- function(sql, params = NULL, connection = NULL,
+                        connect = .icca_connect,
+                        execute = .icca_execute,
+                        disconnect = .icca_disconnect) {
+  sql <- .icca_validate_read_query(sql)
+  params <- .icca_normalize_params(params)
+
+  owns_connection <- is.null(connection)
+  if (owns_connection) {
+    connection <- connect()
+    if (is.null(connection)) {
+      stop("The ICCA connection factory returned `NULL`.", call. = FALSE)
+    }
+    on.exit(disconnect(connection), add = TRUE)
+  }
+
+  out <- tryCatch(
+    execute(connection, sql, params),
     error = function(e) {
       stop("ICCA query failed: ", conditionMessage(e), call. = FALSE)
     }
   )
 
-  if (is.null(result)) {
-    stop(
-      "ICCA query returned no result object. Check the d2im Python keystore ",
-      "and ICCAJ database configuration.",
-      call. = FALSE
-    )
-  }
-
-  result
-}
-
-.icca_query <- function(sql, params = NULL, d2im_keystore_path = NULL,
-                        backend = .icca_python_execute) {
-  sql <- .icca_validate_read_query(sql)
-  params <- .icca_normalize_params(params)
-
-  if (!is.null(d2im_keystore_path) &&
-      (!is.character(d2im_keystore_path) ||
-       length(d2im_keystore_path) != 1L ||
-       is.na(d2im_keystore_path) ||
-       !nzchar(d2im_keystore_path))) {
-    stop("`d2im_keystore_path` must be NULL or one non-empty path.", call. = FALSE)
-  }
-
-  out <- backend(
-    sql = sql,
-    params = params,
-    d2im_keystore_path = d2im_keystore_path
-  )
-
   if (!is.data.frame(out)) {
-    stop("The ICCA backend must return a data frame.", call. = FALSE)
+    stop("The ICCA query backend must return a data frame.", call. = FALSE)
   }
 
   tibble::as_tibble(out)
@@ -141,27 +175,29 @@
 
 #' Execute a read-only query against ICCA
 #'
-#' Executes one parameterized read-only SQL Server query against the CHU ICCAJ
-#' database through the Python `d2im` client. The function is intentionally
+#' Executes one parameterized read-only SQL Server query against the CHU ICCA
+#' database using native R DBI/ODBC access. The function is intentionally
 #' low-level: it exposes source access without adding clinical concept
 #' definitions or pseudonymization logic.
 #'
 #' @param sql One SQL Server `SELECT` statement. Common table expressions
 #'   (`WITH ... SELECT ...`) are accepted. Multiple statements and write
 #'   operations are rejected.
-#' @param params Optional positional values for `%s` placeholders understood by
-#'   the underlying `pymssql` driver.
-#' @param d2im_keystore_path Optional path to a **Python d2im** keystore. This is
-#'   not the R `d2imr` keystore format used by [edsan_pseudonymize()] and
-#'   [edsan_reidentify()]. When `NULL`, d2impy uses its configured default.
+#' @param params Optional positional values for `?` placeholders. Values are
+#'   passed to [DBI::dbGetQuery()] as bound parameters.
+#' @param connection Optional existing DBI connection. When `NULL`, `redsan`
+#'   opens an ICCA connection using FreeTDS and the active `d2imr` keystore,
+#'   then closes it after the query. A caller-supplied connection is never
+#'   closed by `query_icca()`.
 #'
 #' @return A tibble containing the SQL Server result.
 #'
 #' @details
-#' ICCA access requires the optional R package `reticulate` and a Python
-#' environment where the CHU `d2im` package and `pymssql` are importable.
-#' `redsan` calls `d2im.dbc.edsan_dbc.sqlserver_execute_query()` with
-#' `Database.ICCAJ` and requests a pandas result for conversion to R.
+#' Automatic connection setup requires the optional packages `DBI`, `odbc`, and
+#' `d2imr`, a registered FreeTDS ODBC driver, and the following keys in the
+#' active d2imr keystore: `db.iccaadu.srv`, `db.iccaadu.port`,
+#' `db.iccaadu.usr`, and `db.iccaadu.pwd`. The target database is
+#' `CISReportingDB` and the default TDS protocol version is `7.4`.
 #'
 #' The read-only validation is an accidental-write guard, not a SQL security
 #' sandbox. Database permissions remain the authoritative access control.
@@ -170,24 +206,20 @@
 #' \dontrun{
 #' # Connectivity/schema smoke test: returns zero rows and no patient data.
 #' query_icca(
-#'   "SELECT TOP 0 encounterid FROM CISReportingDB.dbo.D_Encounter"
+#'   "SELECT TOP 0 encounterId FROM CISReportingDB.dbo.D_Encounter"
 #' )
 #'
 #' query_icca(
 #'   paste(
-#'     "SELECT TOP 10 encounterid, encounternumber",
+#'     "SELECT TOP 10 encounterId, encounterNumber",
 #'     "FROM CISReportingDB.dbo.D_Encounter",
-#'     "WHERE encounternumber = %s"
+#'     "WHERE encounterNumber = ?"
 #'   ),
 #'   params = "123456789"
 #' )
 #' }
 #'
 #' @export
-query_icca <- function(sql, params = NULL, d2im_keystore_path = NULL) {
-  .icca_query(
-    sql = sql,
-    params = params,
-    d2im_keystore_path = d2im_keystore_path
-  )
+query_icca <- function(sql, params = NULL, connection = NULL) {
+  .icca_query(sql = sql, params = params, connection = connection)
 }
