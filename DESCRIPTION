@@ -36,7 +36,8 @@ Imports:
     tidyr,
     utils
 Suggests:
-    reticulate,
+    DBI,
+    odbc,
     testthat (>= 3.0.0)
 Enhances:
     d2imr
