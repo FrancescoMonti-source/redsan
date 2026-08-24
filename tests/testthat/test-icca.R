@@ -18,14 +18,12 @@ test_that("ICCA validation rejects writes and multiple statements", {
   )
   expect_error(
     redsan:::.icca_validate_read_query(
-      "SELECT encounterid INTO #x FROM dbo.D_Encounter"
+      "SELECT encounterId INTO #x FROM dbo.D_Encounter"
     ),
     "modify"
   )
   expect_error(
-    redsan:::.icca_validate_read_query(
-      "SELECT 1; SELECT 2"
-    ),
+    redsan:::.icca_validate_read_query("SELECT 1; SELECT 2"),
     "exactly one"
   )
 })
@@ -39,35 +37,78 @@ test_that("write-like words inside literals and comments do not block reads", {
   )
 })
 
-test_that("ICCA query forwards positional parameters and keystore path", {
+test_that("ICCA query binds positional parameters", {
   seen <- NULL
-  fake_backend <- function(sql, params, d2im_keystore_path) {
-    seen <<- list(
-      sql = sql,
-      params = params,
-      d2im_keystore_path = d2im_keystore_path
-    )
-    data.frame(encounterid = c("E1", "E2"), stringsAsFactors = FALSE)
+  fake_execute <- function(connection, sql, params) {
+    seen <<- list(connection = connection, sql = sql, params = params)
+    data.frame(encounterId = c("E1", "E2"), stringsAsFactors = FALSE)
   }
 
+  supplied_connection <- structure(list(), class = "fake_connection")
   out <- redsan:::.icca_query(
-    "SELECT encounterid FROM dbo.D_Encounter WHERE encounternumber IN (%s, %s)",
+    "SELECT encounterId FROM dbo.D_Encounter WHERE encounterNumber IN (?, ?)",
     params = c("100", "200"),
-    d2im_keystore_path = "/tmp/python-keystore",
-    backend = fake_backend
+    connection = supplied_connection,
+    execute = fake_execute
   )
 
   expect_s3_class(out, "tbl_df")
-  expect_identical(out$encounterid, c("E1", "E2"))
+  expect_identical(out$encounterId, c("E1", "E2"))
+  expect_identical(seen$connection, supplied_connection)
   expect_identical(seen$params, list("100", "200"))
-  expect_identical(seen$d2im_keystore_path, "/tmp/python-keystore")
 })
 
-test_that("ICCA query fails closed on an invalid backend result", {
+test_that("caller-owned ICCA connections are not disconnected", {
+  disconnected <- FALSE
+  supplied_connection <- structure(list(), class = "fake_connection")
+
+  redsan:::.icca_query(
+    "SELECT 1",
+    connection = supplied_connection,
+    execute = function(connection, sql, params) data.frame(value = 1L),
+    disconnect = function(connection) disconnected <<- TRUE
+  )
+
+  expect_false(disconnected)
+})
+
+test_that("internally-created ICCA connections are always disconnected", {
+  disconnected <- FALSE
+  created_connection <- structure(list(), class = "fake_connection")
+
+  out <- redsan:::.icca_query(
+    "SELECT 1",
+    connect = function() created_connection,
+    execute = function(connection, sql, params) data.frame(value = 1L),
+    disconnect = function(connection) disconnected <<- TRUE
+  )
+
+  expect_identical(out$value, 1L)
+  expect_true(disconnected)
+})
+
+test_that("internally-created ICCA connections close after query errors", {
+  disconnected <- FALSE
+  created_connection <- structure(list(), class = "fake_connection")
+
   expect_error(
     redsan:::.icca_query(
       "SELECT 1",
-      backend = function(sql, params, d2im_keystore_path) NULL
+      connect = function() created_connection,
+      execute = function(connection, sql, params) stop("backend failed"),
+      disconnect = function(connection) disconnected <<- TRUE
+    ),
+    "backend failed"
+  )
+  expect_true(disconnected)
+})
+
+test_that("ICCA query fails closed on invalid backend results", {
+  expect_error(
+    redsan:::.icca_query(
+      "SELECT 1",
+      connection = structure(list(), class = "fake_connection"),
+      execute = function(connection, sql, params) NULL
     ),
     "must return a data frame"
   )
@@ -80,12 +121,22 @@ test_that("ICCA parameter validation remains explicit", {
     redsan:::.icca_normalize_params(new.env(parent = emptyenv())),
     "atomic vector"
   )
-  expect_error(
-    redsan:::.icca_query(
-      "SELECT 1",
-      d2im_keystore_path = "",
-      backend = function(...) data.frame()
-    ),
-    "non-empty path"
+})
+
+test_that("ICCA connection rejects invalid keystore ports before DBI", {
+  local_mocked_bindings(
+    .icca_keystore_value = function(key) {
+      switch(
+        key,
+        "db.iccaadu.srv" = "server",
+        "db.iccaadu.port" = "not-a-port",
+        "db.iccaadu.usr" = "user",
+        "db.iccaadu.pwd" = "secret"
+      )
+    },
+    .icca_require_namespace = function(package, purpose) TRUE,
+    .package = "redsan"
   )
+
+  expect_error(redsan:::.icca_connect(), "valid TCP port")
 })
