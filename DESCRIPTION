@@ -36,6 +36,7 @@ Imports:
     tidyr,
     utils
 Suggests:
+    reticulate,
     testthat (>= 3.0.0)
 Enhances:
     d2imr
