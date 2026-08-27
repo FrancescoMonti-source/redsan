@@ -282,15 +282,158 @@ query_icca <- function(sql, params = NULL, connection = NULL) {
   tibble::as_tibble(out)
 }
 
+.icca_detail_spec <- function(source) {
+  common <- c(
+    "encounterId",
+    "cisPtInterventionId",
+    "chartTime",
+    "utcChartTime",
+    "storeTime",
+    "utcStoreTime",
+    "interventionId",
+    "interventionLongDisplayLabel",
+    "interventionType",
+    "interventionPropName",
+    "attributeId",
+    "attributeLongLabel",
+    "attributePropName",
+    "dataFocusLongLabel",
+    "termLongLabel",
+    "materialLongLabel",
+    "siteLongLabel",
+    "valueString",
+    "valueDateTime",
+    "utcValueDateTime",
+    "valueNumber",
+    "unitOfMeasure",
+    "baseValueNumber",
+    "baseUOM",
+    "valueConcept",
+    "remark",
+    "mainState",
+    "actionState",
+    "isArchived",
+    "dictionaryLabel",
+    "dictionaryPropName"
+  )
+
+  switch(
+    source,
+    assessment = list(
+      table = "CISReportingDB.DAR.PtAssessment",
+      id_column = "ptAssessmentId",
+      columns = c("ptAssessmentId", common)
+    ),
+    medication = list(
+      table = "CISReportingDB.DAR.PtMedication",
+      id_column = "ptMedicationId",
+      columns = c("ptMedicationId", common, "isPrescribed")
+    ),
+    stop("Unsupported ICCA detail source `", source, "`.", call. = FALSE)
+  )
+}
+
+.icca_empty_detail <- function(source) {
+  source <- match.arg(source, c("assessment", "medication"))
+  out <- tibble::tibble(EVTID = character())
+
+  if (identical(source, "assessment")) {
+    out$ptAssessmentId <- integer()
+  } else {
+    out$ptMedicationId <- integer()
+  }
+
+  out$encounterId <- integer()
+  out$cisPtInterventionId <- character()
+  out$chartTime <- as.POSIXct(character())
+  out$utcChartTime <- as.POSIXct(character(), tz = "UTC")
+  out$storeTime <- as.POSIXct(character())
+  out$utcStoreTime <- as.POSIXct(character(), tz = "UTC")
+  out$interventionId <- integer()
+  out$interventionLongDisplayLabel <- character()
+  out$interventionType <- character()
+  out$interventionPropName <- character()
+  out$attributeId <- integer()
+  out$attributeLongLabel <- character()
+  out$attributePropName <- character()
+  out$dataFocusLongLabel <- character()
+  out$termLongLabel <- character()
+  out$materialLongLabel <- character()
+  out$siteLongLabel <- character()
+  out$valueString <- character()
+  out$valueDateTime <- as.POSIXct(character())
+  out$utcValueDateTime <- as.POSIXct(character(), tz = "UTC")
+  out$valueNumber <- numeric()
+  out$unitOfMeasure <- character()
+  out$baseValueNumber <- numeric()
+  out$baseUOM <- character()
+  out$valueConcept <- character()
+  out$remark <- character()
+  out$mainState <- character()
+  out$actionState <- character()
+  out$isArchived <- logical()
+  out$dictionaryLabel <- character()
+  out$dictionaryPropName <- character()
+
+  if (identical(source, "medication")) {
+    out$isPrescribed <- logical()
+  }
+
+  out
+}
+
+.icca_get_detail <- function(evtids, source, connection = NULL,
+                             env = "edsan-ct", ks_path = NULL,
+                             reidentify = edsan_reidentify,
+                             query = query_icca) {
+  source <- match.arg(source, c("assessment", "medication"))
+  evtids <- .icca_validate_evtids(evtids)
+  if (!length(evtids)) return(.icca_empty_detail(source))
+
+  encounters <- .icca_get_encounter(
+    evtids,
+    connection = connection,
+    env = env,
+    ks_path = ks_path,
+    reidentify = reidentify,
+    query = query
+  )
+  if (!nrow(encounters)) return(.icca_empty_detail(source))
+
+  encounter_map <- unique(encounters[, c("EVTID", "encounterId"), drop = FALSE])
+  encounter_ids <- unique(encounter_map$encounterId)
+  placeholders <- paste(rep("?", length(encounter_ids)), collapse = ", ")
+  spec <- .icca_detail_spec(source)
+  selected <- paste(paste0("  ", spec$columns), collapse = ",\n")
+  sql <- paste0(
+    "SELECT\n",
+    selected,
+    "\nFROM ", spec$table,
+    "\nWHERE encounterId IN (", placeholders, ")"
+  )
+
+  rows <- query(sql = sql, params = encounter_ids, connection = connection)
+  if (!nrow(rows)) return(.icca_empty_detail(source))
+
+  out <- dplyr::inner_join(
+    tibble::as_tibble(rows),
+    encounter_map,
+    by = "encounterId"
+  )
+  out <- out[, c("EVTID", setdiff(names(out), "EVTID")), drop = FALSE]
+  tibble::as_tibble(out)
+}
+
 #' Retrieve ICCA data by EDSaN EVTID
 #'
 #' Retrieves ICCA rows for pseudonymized EDSaN stay identifiers. `redsan`
-#' reidentifies each EVTID to its IEP only long enough to filter ICCA, then
-#' replaces the IEP with the original EVTID before returning data.
+#' reidentifies each EVTID to its IEP only long enough to locate the matching
+#' ICCA encounter, then returns ICCA rows keyed by the original EVTID.
 #'
 #' @param evtids Character vector of EDSaN EVTID values.
-#' @param source ICCA source to retrieve. Currently only `"encounter"` is
-#'   implemented and validated.
+#' @param source ICCA source to retrieve: `"encounter"`, `"assessment"`, or
+#'   `"medication"`. Assessment and medication retrieval use the enriched
+#'   `DAR.PtAssessment` and `DAR.PtMedication` reporting views.
 #' @param connection Optional existing ICCA DBI connection.
 #' @param env EDSaN CT web-service environment name.
 #' @param ks_path Optional d2imr keystore path for EDSaN CT correspondence.
@@ -299,14 +442,30 @@ query_icca <- function(sql, params = NULL, connection = NULL) {
 #'   EDSaN CT directly. If CT returns several IEPs for one EVTID, all are queried;
 #'   EVTIDs without an IEP correspondence simply produce no ICCA rows.
 #'   `character(0)` returns an empty result immediately and never produces an
-#'   unfiltered query. `encounterNumber` (IEP) is used only as a transient join
-#'   key and is removed before the result is returned.
+#'   unfiltered query. `encounterNumber` (IEP) is used only as a transient lookup
+#'   key and is never returned.
+#'
+#'   Assessment and medication outputs preserve ICCA's native long structure:
+#'   one `cisPtInterventionId` identifies one intervention instance, which may
+#'   span several rows carrying different `attributeId` / value combinations.
+#'   `redsan` does not pivot, deduplicate, or clinically filter these rows.
 #' @export
 get_icca <- function(evtids, source = "encounter", connection = NULL,
                      env = "edsan-ct", ks_path = NULL) {
-  source <- match.arg(source, "encounter")
-  .icca_get_encounter(
+  source <- match.arg(source, c("encounter", "assessment", "medication"))
+
+  if (identical(source, "encounter")) {
+    return(.icca_get_encounter(
+      evtids,
+      connection = connection,
+      env = env,
+      ks_path = ks_path
+    ))
+  }
+
+  .icca_get_detail(
     evtids,
+    source = source,
     connection = connection,
     env = env,
     ks_path = ks_path
