@@ -5,6 +5,8 @@
   medication = "DAR.PtMedication"
 )
 
+.icca_anchor_columns <- c("encounterId", "patientId", "episodeId", "systemId")
+
 .icca_normalize_source <- function(source) {
   if (!is.character(source) || length(source) != 1L || is.na(source) ||
       !nzchar(trimws(source))) {
@@ -49,15 +51,30 @@
   )
 }
 
+.icca_metadata_select <- function() {
+  paste(
+    "s.name AS schema_name,",
+    "o.name AS object_name,",
+    "o.type_desc,",
+    "COUNT(c.column_id) AS n_columns,",
+    "MAX(CASE WHEN c.name = 'encounterId' THEN 1 ELSE 0 END) AS has_encounter_id,",
+    "MAX(CASE WHEN c.name = 'patientId' THEN 1 ELSE 0 END) AS has_patient_id,",
+    "MAX(CASE WHEN c.name = 'episodeId' THEN 1 ELSE 0 END) AS has_episode_id,",
+    "MAX(CASE WHEN c.name = 'systemId' THEN 1 ELSE 0 END) AS has_system_id"
+  )
+}
+
+.icca_logical_metadata <- function(out) {
+  for (nm in c("has_encounter_id", "has_patient_id", "has_episode_id", "has_system_id")) {
+    if (nm %in% names(out)) out[[nm]] <- as.logical(out[[nm]])
+  }
+  out
+}
+
 .icca_object_metadata <- function(source, connection = NULL, query = query_icca) {
   src <- .icca_normalize_source(source)
   sql <- paste(
-    "SELECT",
-    "  s.name AS schema_name,",
-    "  o.name AS object_name,",
-    "  o.type_desc,",
-    "  COUNT(c.column_id) AS n_columns,",
-    "  MAX(CASE WHEN c.name = 'encounterId' THEN 1 ELSE 0 END) AS has_encounter_id",
+    "SELECT", .icca_metadata_select(),
     "FROM CISReportingDB.sys.objects o",
     "INNER JOIN CISReportingDB.sys.schemas s ON s.schema_id = o.schema_id",
     "LEFT JOIN CISReportingDB.sys.columns c ON c.object_id = o.object_id",
@@ -68,33 +85,27 @@
   if (!nrow(out)) {
     stop("ICCA object `", src$qualified, "` was not found.", call. = FALSE)
   }
-  out$has_encounter_id <- as.logical(out$has_encounter_id)
-  tibble::as_tibble(out)
+  tibble::as_tibble(.icca_logical_metadata(out))
 }
 
 #' List and search ICCA database objects
 #'
-#' Reads SQL Server metadata to list ICCA tables and views. This is intended as
-#' the entry point for discovering data sources without maintaining a hard-coded
-#' source list in `redsan`.
+#' Reads live SQL Server metadata to list ICCA tables and views. This is the
+#' entry point for discovering sources without maintaining a hard-coded source
+#' list in `redsan`.
 #'
 #' @param search Optional text matched case-insensitively against
 #'   `schema.object`.
 #' @param schema Optional schema name such as `"DAR"`, `"dbo"`, or `"CUS"`.
 #' @param type Optional object type: `"table"` or `"view"`.
 #' @param connection Optional existing ICCA DBI connection.
-#' @return A tibble with one row per ICCA table/view, including its schema,
-#'   object type, number of columns, and whether it contains `encounterId`.
+#' @return A tibble with one row per ICCA table/view and flags for common
+#'   `D_Encounter` anchor columns.
 #' @export
 icca_catalog <- function(search = NULL, schema = NULL, type = NULL,
                          connection = NULL) {
   sql <- paste(
-    "SELECT",
-    "  s.name AS schema_name,",
-    "  o.name AS object_name,",
-    "  o.type_desc,",
-    "  COUNT(c.column_id) AS n_columns,",
-    "  MAX(CASE WHEN c.name = 'encounterId' THEN 1 ELSE 0 END) AS has_encounter_id",
+    "SELECT", .icca_metadata_select(),
     "FROM CISReportingDB.sys.objects o",
     "INNER JOIN CISReportingDB.sys.schemas s ON s.schema_id = o.schema_id",
     "LEFT JOIN CISReportingDB.sys.columns c ON c.object_id = o.object_id",
@@ -102,12 +113,11 @@ icca_catalog <- function(search = NULL, schema = NULL, type = NULL,
     "GROUP BY s.name, o.name, o.type_desc",
     "ORDER BY s.name, o.name"
   )
-  out <- query_icca(sql, connection = connection)
-  out <- tibble::as_tibble(out)
+  out <- tibble::as_tibble(.icca_logical_metadata(query_icca(sql, connection = connection)))
   out$type <- ifelse(out$type_desc == "USER_TABLE", "table", "view")
-  out$has_encounter_id <- as.logical(out$has_encounter_id)
   out <- out[, c("schema_name", "object_name", "type", "n_columns",
-                 "has_encounter_id"), drop = FALSE]
+                 "has_encounter_id", "has_patient_id", "has_episode_id",
+                 "has_system_id"), drop = FALSE]
 
   if (!is.null(search)) {
     if (!is.character(search) || length(search) != 1L || is.na(search)) {
@@ -173,7 +183,7 @@ icca_catalog <- function(search = NULL, schema = NULL, type = NULL,
 #'
 #' Combines SQL Server foreign keys (table-to-table column relations) with SQL
 #' expression dependencies (objects used to build views). View dependencies
-#' identify which objects are used, but do not by themselves encode the join
+#' identify which objects are used, but do not by themselves encode join
 #' columns.
 #'
 #' @param source Optional `schema.object`. When supplied, only relations touching
@@ -252,10 +262,14 @@ icca_describe <- function(source, connection = NULL) {
 #' @export
 print.icca_description <- function(x, ...) {
   object <- x$object
+  anchors <- .icca_anchor_columns[c(
+    object$has_encounter_id[[1L]], object$has_patient_id[[1L]],
+    object$has_episode_id[[1L]], object$has_system_id[[1L]]
+  )]
   cat("<ICCA object> ", object$schema_name[[1L]], ".", object$object_name[[1L]],
       " (", tolower(sub("^USER_", "", object$type_desc[[1L]])), ")\n", sep = "")
-  cat("Columns: ", object$n_columns[[1L]],
-      " | encounterId: ", if (isTRUE(object$has_encounter_id[[1L]])) "yes" else "no",
+  cat("Columns: ", object$n_columns[[1L]], " | D_Encounter anchors: ",
+      if (length(anchors)) paste(anchors, collapse = ", ") else "none",
       "\n", sep = "")
   cat("\nColumns\n")
   print(x$columns, ...)
@@ -264,9 +278,46 @@ print.icca_description <- function(x, ...) {
   invisible(x)
 }
 
+.icca_source_anchors <- function(object) {
+  flags <- c(
+    encounterId = isTRUE(object$has_encounter_id[[1L]]),
+    patientId = isTRUE(object$has_patient_id[[1L]]),
+    episodeId = isTRUE(object$has_episode_id[[1L]]),
+    systemId = isTRUE(object$has_system_id[[1L]])
+  )
+  names(flags)[flags]
+}
+
+.icca_choose_link <- function(object, link = c("auto", .icca_anchor_columns)) {
+  link <- match.arg(link)
+  available <- .icca_source_anchors(object)
+  if (!length(available)) {
+    stop(
+      "This ICCA object has none of the direct D_Encounter anchor columns ",
+      "(`encounterId`, `patientId`, `episodeId`, `systemId`). Use ",
+      "`icca_relations()` to inspect indirect linkage and `query_icca()` for ",
+      "unrestricted access.", call. = FALSE
+    )
+  }
+  if (!identical(link, "auto")) {
+    if (!link %in% available) {
+      stop("Requested `link = ", link, "` is not present in this ICCA object.",
+           call. = FALSE)
+    }
+    return(link)
+  }
+  if ("encounterId" %in% available) return("encounterId")
+  if (length(available) == 1L) return(available)
+  stop(
+    "ICCA object has several possible D_Encounter anchors (",
+    paste(available, collapse = ", "), "). Specify `link` explicitly.",
+    call. = FALSE
+  )
+}
+
 # Generic EVTID-linked retrieval ---------------------------------------------
 
-.icca_get_source <- function(evtids, source, connection = NULL,
+.icca_get_source <- function(evtids, source, link = "auto", connection = NULL,
                              env = "edsan-ct", ks_path = NULL,
                              reidentify = edsan_reidentify,
                              query = query_icca,
@@ -276,15 +327,7 @@ print.icca_description <- function(x, ...) {
   if (!length(evtids)) return(tibble::tibble(EVTID = character()))
 
   object <- metadata(src$qualified, connection = connection, query = query)
-  if (!isTRUE(object$has_encounter_id[[1L]])) {
-    stop(
-      "ICCA object `", src$qualified,
-      "` exists but has no direct `encounterId` column. `get_icca()` currently ",
-      "auto-links EVTIDs only to encounter-linked objects. Use `icca_relations()` ",
-      "to inspect its linkage and `query_icca()` for unrestricted access.",
-      call. = FALSE
-    )
-  }
+  link <- .icca_choose_link(object, link = link)
 
   encounters <- .icca_get_encounter(
     evtids,
@@ -296,21 +339,28 @@ print.icca_description <- function(x, ...) {
   )
   if (!nrow(encounters)) return(tibble::tibble(EVTID = character()))
 
-  encounter_map <- unique(encounters[, c("EVTID", "encounterId"), drop = FALSE])
-  encounter_ids <- unique(encounter_map$encounterId)
-  placeholders <- paste(rep("?", length(encounter_ids)), collapse = ", ")
+  if (!link %in% names(encounters)) {
+    stop("D_Encounter retrieval does not expose anchor `", link, "`.", call. = FALSE)
+  }
+  source_map <- unique(encounters[, c("EVTID", link), drop = FALSE])
+  names(source_map)[2L] <- ".icca_link_value"
+  values <- unique(source_map$.icca_link_value)
+  values <- values[!is.na(values)]
+  if (!length(values)) return(tibble::tibble(EVTID = character()))
+
+  placeholders <- paste(rep("?", length(values)), collapse = ", ")
+  link_sql <- .icca_quote_identifier(link)
   sql <- paste0(
     "SELECT * FROM ", .icca_qualified_source(src$qualified),
-    " WHERE encounterId IN (", placeholders, ")"
+    " WHERE ", link_sql, " IN (", placeholders, ")"
   )
-  rows <- query(sql = sql, params = encounter_ids, connection = connection)
+  rows <- query(sql = sql, params = values, connection = connection)
   if (!nrow(rows)) return(tibble::tibble(EVTID = character()))
 
-  out <- dplyr::inner_join(
-    tibble::as_tibble(rows),
-    encounter_map,
-    by = "encounterId"
-  )
+  rows <- tibble::as_tibble(rows)
+  rows$.icca_link_value <- rows[[link]]
+  out <- dplyr::inner_join(rows, source_map, by = ".icca_link_value")
+  out$.icca_link_value <- NULL
   out <- out[, c("EVTID", setdiff(names(out), "EVTID")), drop = FALSE]
   tibble::as_tibble(out)
 }
