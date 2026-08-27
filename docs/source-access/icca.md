@@ -33,6 +33,8 @@ DAR           0     145
 total       309     233
 ```
 
+These counts are an empirical snapshot. `icca_catalog()` reads live SQL Server metadata and is the runtime source of truth.
+
 `dbo` therefore contains the physical relational model plus some views. `DAR` contains reporting views. `CUS` contains additional tables; its precise semantic role has not been established from official documentation.
 
 A view is best understood here as a saved SQL transformation, analogous to a saved R pipeline. It does not normally represent another independent copy of the same data.
@@ -152,9 +154,11 @@ A view dependency tells us which objects are used, but not necessarily the exact
 
 The reporting database contains hundreds of related objects. Only a subset contains `encounterId` directly. This does **not** imply that other clinical objects are unrelated to an encounter: they may be linked through `patientId`, `episodeId`, `systemId`, order/intervention/document identifiers, or longer relation paths.
 
+This describes the structure of the database, not necessarily what `get_icca()` can already traverse automatically. At present, `get_icca()` automatically uses `encounterId` when it is available. Objects exposing only `patientId` or `episodeId` can also be queried by choosing that linkage explicitly. `systemId` and arbitrary multi-step relation paths are not currently used as automatic anchors.
+
 Accordingly, `redsan` should not treat `assessment`, `medication`, and `encounter` as a closed whitelist.
 
-The intended interface is:
+The main interfaces are:
 
 ```r
 icca_catalog()
@@ -164,9 +168,79 @@ query_icca(...)
 get_icca(evtids, source = "DAR.PatientVentilation")
 ```
 
-`query_icca()` provides unrestricted read-only access to any object. `get_icca()` resolves EVTIDs to ICCA anchor keys and can directly retrieve any object exposing a compatible `D_Encounter` key. Objects requiring indirect traversal remain accessible through `query_icca()` while their relation paths are investigated.
+`query_icca()` provides unrestricted read-only access to any readable object. `get_icca()` resolves EVTIDs to ICCA anchor keys and directly retrieves objects exposing a supported linkage. Objects requiring indirect traversal remain accessible through `query_icca()` while their relation paths are investigated.
 
 The short aliases `assessment` and `medication` are conveniences only; they are not a whitelist.
+
+## Exploring ICCA with `icca_catalog()`
+
+`icca_catalog()` is the main orientation tool when the appropriate source is not already known. By default it returns one row per database object and stores that object's column names in a list-column:
+
+```r
+catalog <- icca_catalog()
+catalog
+catalog$columns[[1]]
+```
+
+Three column representations are available:
+
+```r
+icca_catalog(columns = "nested_names")  # default: one row per object + list-column of names
+icca_catalog(columns = "none")          # compact object-level catalog
+icca_catalog(columns = "long")          # one row per column + SQL type metadata
+```
+
+The long representation includes column-level metadata such as `ordinal_position`, `column_name`, `data_type`, `max_length`, `precision`, `scale`, and `is_nullable`, while retaining object-level information such as schema, object type, number of columns, and direct linkage flags.
+
+`search` is case-insensitive and searches both `schema.object` names and column names. A column match selects the whole object; with `columns = "long"`, all columns of each matching object are returned.
+
+Examples:
+
+```r
+# Find objects related to ventilation by object or column name
+icca_catalog("vent")
+
+# Find every object containing cisPtInterventionId
+icca_catalog("cisPtInterventionId")
+
+# Inspect the full column metadata for the matching objects
+icca_catalog("cisPtInterventionId", columns = "long")
+
+# Restrict exploration to DAR views
+icca_catalog(schema = "DAR", type = "view")
+```
+
+## Exploring an unfamiliar ICCA source
+
+A typical workflow is:
+
+```r
+# 1. Search the live catalog
+icca_catalog("vent")
+
+# 2. Inspect column structure in detail
+icca_catalog("vent", columns = "long")
+
+# 3. Describe one candidate object
+icca_describe("DAR.PatientVentilation")
+
+# 4. Inspect declared foreign-key and view-dependency edges
+icca_relations("DAR.PatientVentilation")
+
+# 5. Retrieve it for one or more EVTIDs when a supported direct link exists
+get_icca("357015848", source = "DAR.PatientVentilation")
+```
+
+For a source with no `encounterId`, an explicit broader anchor may be used when appropriate:
+
+```r
+get_icca(evtids, source = "schema.object", link = "patientId")
+get_icca(evtids, source = "schema.object", link = "episodeId")
+```
+
+These linkages have broader semantics than encounter-level linkage and can include data outside the requested stay. They therefore require an explicit choice rather than being guessed automatically.
+
+If the source cannot be linked directly through `encounterId`, `patientId`, or `episodeId`, use `icca_relations()` to inspect the graph and `query_icca()` for manual SQL access. Automatic arbitrary graph traversal is not yet implemented.
 
 ## What remains unknown
 
