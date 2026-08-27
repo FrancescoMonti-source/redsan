@@ -10,23 +10,22 @@ test_that("ICCA source names are schema-qualified and aliases stay convenient", 
   expect_error(redsan:::.icca_normalize_source("PatientAssessment"), "schema.object")
 })
 
-test_that("ICCA link choice prefers encounterId and refuses ambiguous guesses", {
+test_that("ICCA link choice prefers encounterId and requires explicit broader linkage", {
   object <- tibble::tibble(
     has_encounter_id = TRUE,
     has_patient_id = TRUE,
-    has_episode_id = FALSE,
-    has_system_id = TRUE
+    has_episode_id = FALSE
   )
   expect_identical(redsan:::.icca_choose_link(object, "auto"), "encounterId")
   expect_identical(redsan:::.icca_choose_link(object, "patientId"), "patientId")
 
-  ambiguous <- tibble::tibble(
+  broader <- tibble::tibble(
     has_encounter_id = FALSE,
     has_patient_id = TRUE,
-    has_episode_id = TRUE,
-    has_system_id = FALSE
+    has_episode_id = TRUE
   )
-  expect_error(redsan:::.icca_choose_link(ambiguous, "auto"), "several possible")
+  expect_error(redsan:::.icca_choose_link(broader, "auto"), "Specify `link` explicitly")
+  expect_identical(redsan:::.icca_choose_link(broader, "episodeId"), "episodeId")
 })
 
 test_that("generic ICCA retrieval queries any encounter-linked object", {
@@ -49,8 +48,7 @@ test_that("generic ICCA retrieval queries any encounter-linked object", {
       n_columns = 43L,
       has_encounter_id = TRUE,
       has_patient_id = FALSE,
-      has_episode_id = FALSE,
-      has_system_id = TRUE
+      has_episode_id = FALSE
     )
   }
   fake_query <- function(sql, params = NULL, connection = NULL) {
@@ -84,14 +82,14 @@ test_that("generic ICCA retrieval queries any encounter-linked object", {
   expect_identical(out$value, 5)
 })
 
-test_that("generic retrieval can use another D_Encounter anchor explicitly", {
+test_that("generic retrieval accepts another D_Encounter key only explicitly", {
   object <- tibble::tibble(
     has_encounter_id = FALSE,
     has_patient_id = TRUE,
-    has_episode_id = TRUE,
-    has_system_id = FALSE
+    has_episode_id = TRUE
   )
   expect_identical(redsan:::.icca_choose_link(object, "patientId"), "patientId")
+  expect_error(redsan:::.icca_choose_link(object, "auto"), "broader linkage")
 })
 
 test_that("public get_icca no longer whitelists clinical sources", {
