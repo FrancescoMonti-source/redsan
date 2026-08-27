@@ -8,11 +8,13 @@ get_icca(evtids, source = "encounter", connection = NULL, env = "edsan-ct", ks_p
 }
 \arguments{
 \item{evtids}{Character vector of EDSaN EVTID values.}
-\item{source}{ICCA source to retrieve. Currently only \code{"encounter"} is implemented and validated.}
+\item{source}{ICCA source to retrieve: \code{"encounter"}, \code{"assessment"}, or \code{"medication"}. Assessment and medication retrieval use the enriched \code{DAR.PtAssessment} and \code{DAR.PtMedication} reporting views.}
 \item{connection}{Optional existing ICCA DBI connection.}
 \item{env}{EDSaN CT web-service environment name.}
 \item{ks_path}{Optional d2imr keystore path for EDSaN CT correspondence.}
 }
 \value{A tibble keyed by \code{EVTID}.}
-\description{Retrieves ICCA rows for pseudonymized EDSaN stay identifiers. The IEP is used only transiently to filter and rejoin ICCA rows.}
-\details{Mappings returned by EDSaN CT are consumed directly. If CT returns several IEPs for one EVTID, all are queried. EVTIDs without an IEP correspondence produce no ICCA rows. \code{character(0)} returns immediately without an unfiltered query.}
+\description{Retrieves ICCA rows for pseudonymized EDSaN stay identifiers. \code{redsan} reidentifies each EVTID to its IEP only long enough to locate the matching ICCA encounter, then returns ICCA rows keyed by the original EVTID.}
+\details{Mappings returned by EDSaN CT are consumed directly. If CT returns several IEPs for one EVTID, all are queried. EVTIDs without an IEP correspondence produce no ICCA rows. \code{character(0)} returns immediately without an unfiltered query. \code{encounterNumber} (IEP) is used only as a transient lookup key and is never returned.
+
+Assessment and medication outputs preserve ICCA's native long structure: one \code{cisPtInterventionId} identifies one intervention instance, which may span several rows carrying different \code{attributeId} / value combinations. \code{redsan} does not pivot, deduplicate, or clinically filter these rows.}
