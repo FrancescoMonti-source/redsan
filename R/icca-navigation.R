@@ -5,7 +5,7 @@
   medication = "DAR.PtMedication"
 )
 
-.icca_anchor_columns <- c("encounterId", "patientId", "episodeId", "systemId")
+.icca_anchor_columns <- c("encounterId", "patientId", "episodeId")
 
 .icca_normalize_source <- function(source) {
   if (!is.character(source) || length(source) != 1L || is.na(source) ||
@@ -59,13 +59,12 @@
     "COUNT(c.column_id) AS n_columns,",
     "MAX(CASE WHEN c.name = 'encounterId' THEN 1 ELSE 0 END) AS has_encounter_id,",
     "MAX(CASE WHEN c.name = 'patientId' THEN 1 ELSE 0 END) AS has_patient_id,",
-    "MAX(CASE WHEN c.name = 'episodeId' THEN 1 ELSE 0 END) AS has_episode_id,",
-    "MAX(CASE WHEN c.name = 'systemId' THEN 1 ELSE 0 END) AS has_system_id"
+    "MAX(CASE WHEN c.name = 'episodeId' THEN 1 ELSE 0 END) AS has_episode_id"
   )
 }
 
 .icca_logical_metadata <- function(out) {
-  for (nm in c("has_encounter_id", "has_patient_id", "has_episode_id", "has_system_id")) {
+  for (nm in c("has_encounter_id", "has_patient_id", "has_episode_id")) {
     if (nm %in% names(out)) out[[nm]] <- as.logical(out[[nm]])
   }
   out
@@ -100,7 +99,7 @@
 #' @param type Optional object type: `"table"` or `"view"`.
 #' @param connection Optional existing ICCA DBI connection.
 #' @return A tibble with one row per ICCA table/view and flags for common
-#'   `D_Encounter` anchor columns.
+#'   `D_Encounter` linkage columns.
 #' @export
 icca_catalog <- function(search = NULL, schema = NULL, type = NULL,
                          connection = NULL) {
@@ -116,8 +115,8 @@ icca_catalog <- function(search = NULL, schema = NULL, type = NULL,
   out <- tibble::as_tibble(.icca_logical_metadata(query_icca(sql, connection = connection)))
   out$type <- ifelse(out$type_desc == "USER_TABLE", "table", "view")
   out <- out[, c("schema_name", "object_name", "type", "n_columns",
-                 "has_encounter_id", "has_patient_id", "has_episode_id",
-                 "has_system_id"), drop = FALSE]
+                 "has_encounter_id", "has_patient_id", "has_episode_id"),
+             drop = FALSE]
 
   if (!is.null(search)) {
     if (!is.character(search) || length(search) != 1L || is.na(search)) {
@@ -264,11 +263,11 @@ print.icca_description <- function(x, ...) {
   object <- x$object
   anchors <- .icca_anchor_columns[c(
     object$has_encounter_id[[1L]], object$has_patient_id[[1L]],
-    object$has_episode_id[[1L]], object$has_system_id[[1L]]
+    object$has_episode_id[[1L]]
   )]
   cat("<ICCA object> ", object$schema_name[[1L]], ".", object$object_name[[1L]],
       " (", tolower(sub("^USER_", "", object$type_desc[[1L]])), ")\n", sep = "")
-  cat("Columns: ", object$n_columns[[1L]], " | D_Encounter anchors: ",
+  cat("Columns: ", object$n_columns[[1L]], " | D_Encounter links: ",
       if (length(anchors)) paste(anchors, collapse = ", ") else "none",
       "\n", sep = "")
   cat("\nColumns\n")
@@ -282,8 +281,7 @@ print.icca_description <- function(x, ...) {
   flags <- c(
     encounterId = isTRUE(object$has_encounter_id[[1L]]),
     patientId = isTRUE(object$has_patient_id[[1L]]),
-    episodeId = isTRUE(object$has_episode_id[[1L]]),
-    systemId = isTRUE(object$has_system_id[[1L]])
+    episodeId = isTRUE(object$has_episode_id[[1L]])
   )
   names(flags)[flags]
 }
@@ -293,10 +291,10 @@ print.icca_description <- function(x, ...) {
   available <- .icca_source_anchors(object)
   if (!length(available)) {
     stop(
-      "This ICCA object has none of the direct D_Encounter anchor columns ",
-      "(`encounterId`, `patientId`, `episodeId`, `systemId`). Use ",
-      "`icca_relations()` to inspect indirect linkage and `query_icca()` for ",
-      "unrestricted access.", call. = FALSE
+      "This ICCA object has none of the direct D_Encounter linkage columns ",
+      "(`encounterId`, `patientId`, `episodeId`). Use `icca_relations()` to ",
+      "inspect indirect linkage and `query_icca()` for unrestricted access.",
+      call. = FALSE
     )
   }
   if (!identical(link, "auto")) {
@@ -307,11 +305,11 @@ print.icca_description <- function(x, ...) {
     return(link)
   }
   if ("encounterId" %in% available) return("encounterId")
-  if (length(available) == 1L) return(available)
   stop(
-    "ICCA object has several possible D_Encounter anchors (",
-    paste(available, collapse = ", "), "). Specify `link` explicitly.",
-    call. = FALSE
+    "ICCA object has no direct `encounterId` but exposes ",
+    paste(available, collapse = ", "), ". Specify `link` explicitly if that ",
+    "broader linkage is intended; patient/episode linkage can include data ",
+    "outside the requested stay.", call. = FALSE
   )
 }
 
@@ -340,7 +338,7 @@ print.icca_description <- function(x, ...) {
   if (!nrow(encounters)) return(tibble::tibble(EVTID = character()))
 
   if (!link %in% names(encounters)) {
-    stop("D_Encounter retrieval does not expose anchor `", link, "`.", call. = FALSE)
+    stop("D_Encounter retrieval does not expose linkage key `", link, "`.", call. = FALSE)
   }
   source_map <- unique(encounters[, c("EVTID", link), drop = FALSE])
   names(source_map)[2L] <- ".icca_link_value"
