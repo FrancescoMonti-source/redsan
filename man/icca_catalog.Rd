@@ -3,16 +3,27 @@
 \alias{icca_catalog}
 \title{List and search ICCA database objects}
 \usage{
-icca_catalog(search = NULL, schema = NULL, type = NULL, connection = NULL)
+icca_catalog(
+  search = NULL,
+  schema = NULL,
+  type = NULL,
+  columns = c("nested_names", "long", "none"),
+  connection = NULL
+)
 }
 \arguments{
-\item{search}{Optional text matched case-insensitively against \code{schema.object}.}
+\item{search}{Optional text matched case-insensitively against \code{schema.object} and column names. Matching selects whole objects; with \code{columns = "long"}, all columns of matching objects are returned.}
+
 \item{schema}{Optional schema name such as \code{"DAR"}, \code{"dbo"}, or \code{"CUS"}.}
+
 \item{type}{Optional object type: \code{"table"} or \code{"view"}.}
+
+\item{columns}{Column representation. \code{"nested_names"} (default) returns one row per object with a list-column of character vectors containing column names. \code{"long"} returns one row per column with SQL type metadata. \code{"none"} returns the compact object-level catalog without column names.}
+
 \item{connection}{Optional existing ICCA DBI connection.}
 }
 \value{
-A tibble with one row per ICCA table/view, its schema, object type, number of columns, and flags indicating direct \code{D_Encounter} linkage columns (\code{encounterId}, \code{patientId}, \code{episodeId}).
+A tibble. Its granularity depends on \code{columns}; object-level outputs also include the number of columns and flags for common \code{D_Encounter} linkage columns.
 }
 \description{
 Reads live SQL Server metadata to list ICCA tables and views. This is the main discovery entry point when the appropriate ICCA source is not already known.
