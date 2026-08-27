@@ -87,6 +87,41 @@
   tibble::as_tibble(.icca_logical_metadata(out))
 }
 
+.icca_catalog_rows <- function(connection = NULL, query = query_icca) {
+  sql <- paste(
+    "SELECT",
+    "  s.name AS schema_name,",
+    "  o.name AS object_name,",
+    "  o.type_desc,",
+    "  COUNT(c.column_id) OVER (PARTITION BY o.object_id) AS n_columns,",
+    "  MAX(CASE WHEN c.name = 'encounterId' THEN 1 ELSE 0 END)",
+    "    OVER (PARTITION BY o.object_id) AS has_encounter_id,",
+    "  MAX(CASE WHEN c.name = 'patientId' THEN 1 ELSE 0 END)",
+    "    OVER (PARTITION BY o.object_id) AS has_patient_id,",
+    "  MAX(CASE WHEN c.name = 'episodeId' THEN 1 ELSE 0 END)",
+    "    OVER (PARTITION BY o.object_id) AS has_episode_id,",
+    "  c.column_id AS ordinal_position,",
+    "  c.name AS column_name,",
+    "  t.name AS data_type,",
+    "  c.max_length,",
+    "  c.precision,",
+    "  c.scale,",
+    "  c.is_nullable",
+    "FROM CISReportingDB.sys.objects o",
+    "INNER JOIN CISReportingDB.sys.schemas s ON s.schema_id = o.schema_id",
+    "LEFT JOIN CISReportingDB.sys.columns c ON c.object_id = o.object_id",
+    "LEFT JOIN CISReportingDB.sys.types t ON t.user_type_id = c.user_type_id",
+    "WHERE o.type IN ('U', 'V') AND o.is_ms_shipped = 0",
+    "ORDER BY s.name, o.name, c.column_id"
+  )
+
+  out <- tibble::as_tibble(query(sql = sql, connection = connection))
+  out <- .icca_logical_metadata(out)
+  if ("is_nullable" %in% names(out)) out$is_nullable <- as.logical(out$is_nullable)
+  out$type <- ifelse(out$type_desc == "USER_TABLE", "table", "view")
+  tibble::as_tibble(out)
+}
+
 #' List and search ICCA database objects
 #'
 #' Reads live SQL Server metadata to list ICCA tables and views. This is the
@@ -94,43 +129,69 @@
 #' list in `redsan`.
 #'
 #' @param search Optional text matched case-insensitively against
-#'   `schema.object`.
+#'   `schema.object` and column names. Matching selects whole objects; with
+#'   `columns = "long"`, all columns of matching objects are returned.
 #' @param schema Optional schema name such as `"DAR"`, `"dbo"`, or `"CUS"`.
 #' @param type Optional object type: `"table"` or `"view"`.
+#' @param columns Column representation. `"nested_names"` (default) returns one
+#'   row per object with a list-column of character vectors containing column
+#'   names. `"long"` returns one row per column with SQL type metadata.
+#'   `"none"` returns the compact object-level catalog without column names.
 #' @param connection Optional existing ICCA DBI connection.
-#' @return A tibble with one row per ICCA table/view and flags for common
-#'   `D_Encounter` linkage columns.
+#' @return A tibble. Its granularity depends on `columns`; object-level outputs
+#'   also include the number of columns and flags for common `D_Encounter`
+#'   linkage columns.
 #' @export
 icca_catalog <- function(search = NULL, schema = NULL, type = NULL,
+                         columns = c("nested_names", "long", "none"),
                          connection = NULL) {
-  sql <- paste(
-    "SELECT", .icca_metadata_select(),
-    "FROM CISReportingDB.sys.objects o",
-    "INNER JOIN CISReportingDB.sys.schemas s ON s.schema_id = o.schema_id",
-    "LEFT JOIN CISReportingDB.sys.columns c ON c.object_id = o.object_id",
-    "WHERE o.type IN ('U', 'V') AND o.is_ms_shipped = 0",
-    "GROUP BY s.name, o.name, o.type_desc",
-    "ORDER BY s.name, o.name"
-  )
-  out <- tibble::as_tibble(.icca_logical_metadata(query_icca(sql, connection = connection)))
-  out$type <- ifelse(out$type_desc == "USER_TABLE", "table", "view")
-  out <- out[, c("schema_name", "object_name", "type", "n_columns",
-                 "has_encounter_id", "has_patient_id", "has_episode_id"),
-             drop = FALSE]
+  columns <- match.arg(columns)
+  rows <- .icca_catalog_rows(connection = connection)
+
+  if (!is.null(schema)) {
+    rows <- rows[tolower(rows$schema_name) %in% tolower(schema), , drop = FALSE]
+  }
+  if (!is.null(type)) {
+    type <- match.arg(tolower(type), c("table", "view"))
+    rows <- rows[rows$type == type, , drop = FALSE]
+  }
 
   if (!is.null(search)) {
     if (!is.character(search) || length(search) != 1L || is.na(search)) {
       stop("`search` must be NULL or one character string.", call. = FALSE)
     }
-    label <- paste(out$schema_name, out$object_name, sep = ".")
-    out <- out[grepl(search, label, ignore.case = TRUE, fixed = TRUE), , drop = FALSE]
+    labels <- paste(rows$schema_name, rows$object_name, sep = ".")
+    object_match <- grepl(search, labels, ignore.case = TRUE, fixed = TRUE)
+    column_match <- !is.na(rows$column_name) &
+      grepl(search, rows$column_name, ignore.case = TRUE, fixed = TRUE)
+    keys <- paste(rows$schema_name, rows$object_name, sep = "\r")
+    matching_keys <- unique(keys[object_match | column_match])
+    rows <- rows[keys %in% matching_keys, , drop = FALSE]
   }
-  if (!is.null(schema)) {
-    out <- out[tolower(out$schema_name) %in% tolower(schema), , drop = FALSE]
+
+  long_names <- c(
+    "schema_name", "object_name", "type", "n_columns",
+    "has_encounter_id", "has_patient_id", "has_episode_id",
+    "ordinal_position", "column_name", "data_type", "max_length",
+    "precision", "scale", "is_nullable"
+  )
+  if (identical(columns, "long")) {
+    return(tibble::as_tibble(rows[, long_names, drop = FALSE]))
   }
-  if (!is.null(type)) {
-    type <- match.arg(tolower(type), c("table", "view"))
-    out <- out[out$type == type, , drop = FALSE]
+
+  keys <- paste(rows$schema_name, rows$object_name, sep = "\r")
+  first <- !duplicated(keys)
+  object_names <- c(
+    "schema_name", "object_name", "type", "n_columns",
+    "has_encounter_id", "has_patient_id", "has_episode_id"
+  )
+  out <- rows[first, object_names, drop = FALSE]
+
+  if (identical(columns, "nested_names")) {
+    key_levels <- unique(keys)
+    nested <- split(rows$column_name, factor(keys, levels = key_levels))
+    nested <- lapply(nested, function(x) x[!is.na(x)])
+    out$columns <- unname(nested)
   }
 
   tibble::as_tibble(out)
@@ -204,8 +265,13 @@ icca_relations <- function(source = NULL, direction = c("both", "out", "in"),
     to_match <- !is.na(out$to_schema) & !is.na(out$to_object) &
       tolower(out$to_schema) == tolower(src$schema) &
       tolower(out$to_object) == tolower(src$object)
-    keep <- switch(direction, out = from_match, in = to_match,
-                   both = from_match | to_match)
+    if (identical(direction, "out")) {
+      keep <- from_match
+    } else if (identical(direction, "in")) {
+      keep <- to_match
+    } else {
+      keep <- from_match | to_match
+    }
     out <- out[keep, , drop = FALSE]
   }
 
