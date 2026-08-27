@@ -121,3 +121,132 @@ test_that("missing CT mappings produce no SQL query", {
   expect_false(sql_called)
   expect_identical(nrow(out), 0L)
 })
+
+test_that("empty assessment and medication inputs never contact CT or SQL", {
+  for (source in c("assessment", "medication")) {
+    ct_called <- FALSE
+    sql_called <- FALSE
+    out <- redsan:::.icca_get_detail(
+      character(),
+      source = source,
+      reidentify = function(...) { ct_called <<- TRUE; stop("unexpected") },
+      query = function(...) { sql_called <<- TRUE; stop("unexpected") }
+    )
+    expect_false(ct_called)
+    expect_false(sql_called)
+    expect_identical(nrow(out), 0L)
+    expect_true("EVTID" %in% names(out))
+  }
+})
+
+test_that("assessment retrieval uses DAR and preserves ICCA long rows", {
+  seen_detail_sql <- NULL
+  fake_reidentify <- function(ids, id_type, env, ks_path) {
+    tibble::tibble(
+      EDSAN_ID = ids,
+      EDSAN_TYPE = "EVTID",
+      HIS_ID = "IEP-1",
+      HIS_TYPE = "IEP",
+      status = "matched",
+      n_matches = 1L
+    )
+  }
+  fake_query <- function(sql, params, connection) {
+    if (grepl("D_Encounter", sql, fixed = TRUE)) {
+      return(data.frame(
+        encounterId = 11L,
+        patientId = 1L,
+        episodeId = 101L,
+        encounterNumber = "IEP-1",
+        gender = "F",
+        primaryDiagnosis = NA_character_,
+        isArchived = FALSE,
+        systemId = 7L
+      ))
+    }
+
+    seen_detail_sql <<- sql
+    expect_identical(params, 11L)
+    data.frame(
+      ptAssessmentId = c(1L, 2L),
+      encounterId = c(11L, 11L),
+      cisPtInterventionId = c("INT-1", "INT-1"),
+      interventionId = c(50L, 50L),
+      attributeId = c(100L, 101L),
+      valueString = c("A", "B")
+    )
+  }
+
+  out <- redsan:::.icca_get_detail(
+    "EVT-1",
+    source = "assessment",
+    reidentify = fake_reidentify,
+    query = fake_query
+  )
+
+  expect_match(seen_detail_sql, "CISReportingDB.DAR.PtAssessment", fixed = TRUE)
+  expect_identical(out$EVTID, c("EVT-1", "EVT-1"))
+  expect_identical(out$cisPtInterventionId, c("INT-1", "INT-1"))
+  expect_identical(out$attributeId, c(100L, 101L))
+  expect_false("encounterNumber" %in% names(out))
+})
+
+test_that("medication retrieval uses DAR and preserves ICCA long rows", {
+  seen_detail_sql <- NULL
+  fake_reidentify <- function(ids, id_type, env, ks_path) {
+    tibble::tibble(
+      EDSAN_ID = ids,
+      EDSAN_TYPE = "EVTID",
+      HIS_ID = "IEP-1",
+      HIS_TYPE = "IEP",
+      status = "matched",
+      n_matches = 1L
+    )
+  }
+  fake_query <- function(sql, params, connection) {
+    if (grepl("D_Encounter", sql, fixed = TRUE)) {
+      return(data.frame(
+        encounterId = 11L,
+        patientId = 1L,
+        episodeId = 101L,
+        encounterNumber = "IEP-1",
+        gender = "F",
+        primaryDiagnosis = NA_character_,
+        isArchived = FALSE,
+        systemId = 7L
+      ))
+    }
+
+    seen_detail_sql <<- sql
+    expect_identical(params, 11L)
+    data.frame(
+      ptMedicationId = c(1L, 2L),
+      encounterId = c(11L, 11L),
+      cisPtInterventionId = c("MED-1", "MED-1"),
+      interventionId = c(60L, 60L),
+      attributeId = c(200L, 201L),
+      valueString = c("dose", "route"),
+      isPrescribed = c(TRUE, TRUE)
+    )
+  }
+
+  out <- redsan:::.icca_get_detail(
+    "EVT-1",
+    source = "medication",
+    reidentify = fake_reidentify,
+    query = fake_query
+  )
+
+  expect_match(seen_detail_sql, "CISReportingDB.DAR.PtMedication", fixed = TRUE)
+  expect_identical(out$EVTID, c("EVT-1", "EVT-1"))
+  expect_identical(out$cisPtInterventionId, c("MED-1", "MED-1"))
+  expect_identical(out$attributeId, c(200L, 201L))
+  expect_false("encounterNumber" %in% names(out))
+})
+
+test_that("public get_icca accepts all validated sources on empty input", {
+  expect_s3_class(get_icca(character(), source = "encounter"), "tbl_df")
+  expect_s3_class(get_icca(character(), source = "assessment"), "tbl_df")
+  expect_s3_class(get_icca(character(), source = "medication"), "tbl_df")
+  expect_error(get_icca(character(), source = "other"))
+})
