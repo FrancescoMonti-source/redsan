@@ -35,7 +35,7 @@ test_that("explicit id_type overrides automatic format detection", {
   expect_identical(result2, "IPP")
 })
 
-test_that("EDSaN CT batches identifiers by type", {
+test_that("EDSaN CT batches identifiers by type with newline separators", {
   calls <- list()
   fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
     calls[[length(calls) + 1L]] <<- list(
@@ -45,7 +45,7 @@ test_that("EDSaN CT batches identifiers by type", {
       env = env,
       ks_path = ks_path
     )
-    ids <- strsplit(api_query, " OR ", fixed = TRUE)[[1L]]
+    ids <- strsplit(api_query, "\n", fixed = TRUE)[[1L]]
     values <- if (api_type == "NIP") paste0("PAT-", ids) else paste0("EVT-", ids)
     stats::setNames(
       lapply(values, function(value) stats::setNames(list(value), api_type)),
@@ -68,7 +68,7 @@ test_that("EDSaN CT batches identifiers by type", {
   expect_identical(vapply(calls, `[[`, character(1), "api_type"),
                    c("NIP", "CPAGE"))
   expect_identical(vapply(calls, `[[`, character(1), "api_query"),
-                   c("00123 OR 00456", "98765 OR 87654"))
+                   c("00123\n00456", "98765\n87654"))
   expect_identical(vapply(calls, `[[`, character(1), "ks_path"),
                    rep("/tmp/keystore", 2L))
   expect_identical(out$output_id,
@@ -81,7 +81,7 @@ test_that("EDSaN CT splits batches at max_in_ids", {
   calls <- character()
   fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
     calls <<- c(calls, api_query)
-    ids <- strsplit(api_query, " OR ", fixed = TRUE)[[1L]]
+    ids <- strsplit(api_query, "\n", fixed = TRUE)[[1L]]
     stats::setNames(
       lapply(ids, function(id) list(CPAGE = paste0("IEP-", id))),
       ids
@@ -97,7 +97,7 @@ test_that("EDSaN CT splits batches at max_in_ids", {
     call = fake_call
   )
 
-  expect_identical(calls, c("1 OR 2 OR 3", "4 OR 5 OR 6", "7 OR 8"))
+  expect_identical(calls, c("1\n2\n3", "4\n5\n6", "7\n8"))
   expect_identical(out$input_id, ids)
   expect_identical(out$output_id, paste0("IEP-", ids))
 })
