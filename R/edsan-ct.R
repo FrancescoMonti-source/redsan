@@ -107,11 +107,6 @@
     )
   }
 
-  # The current internal EDSaN CT endpoint presents a certificate whose subject
-  # does not match its DNS hostname. d2imr already disables peer verification;
-  # scope the additional hostname workaround to this one CT call rather than
-  # changing the process-wide httr configuration. A finite timeout also prevents
-  # a stalled CT backend from hanging the R session indefinitely.
   httr::with_config(
     httr::config(ssl_verifyhost = 0L, timeout = 30),
     invoke()
@@ -133,7 +128,7 @@
   paste(as.character(msg), collapse = " ")
 }
 
-.edsan_ct_parse_values <- function(response, input_id, api_type) {
+.edsan_ct_parse_one <- function(response, input_id, api_type) {
   if (is.null(response)) {
     stop(
       "EDSaN CT call failed for identifier `", input_id,
@@ -152,21 +147,12 @@
       call. = FALSE
     )
   }
-  if (length(response) == 0L) return(character())
 
   response_names <- names(response)
   if (!is.null(response_names) && input_id %in% response_names) {
     node <- response[[input_id]]
-  } else if (length(response) == 1L &&
-             (is.null(response_names) || is.na(response_names[[1L]]) ||
-              !nzchar(response_names[[1L]]))) {
-    node <- response[[1L]]
   } else {
-    stop(
-      "EDSaN CT returned an unrecognized response shape for identifier `",
-      input_id, "`.",
-      call. = FALSE
-    )
+    return(character())
   }
 
   if (is.list(node) && !is.null(names(node)) && api_type %in% names(node)) {
@@ -185,44 +171,46 @@
   unique(values[!is.na(values) & nzchar(values)])
 }
 
-.edsan_ct_translate <- function(ids, input_types, direction,
-                                env = "edsan-ct", ks_path = NULL,
-                                call = .edsan_ct_call) {
-  direction <- match.arg(direction, names(.edsan_ct_specs))
-  spec <- .edsan_ct_specs[[direction]]
-  if (length(ids) != length(input_types)) {
-    stop("Internal error: `ids` and `input_types` must have equal length.",
-         call. = FALSE)
+.edsan_ct_rows_for_chunk <- function(response, ids, input_type, type_spec,
+                                     input_indices) {
+  if (is.null(response)) {
+    stop(
+      "EDSaN CT call failed for a batch of ", length(ids),
+      " identifier(s) (no response from the backend). Check keystore, network, ",
+      "and authentication rather than treating this as missing correspondence.",
+      call. = FALSE
+    )
+  }
+  if (!is.list(response)) {
+    stop("EDSaN CT returned an unexpected non-list response.", call. = FALSE)
+  }
+  if (.edsan_ct_is_error_payload(response)) {
+    stop(
+      "EDSaN CT returned an error for an identifier batch: ",
+      .edsan_ct_error_message(response),
+      call. = FALSE
+    )
   }
 
   rows <- vector("list", length(ids))
-  for (i in seq_along(ids)) {
-    type_spec <- spec$types[[input_types[[i]]]]
-    if (is.null(type_spec)) {
-      stop("Unsupported identifier type: ", input_types[[i]], call. = FALSE)
-    }
-
-    response <- call(
-      api_fct = spec$endpoint,
-      api_type = type_spec$api_type,
-      api_query = ids[[i]],
-      env = env,
-      ks_path = ks_path
-    )
-    values <- .edsan_ct_parse_values(response, ids[[i]], type_spec$api_type)
-
+  for (j in seq_along(ids)) {
+    values <- .edsan_ct_parse_one(response, ids[[j]], type_spec$api_type)
     if (!length(values)) {
-      rows[[i]] <- tibble::tibble(
-        input_index = i, input_id = ids[[i]], input_type = input_types[[i]],
-        output_id = NA_character_, output_type = type_spec$output_type,
-        status = "not_found", n_matches = 0L
+      rows[[j]] <- tibble::tibble(
+        input_index = input_indices[[j]],
+        input_id = ids[[j]],
+        input_type = input_type,
+        output_id = NA_character_,
+        output_type = type_spec$output_type,
+        status = "not_found",
+        n_matches = 0L
       )
     } else {
       status <- if (length(values) == 1L) "matched" else "multiple_matches"
-      rows[[i]] <- tibble::tibble(
-        input_index = rep.int(i, length(values)),
-        input_id = rep.int(ids[[i]], length(values)),
-        input_type = rep.int(input_types[[i]], length(values)),
+      rows[[j]] <- tibble::tibble(
+        input_index = rep.int(input_indices[[j]], length(values)),
+        input_id = rep.int(ids[[j]], length(values)),
+        input_type = rep.int(input_type, length(values)),
         output_id = values,
         output_type = rep.int(type_spec$output_type, length(values)),
         status = rep.int(status, length(values)),
@@ -231,6 +219,54 @@
     }
   }
   dplyr::bind_rows(rows)
+}
+
+.edsan_ct_translate <- function(ids, input_types, direction,
+                                env = "edsan-ct", ks_path = NULL,
+                                max_in_ids = 3500L,
+                                call = .edsan_ct_call) {
+  direction <- match.arg(direction, names(.edsan_ct_specs))
+  spec <- .edsan_ct_specs[[direction]]
+  if (length(ids) != length(input_types)) {
+    stop("Internal error: `ids` and `input_types` must have equal length.",
+         call. = FALSE)
+  }
+  max_in_ids <- as.integer(max_in_ids)
+  if (length(max_in_ids) != 1L || is.na(max_in_ids) || max_in_ids < 1L) {
+    stop("`max_in_ids` must be a positive integer.", call. = FALSE)
+  }
+
+  rows <- list()
+  for (input_type in unique(input_types)) {
+    type_spec <- spec$types[[input_type]]
+    if (is.null(type_spec)) {
+      stop("Unsupported identifier type: ", input_type, call. = FALSE)
+    }
+
+    idx <- which(input_types == input_type)
+    chunks <- split(idx, ceiling(seq_along(idx) / max_in_ids))
+
+    for (chunk_idx in chunks) {
+      chunk_ids <- ids[chunk_idx]
+      response <- call(
+        api_fct = spec$endpoint,
+        api_type = type_spec$api_type,
+        api_query = paste(chunk_ids, collapse = " OR "),
+        env = env,
+        ks_path = ks_path
+      )
+      rows[[length(rows) + 1L]] <- .edsan_ct_rows_for_chunk(
+        response = response,
+        ids = chunk_ids,
+        input_type = input_type,
+        type_spec = type_spec,
+        input_indices = chunk_idx
+      )
+    }
+  }
+
+  out <- dplyr::bind_rows(rows)
+  out[order(out$input_index), , drop = FALSE]
 }
 
 #' Translate real hospital identifiers to EDSaN identifiers
