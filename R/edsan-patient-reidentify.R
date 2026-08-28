@@ -1,4 +1,4 @@
-# EDSaN CT patient reidentification -----------------------------------------
+# EDSaN CT patient identity enrichment --------------------------------------
 
 .edsan_ct_patient_call <- function(patid, ks_path = NULL) {
   if (!requireNamespace("d2imr", quietly = TRUE)) {
@@ -50,6 +50,7 @@
   )
 
   status <- httr::status_code(response)
+  if (identical(status, 204L)) return(NULL)
   if (status < 200L || status >= 300L) {
     stop(
       "EDSaN CT patient reidentification failed with HTTP status ", status, ".",
@@ -66,26 +67,13 @@
   payload$patient
 }
 
-#' Retrieve patient identity information from an EDSaN PATID
-#'
-#' Uses the EDSaN CT endpoint
-#' `getPatientReidentificationInformations/{patId}`. This is distinct from
-#' identifier correspondence: it returns the patient identity fields exposed by
-#' that endpoint. Fields not exposed by the endpoint (for example death-status
-#' fields from other sources) are deliberately not inferred or joined here.
-#'
-#' @param patids Character vector of EDSaN patient identifiers (`PATID`).
-#' @param ks_path Optional d2imr keystore path. When `NULL`, the active keystore
-#'   is used.
-#' @return A tibble with `PATID` followed by the patient fields returned by EDSaN
-#'   CT. Different server versions may expose different patient columns.
-#' @details This function deliberately exposes directly identifying patient data.
-#' @export
-edsan_reidentify_patient <- function(patids, ks_path = NULL) {
-  patids <- .edsan_ct_validate_ids(patids, require_character = TRUE)
+.edsan_patient_rows <- function(patids, ks_path = NULL) {
+  patids <- unique(.edsan_ct_validate_ids(patids, require_character = TRUE))
 
   rows <- lapply(patids, function(patid) {
     patient <- .edsan_ct_patient_call(patid, ks_path = ks_path)
+    if (is.null(patient)) return(tibble::tibble(PATID = patid))
+
     values <- lapply(patient, function(x) {
       if (is.null(x) || length(x) == 0L) return(NA_character_)
       paste(as.character(x), collapse = ";")
@@ -94,4 +82,54 @@ edsan_reidentify_patient <- function(patids, ks_path = NULL) {
   })
 
   dplyr::bind_rows(rows)
+}
+
+.edsan_evtid_patid_map <- function(evtids) {
+  evtids <- unique(.edsan_ct_validate_ids(evtids, require_character = TRUE))
+
+  pmsi <- get_edsan(
+    module = "pmsi",
+    what = "data",
+    query = list(EVTID = evtids),
+    batch_ids_key = "EVTID",
+    fields = c("PATID", "EVTID"),
+    process = TRUE,
+    source_policy = "all"
+  )
+
+  main <- pmsi$main
+  if (!is.data.frame(main) || !all(c("EVTID", "PATID") %in% names(main))) {
+    stop("PMSI lookup did not return the expected EVTID/PATID columns.",
+         call. = FALSE)
+  }
+
+  map <- main[, c("EVTID", "PATID"), drop = FALSE]
+  map$EVTID <- as.character(map$EVTID)
+  map$PATID <- as.character(map$PATID)
+  map <- map[!is.na(map$EVTID) & nzchar(map$EVTID) &
+             !is.na(map$PATID) & nzchar(map$PATID), , drop = FALSE]
+  map <- unique(map)
+
+  counts <- table(map$EVTID)
+  ambiguous <- names(counts[counts > 1L])
+  if (length(ambiguous)) {
+    stop(
+      "PMSI returned multiple PATID values for EVTID(s): ",
+      paste(ambiguous, collapse = ", "),
+      ". Refusing to choose one arbitrarily.",
+      call. = FALSE
+    )
+  }
+
+  missing <- setdiff(evtids, map$EVTID)
+  if (length(missing)) {
+    missing_rows <- data.frame(
+      EVTID = missing,
+      PATID = NA_character_,
+      stringsAsFactors = FALSE
+    )
+    map <- rbind(map, missing_rows)
+  }
+
+  tibble::as_tibble(map)
 }
