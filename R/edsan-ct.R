@@ -107,10 +107,23 @@
     )
   }
 
-  httr::with_config(
-    httr::config(ssl_verifyhost = 0L, timeout = 30),
-    invoke()
-  )
+  call_once <- function(quiet = FALSE) {
+    expr <- quote(
+      httr::with_config(
+        httr::config(ssl_verifyhost = 0L, timeout = 30),
+        invoke()
+      )
+    )
+    if (quiet) {
+      suppressWarnings(suppressMessages(eval(expr)))
+    } else {
+      eval(expr)
+    }
+  }
+
+  response <- call_once(quiet = TRUE)
+  if (is.null(response)) response <- call_once(quiet = FALSE)
+  response
 }
 
 .edsan_ct_is_error_payload <- function(response) {
@@ -209,6 +222,23 @@
   dplyr::bind_rows(rows)
 }
 
+.edsan_ct_expand_unique_rows <- function(unique_rows, ids, input_indices) {
+  rows_by_id <- split(unique_rows, unique_rows$input_id, drop = TRUE)
+  expanded <- vector("list", length(ids))
+
+  for (i in seq_along(ids)) {
+    row <- rows_by_id[[ids[[i]]]]
+    if (is.null(row)) {
+      stop("Internal error: missing parsed result for identifier `", ids[[i]], "`.",
+           call. = FALSE)
+    }
+    row$input_index <- rep.int(input_indices[[i]], nrow(row))
+    expanded[[i]] <- row
+  }
+
+  dplyr::bind_rows(expanded)
+}
+
 .edsan_ct_translate <- function(ids, input_types, direction,
                                 env = "edsan-ct", ks_path = NULL,
                                 max_in_ids = 3500L,
@@ -232,10 +262,14 @@
     }
 
     idx <- which(input_types == input_type)
-    chunks <- split(idx, ceiling(seq_along(idx) / max_in_ids))
+    type_ids <- ids[idx]
+    unique_ids <- unique(type_ids)
+    chunks <- split(seq_along(unique_ids),
+                    ceiling(seq_along(unique_ids) / max_in_ids))
 
+    unique_rows <- list()
     for (chunk_idx in chunks) {
-      chunk_ids <- ids[chunk_idx]
+      chunk_ids <- unique_ids[chunk_idx]
       response <- call(
         api_fct = spec$endpoint,
         api_type = type_spec$api_type,
@@ -243,7 +277,7 @@
         env = env,
         ks_path = ks_path
       )
-      rows[[length(rows) + 1L]] <- .edsan_ct_rows_for_chunk(
+      unique_rows[[length(unique_rows) + 1L]] <- .edsan_ct_rows_for_chunk(
         response = response,
         ids = chunk_ids,
         input_type = input_type,
@@ -251,6 +285,12 @@
         input_indices = chunk_idx
       )
     }
+
+    rows[[length(rows) + 1L]] <- .edsan_ct_expand_unique_rows(
+      dplyr::bind_rows(unique_rows),
+      ids = type_ids,
+      input_indices = idx
+    )
   }
 
   out <- dplyr::bind_rows(rows)
