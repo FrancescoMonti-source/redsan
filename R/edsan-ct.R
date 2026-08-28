@@ -336,25 +336,33 @@ edsan_pseudonymize <- function(ids, id_type = NULL,
   )
 }
 
-#' Reidentify EDSaN identifiers through EDSaN CT
+#' Reidentify EDSaN identifiers
 #'
-#' Translates `PATID` to `IPP` or `EVTID` to `IEP`. The pseudonymized domains
-#' cannot be distinguished safely from the value alone, so `id_type` is required.
+#' Translates `PATID` to `IPP` or `EVTID` to `IEP`. With `identity = TRUE`, the
+#' same function also resolves the patient and appends identity fields exposed by
+#' EDSaN CT. For an `EVTID`, its `PATID` is resolved internally from PMSI first.
 #'
 #' @param ids EDSaN `PATID` or `EVTID` values. Must be character; numeric input
 #'   can silently alter identifier values through double-precision conversion.
 #' @param id_type Input type: `"PATID"` or `"EVTID"`.
+#' @param identity If `FALSE` (default), return only the direct identifier
+#'   correspondence. If `TRUE`, also resolve patient identifiers and identity
+#'   fields.
 #' @inheritParams edsan_pseudonymize
-#' @return A two-column tibble named from the identifier domains themselves:
-#'   `PATID` and `IPP`, or `EVTID` and `IEP`. Missing correspondences are `NA`
-#'   in the destination column. Multiple correspondences produce multiple rows
-#'   for the same source identifier.
-#' @details This function deliberately exposes real hospital identifiers.
+#' @return With `identity = FALSE`, a two-column tibble (`PATID | IPP` or
+#'   `EVTID | IEP`). With `identity = TRUE`, patient identifiers and the fields
+#'   returned by `getPatientReidentificationInformations/{patId}` are appended.
+#' @details This function deliberately exposes real hospital identifiers and,
+#'   when `identity = TRUE`, directly identifying patient information.
 #' @export
-edsan_reidentify <- function(ids, id_type,
+edsan_reidentify <- function(ids, id_type, identity = FALSE,
                              env = "edsan-ct", ks_path = NULL) {
   ids <- .edsan_ct_validate_ids(ids, require_character = TRUE)
   id_type <- match.arg(id_type, c("PATID", "EVTID"))
+  if (!is.logical(identity) || length(identity) != 1L || is.na(identity)) {
+    stop("`identity` must be TRUE or FALSE.", call. = FALSE)
+  }
+
   type_spec <- .edsan_ct_specs$edsan_to_his$types[[id_type]]
   out <- .edsan_ct_translate(
     ids, rep.int(id_type, length(ids)), "edsan_to_his", env, ks_path
@@ -362,5 +370,23 @@ edsan_reidentify <- function(ids, id_type,
 
   result <- tibble::tibble(out$input_id, out$output_id)
   names(result) <- c(id_type, type_spec$output_type)
-  result
+
+  if (!isTRUE(identity)) return(result)
+
+  if (identical(id_type, "PATID")) {
+    patient <- .edsan_patient_rows(unique(result$PATID), ks_path = ks_path)
+    return(dplyr::left_join(result, patient, by = "PATID"))
+  }
+
+  evtid_patid <- .edsan_evtid_patid_map(unique(result$EVTID))
+  result <- dplyr::left_join(result, evtid_patid, by = "EVTID")
+
+  patid_ipp <- .edsan_patid_ipp_map(result$PATID, env = env, ks_path = ks_path)
+  result <- dplyr::left_join(result, patid_ipp, by = "PATID")
+
+  patient <- .edsan_patient_rows(
+    unique(result$PATID[!is.na(result$PATID) & nzchar(result$PATID)]),
+    ks_path = ks_path
+  )
+  dplyr::left_join(result, patient, by = "PATID")
 }
