@@ -345,23 +345,22 @@ edsan_pseudonymize <- function(ids, id_type = NULL,
 #'   can silently alter identifier values through double-precision conversion.
 #' @param id_type Input type: `"PATID"` or `"EVTID"`.
 #' @inheritParams edsan_pseudonymize
-#' @return A tibble retaining every input and reporting matched, not-found, or
-#'   multiple correspondences. `not-found` is only reported for a valid EDSaN
-#'   CT response with no correspondence; a backend failure or error response
-#'   raises an error instead.
+#' @return A two-column tibble named from the identifier domains themselves:
+#'   `PATID` and `IPP`, or `EVTID` and `IEP`. Missing correspondences are `NA`
+#'   in the destination column. Multiple correspondences produce multiple rows
+#'   for the same source identifier.
 #' @details This function deliberately exposes real hospital identifiers.
 #' @export
 edsan_reidentify <- function(ids, id_type,
                              env = "edsan-ct", ks_path = NULL) {
   ids <- .edsan_ct_validate_ids(ids, require_character = TRUE)
   id_type <- match.arg(id_type, c("PATID", "EVTID"))
+  type_spec <- .edsan_ct_specs$edsan_to_his$types[[id_type]]
   out <- .edsan_ct_translate(
     ids, rep.int(id_type, length(ids)), "edsan_to_his", env, ks_path
   )
-  dplyr::transmute(
-    out,
-    EDSAN_ID = input_id, EDSAN_TYPE = input_type,
-    HIS_ID = output_id, HIS_TYPE = output_type,
-    status = status, n_matches = n_matches
-  )
+
+  result <- tibble::tibble(out$input_id, out$output_id)
+  names(result) <- c(id_type, type_spec$output_type)
+  result
 }
