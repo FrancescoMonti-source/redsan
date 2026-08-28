@@ -35,7 +35,7 @@ test_that("explicit id_type overrides automatic format detection", {
   expect_identical(result2, "IPP")
 })
 
-test_that("EDSaN CT dispatches NIP and CPAGE correctly", {
+test_that("EDSaN CT batches identifiers by type", {
   calls <- list()
   fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
     calls[[length(calls) + 1L]] <<- list(
@@ -45,38 +45,68 @@ test_that("EDSaN CT dispatches NIP and CPAGE correctly", {
       env = env,
       ks_path = ks_path
     )
-    if (api_type == "NIP") {
-      stats::setNames(list(list(NIP = "PAT-1")), api_query)
-    } else {
-      stats::setNames(list(list(CPAGE = "EVT-1")), api_query)
-    }
+    ids <- strsplit(api_query, " OR ", fixed = TRUE)[[1L]]
+    values <- if (api_type == "NIP") paste0("PAT-", ids) else paste0("EVT-", ids)
+    stats::setNames(
+      lapply(values, function(value) stats::setNames(list(value), api_type)),
+      ids
+    )
   }
 
   out <- redsan:::.edsan_ct_translate(
-    ids = c("00123", "98765"),
-    input_types = c("IPP", "IEP"),
+    ids = c("00123", "00456", "98765", "87654"),
+    input_types = c("IPP", "IPP", "IEP", "IEP"),
     direction = "his_to_edsan",
     env = "edsan-ct",
     ks_path = "/tmp/keystore",
     call = fake_call
   )
 
+  expect_length(calls, 2L)
   expect_identical(vapply(calls, `[[`, character(1), "api_fct"),
                    rep("getHISToEDSaNCorrespondences", 2L))
   expect_identical(vapply(calls, `[[`, character(1), "api_type"),
                    c("NIP", "CPAGE"))
+  expect_identical(vapply(calls, `[[`, character(1), "api_query"),
+                   c("00123 OR 00456", "98765 OR 87654"))
   expect_identical(vapply(calls, `[[`, character(1), "ks_path"),
                    rep("/tmp/keystore", 2L))
-  expect_identical(out$output_id, c("PAT-1", "EVT-1"))
-  expect_identical(out$output_type, c("PATID", "EVTID"))
-  expect_identical(out$status, c("matched", "matched"))
+  expect_identical(out$output_id,
+                   c("PAT-00123", "PAT-00456", "EVT-98765", "EVT-87654"))
+  expect_identical(out$output_type, c("PATID", "PATID", "EVTID", "EVTID"))
+  expect_identical(out$status, rep("matched", 4L))
+})
+
+test_that("EDSaN CT splits batches at max_in_ids", {
+  calls <- character()
+  fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
+    calls <<- c(calls, api_query)
+    ids <- strsplit(api_query, " OR ", fixed = TRUE)[[1L]]
+    stats::setNames(
+      lapply(ids, function(id) list(CPAGE = paste0("IEP-", id))),
+      ids
+    )
+  }
+
+  ids <- as.character(seq_len(8L))
+  out <- redsan:::.edsan_ct_translate(
+    ids = ids,
+    input_types = rep("EVTID", length(ids)),
+    direction = "edsan_to_his",
+    max_in_ids = 3L,
+    call = fake_call
+  )
+
+  expect_identical(calls, c("1 OR 2 OR 3", "4 OR 5 OR 6", "7 OR 8"))
+  expect_identical(out$input_id, ids)
+  expect_identical(out$output_id, paste0("IEP-", ids))
 })
 
 test_that("reverse correspondence uses the EDSaN-to-HIS endpoint", {
   fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
     expect_identical(api_fct, "getEDSaNToHISCorrespondences")
     expect_identical(api_type, "CPAGE")
-    stats::setNames(list(list(CPAGE = "98765")), api_query)
+    list("EVT-1" = list(CPAGE = "98765"))
   }
 
   out <- redsan:::.edsan_ct_translate(
@@ -90,10 +120,9 @@ test_that("reverse correspondence uses the EDSaN-to-HIS endpoint", {
   expect_identical(out$output_type, "IEP")
 })
 
-test_that("missing and multiple correspondences remain explicit", {
+test_that("missing and multiple correspondences remain explicit in a batch", {
   fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
-    if (api_query == "missing") return(list())
-    stats::setNames(list(list(CPAGE = c("IEP-1", "IEP-2"))), api_query)
+    list(multiple = list(CPAGE = c("IEP-1", "IEP-2")))
   }
 
   out <- redsan:::.edsan_ct_translate(
@@ -139,7 +168,7 @@ test_that("an error payload from EDSaN CT is a hard failure, not a missing match
   )
 })
 
-test_that("an unrecognized response shape is a hard failure, not a missing match", {
+test_that("an unrelated non-empty response is a hard failure", {
   fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
     list(unrelated_key = "unexpected")
   }
