@@ -129,25 +129,6 @@
 }
 
 .edsan_ct_parse_one <- function(response, input_id, api_type) {
-  if (is.null(response)) {
-    stop(
-      "EDSaN CT call failed for identifier `", input_id,
-      "` (no response from the backend). Check keystore, network, and ",
-      "authentication rather than treating this as a missing correspondence.",
-      call. = FALSE
-    )
-  }
-  if (!is.list(response)) {
-    stop("EDSaN CT returned an unexpected non-list response.", call. = FALSE)
-  }
-  if (.edsan_ct_is_error_payload(response)) {
-    stop(
-      "EDSaN CT returned an error for identifier `", input_id, "`: ",
-      .edsan_ct_error_message(response),
-      call. = FALSE
-    )
-  }
-
   response_names <- names(response)
   if (!is.null(response_names) && input_id %in% response_names) {
     node <- response[[input_id]]
@@ -190,6 +171,13 @@
       .edsan_ct_error_message(response),
       call. = FALSE
     )
+  }
+
+  response_names <- names(response)
+  if (length(response) > 0L &&
+      (is.null(response_names) || !any(response_names %in% ids))) {
+    stop("EDSaN CT returned an unrecognized response shape for the identifier batch.",
+         call. = FALSE)
   }
 
   rows <- vector("list", length(ids))
