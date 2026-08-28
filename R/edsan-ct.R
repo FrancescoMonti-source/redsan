@@ -239,7 +239,7 @@
       response <- call(
         api_fct = spec$endpoint,
         api_type = type_spec$api_type,
-        api_query = paste(chunk_ids, collapse = " OR "),
+        api_query = paste(chunk_ids, collapse = "\n"),
         env = env,
         ks_path = ks_path
       )
