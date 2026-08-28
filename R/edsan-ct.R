@@ -239,7 +239,7 @@
       response <- call(
         api_fct = spec$endpoint,
         api_type = type_spec$api_type,
-        api_query = jsonlite::toJSON(chunk_ids, auto_unbox = FALSE),
+        api_query = jsonlite::toJSON(list(values = chunk_ids), auto_unbox = TRUE),
         env = env,
         ks_path = ks_path
       )
