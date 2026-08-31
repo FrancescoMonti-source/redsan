@@ -138,14 +138,24 @@
 #'   names. `"long"` returns one row per column with SQL type metadata.
 #'   `"none"` returns the compact object-level catalog without column names.
 #' @param connection Optional existing ICCA DBI connection.
+#' @param instance ICCA instance to inspect: `"adult"` (default) or `"ped"`.
+#'   Ignored when `connection` is supplied explicitly.
 #' @return A tibble. Its granularity depends on `columns`; object-level outputs
 #'   also include the number of columns and flags for common `D_Encounter`
 #'   linkage columns.
 #' @export
 icca_catalog <- function(search = NULL, schema = NULL, type = NULL,
                          columns = c("nested_names", "long", "none"),
-                         connection = NULL) {
+                         connection = NULL, instance = c("adult", "ped")) {
   columns <- match.arg(columns)
+  instance <- match.arg(instance)
+
+  owns_connection <- is.null(connection)
+  if (owns_connection) {
+    connection <- .icca_connect(instance = instance)
+    on.exit(.icca_disconnect(connection), add = TRUE)
+  }
+
   rows <- .icca_catalog_rows(connection = connection)
 
   if (!is.null(schema)) {
@@ -251,11 +261,21 @@ icca_catalog <- function(search = NULL, schema = NULL, type = NULL,
 #' @param direction With `source`, return relations going `"out"`, coming
 #'   `"in"`, or `"both"` directions.
 #' @param connection Optional existing ICCA DBI connection.
+#' @param instance ICCA instance to inspect: `"adult"` (default) or `"ped"`.
+#'   Ignored when `connection` is supplied explicitly.
 #' @return A tibble of relation edges.
 #' @export
 icca_relations <- function(source = NULL, direction = c("both", "out", "in"),
-                           connection = NULL) {
+                           connection = NULL, instance = c("adult", "ped")) {
   direction <- match.arg(direction)
+  instance <- match.arg(instance)
+
+  owns_connection <- is.null(connection)
+  if (owns_connection) {
+    connection <- .icca_connect(instance = instance)
+    on.exit(.icca_disconnect(connection), add = TRUE)
+  }
+
   out <- tibble::as_tibble(.icca_relation_rows(connection = connection))
 
   if (!is.null(source)) {
@@ -285,10 +305,21 @@ icca_relations <- function(source = NULL, direction = c("both", "out", "in"),
 #'
 #' @param source ICCA object as `schema.object`.
 #' @param connection Optional existing ICCA DBI connection.
+#' @param instance ICCA instance to inspect: `"adult"` (default) or `"ped"`.
+#'   Ignored when `connection` is supplied explicitly.
 #' @return An `icca_description` list with `object`, `columns`, and `relations`
 #'   tibbles.
 #' @export
-icca_describe <- function(source, connection = NULL) {
+icca_describe <- function(source, connection = NULL,
+                          instance = c("adult", "ped")) {
+  instance <- match.arg(instance)
+
+  owns_connection <- is.null(connection)
+  if (owns_connection) {
+    connection <- .icca_connect(instance = instance)
+    on.exit(.icca_disconnect(connection), add = TRUE)
+  }
+
   src <- .icca_normalize_source(source)
   object <- .icca_object_metadata(source, connection = connection)
 
