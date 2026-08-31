@@ -3,11 +3,12 @@
 \alias{icca_describe}
 \title{Describe one ICCA table or view}
 \usage{
-icca_describe(source, connection = NULL)
+icca_describe(source, connection = NULL, instance = c("adult", "ped"))
 }
 \arguments{
 \item{source}{ICCA object as \code{schema.object}.}
 \item{connection}{Optional existing ICCA DBI connection.}
+\item{instance}{ICCA instance to inspect: \code{"adult"} (default) or \code{"ped"}. Ignored when \code{connection} is supplied explicitly.}
 }
 \value{
 An \code{icca_description} list containing \code{object}, \code{columns}, and \code{relations} tibbles.
