@@ -8,6 +8,7 @@ get_icca(
   source = "encounter",
   link = "auto",
   connection = NULL,
+  instance = c("adult", "ped"),
   env = "edsan-ct",
   ks_path = NULL
 )
@@ -20,6 +21,8 @@ get_icca(
 \item{link}{Linkage column used to connect the requested source to \code{D_Encounter}. With \code{"auto"}, \code{encounterId} is used when present. \code{patientId} or \code{episodeId} must be requested explicitly because they may retrieve data outside the requested stay.}
 
 \item{connection}{Optional existing ICCA DBI connection.}
+
+\item{instance}{ICCA instance to query: \code{"adult"} (default) or \code{"ped"}. Ignored when \code{connection} is supplied explicitly.}
 
 \item{env}{EDSaN CT web-service environment name.}
 
