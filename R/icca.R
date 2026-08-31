@@ -92,20 +92,29 @@
   value
 }
 
-.icca_connect <- function(driver = "FreeTDS", database = "CISReportingDB",
+.icca_instance_prefix <- function(instance = c("adult", "ped")) {
+  instance <- match.arg(instance)
+  switch(instance, adult = "iccaadu", ped = "iccaped")
+}
+
+.icca_connect <- function(instance = c("adult", "ped"),
+                          driver = "FreeTDS", database = "CISReportingDB",
                           tds_version = "7.4") {
   .icca_require_namespace("DBI", "connection setup")
   .icca_require_namespace("odbc", "connection setup")
 
-  server <- .icca_keystore_value("db.iccaadu.srv")
-  port_raw <- .icca_keystore_value("db.iccaadu.port")
-  user <- .icca_keystore_value("db.iccaadu.usr")
-  password <- .icca_keystore_value("db.iccaadu.pwd")
+  prefix <- .icca_instance_prefix(instance)
+  key <- function(suffix) paste0("db.", prefix, ".", suffix)
+
+  server <- .icca_keystore_value(key("srv"))
+  port_raw <- .icca_keystore_value(key("port"))
+  user <- .icca_keystore_value(key("usr"))
+  password <- .icca_keystore_value(key("pwd"))
 
   port <- suppressWarnings(as.integer(port_raw))
   if (length(port) != 1L || is.na(port) || port < 1L || port > 65535L) {
     stop(
-      "ICCA connection key `db.iccaadu.port` is not a valid TCP port.",
+      "ICCA connection key `", key("port"), "` is not a valid TCP port.",
       call. = FALSE
     )
   }
@@ -183,9 +192,20 @@
 #' @param connection Optional existing DBI connection. When `NULL`, `redsan`
 #'   opens an ICCA connection and closes it after the query. A caller-supplied
 #'   connection is never closed by `query_icca()`.
+#' @param instance ICCA instance to query: `"adult"` (default) or `"ped"`.
+#'   Ignored when `connection` is supplied explicitly.
 #' @return A tibble containing the SQL Server result.
 #' @export
-query_icca <- function(sql, params = NULL, connection = NULL) {
+query_icca <- function(sql, params = NULL, connection = NULL,
+                       instance = c("adult", "ped")) {
+  instance <- match.arg(instance)
+
+  if (!is.null(connection)) {
+    return(.icca_query(sql = sql, params = params, connection = connection))
+  }
+
+  connection <- .icca_connect(instance = instance)
+  on.exit(.icca_disconnect(connection), add = TRUE)
   .icca_query(sql = sql, params = params, connection = connection)
 }
 
@@ -435,6 +455,8 @@ query_icca <- function(sql, params = NULL, connection = NULL) {
 #'   `"medication"`. Assessment and medication retrieval use the enriched
 #'   `DAR.PtAssessment` and `DAR.PtMedication` reporting views.
 #' @param connection Optional existing ICCA DBI connection.
+#' @param instance ICCA instance to query: `"adult"` (default) or `"ped"`.
+#'   Ignored when `connection` is supplied explicitly.
 #' @param env EDSaN CT web-service environment name.
 #' @param ks_path Optional d2imr keystore path for EDSaN CT correspondence.
 #' @return A tibble keyed by `EVTID`.
@@ -451,8 +473,21 @@ query_icca <- function(sql, params = NULL, connection = NULL) {
 #'   `redsan` does not pivot, deduplicate, or clinically filter these rows.
 #' @export
 get_icca <- function(evtids, source = "encounter", connection = NULL,
+                     instance = c("adult", "ped"),
                      env = "edsan-ct", ks_path = NULL) {
   source <- match.arg(source, c("encounter", "assessment", "medication"))
+  instance <- match.arg(instance)
+
+  if (!length(.icca_validate_evtids(evtids))) {
+    if (identical(source, "encounter")) return(.icca_empty_encounter())
+    return(.icca_empty_detail(source))
+  }
+
+  owns_connection <- is.null(connection)
+  if (owns_connection) {
+    connection <- .icca_connect(instance = instance)
+    on.exit(.icca_disconnect(connection), add = TRUE)
+  }
 
   if (identical(source, "encounter")) {
     return(.icca_get_encounter(
