@@ -8,7 +8,8 @@ icca_catalog(
   schema = NULL,
   type = NULL,
   columns = c("nested_names", "long", "none"),
-  connection = NULL
+  connection = NULL,
+  instance = c("adult", "ped")
 )
 }
 \arguments{
@@ -21,6 +22,8 @@ icca_catalog(
 \item{columns}{Column representation. \code{"nested_names"} (default) returns one row per object with a list-column of character vectors containing column names. \code{"long"} returns one row per column with SQL type metadata. \code{"none"} returns the compact object-level catalog without column names.}
 
 \item{connection}{Optional existing ICCA DBI connection.}
+
+\item{instance}{ICCA instance to inspect: \code{"adult"} (default) or \code{"ped"}. Ignored when \code{connection} is supplied explicitly.}
 }
 \value{
 A tibble. Its granularity depends on \code{columns}; object-level outputs also include the number of columns and flags for common \code{D_Encounter} linkage columns.
