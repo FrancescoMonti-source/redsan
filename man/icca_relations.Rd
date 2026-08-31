@@ -6,13 +6,15 @@
 icca_relations(
   source = NULL,
   direction = c("both", "out", "in"),
-  connection = NULL
+  connection = NULL,
+  instance = c("adult", "ped")
 )
 }
 \arguments{
 \item{source}{Optional ICCA object as \code{schema.object}. When supplied, only relations touching that object are returned.}
 \item{direction}{With \code{source}, return relations going \code{"out"}, coming \code{"in"}, or \code{"both"} directions.}
 \item{connection}{Optional existing ICCA DBI connection.}
+\item{instance}{ICCA instance to inspect: \code{"adult"} (default) or \code{"ped"}. Ignored when \code{connection} is supplied explicitly.}
 }
 \value{
 A tibble of relation edges.
