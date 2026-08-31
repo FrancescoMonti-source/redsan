@@ -84,26 +84,23 @@
   dplyr::bind_rows(rows)
 }
 
-.edsan_evtid_patid_map <- function(evtids) {
+.edsan_evtid_patid_map <- function(evtids, get = get_edsan) {
   evtids <- unique(.edsan_ct_validate_ids(evtids, require_character = TRUE))
 
-  pmsi <- get_edsan(
+  pmsi <- get(
     module = "pmsi",
-    what = "data",
+    what = "idtriplets",
     query = list(EVTID = evtids),
     batch_ids_key = "EVTID",
-    fields = c("PATID", "EVTID"),
-    process = TRUE,
-    source_policy = "all"
+    fields = c("PATID", "EVTID")
   )
 
-  main <- pmsi$main
-  if (!is.data.frame(main) || !all(c("EVTID", "PATID") %in% names(main))) {
+  if (!is.data.frame(pmsi) || !all(c("EVTID", "PATID") %in% names(pmsi))) {
     stop("PMSI lookup did not return the expected EVTID/PATID columns.",
          call. = FALSE)
   }
 
-  map <- main[, c("EVTID", "PATID"), drop = FALSE]
+  map <- pmsi[, c("EVTID", "PATID"), drop = FALSE]
   map$EVTID <- as.character(map$EVTID)
   map$PATID <- as.character(map$PATID)
   map <- map[!is.na(map$EVTID) & nzchar(map$EVTID) &
