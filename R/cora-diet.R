@@ -128,6 +128,22 @@
   unique(ieps)
 }
 
+.cora_validate_document_key <- function(nodocument, typedoc) {
+  nodocument <- trimws(as.character(nodocument))
+  typedoc <- trimws(as.character(typedoc))
+
+  if (length(nodocument) != 1L || is.na(nodocument) ||
+      !grepl("^[0-9]+$", nodocument)) {
+    stop("Invalid CORA document identifier.", call. = FALSE)
+  }
+  if (length(typedoc) != 1L || is.na(typedoc) ||
+      !grepl("^[A-Z0-9]$", typedoc)) {
+    stop("Invalid CORA document type.", call. = FALSE)
+  }
+
+  list(nodocument = nodocument, typedoc = typedoc)
+}
+
 .cora_empty_diet <- function() {
   tibble::tibble(
     IEP = character(),
@@ -144,7 +160,8 @@
 }
 
 .cora_query_diet_documents <- function(connection, ieps) {
-  placeholders <- paste(rep("?", length(ieps)), collapse = ", ")
+  ieps <- .cora_validate_ieps(ieps)
+  quoted <- paste0("'", ieps, "'", collapse = ", ")
 
   sql <- paste0(
     "SELECT DISTINCT\n",
@@ -161,42 +178,47 @@
     "JOIN ICSF.T_DOCUMENT d\n",
     "  ON d.NOEVT = m.NOMVTUS\n",
     " AND d.TYPEEVT = 'H'\n",
-    "WHERE m.NOSEJ IN (", placeholders, ")\n",
+    "WHERE m.NOSEJ IN (", quoted, ")\n",
     "  AND d.NOSOUSVOLET = 443\n",
     "  AND d.ETATDOC = 1\n",
     "ORDER BY m.NOSEJ, d.DTDOC"
   )
 
-  DBI::dbGetQuery(connection, sql, params = unname(as.list(ieps)))
+  DBI::dbGetQuery(connection, sql)
 }
 
 .cora_blob_length <- function(connection, nodocument, typedoc) {
-  out <- DBI::dbGetQuery(
-    connection,
-    paste(
-      "SELECT DBMS_LOB.GETLENGTH(DOCUMENT_BRUT) AS N",
-      "FROM ICSF.T_DOCUMENT_MEMO",
-      "WHERE NODOCUMENT = ? AND TYPEDOC = ?"
-    ),
-    params = list(nodocument, typedoc)
+  key <- .cora_validate_document_key(nodocument, typedoc)
+  sql <- paste0(
+    "SELECT DBMS_LOB.GETLENGTH(DOCUMENT_BRUT) AS N\n",
+    "FROM ICSF.T_DOCUMENT_MEMO\n",
+    "WHERE NODOCUMENT = '", key$nodocument, "'\n",
+    "  AND TYPEDOC = '", key$typedoc, "'"
   )
 
+  out <- DBI::dbGetQuery(connection, sql)
   if (!nrow(out)) return(NA_integer_)
   as.integer(out$N[[1L]])
 }
 
 .cora_blob_chunk_hex <- function(connection, nodocument, typedoc,
                                  amount, offset) {
-  out <- DBI::dbGetQuery(
-    connection,
-    paste0(
-      "SELECT RAWTOHEX(DBMS_LOB.SUBSTR(DOCUMENT_BRUT, ", amount, ", ", offset, ")) AS HEX\n",
-      "FROM ICSF.T_DOCUMENT_MEMO\n",
-      "WHERE NODOCUMENT = ? AND TYPEDOC = ?"
-    ),
-    params = list(nodocument, typedoc)
+  key <- .cora_validate_document_key(nodocument, typedoc)
+  amount <- as.integer(amount)
+  offset <- as.integer(offset)
+  if (is.na(amount) || amount < 1L || amount > 2000L ||
+      is.na(offset) || offset < 1L) {
+    stop("Invalid CORA BLOB chunk request.", call. = FALSE)
+  }
+
+  sql <- paste0(
+    "SELECT RAWTOHEX(DBMS_LOB.SUBSTR(DOCUMENT_BRUT, ", amount, ", ", offset, ")) AS HEX\n",
+    "FROM ICSF.T_DOCUMENT_MEMO\n",
+    "WHERE NODOCUMENT = '", key$nodocument, "'\n",
+    "  AND TYPEDOC = '", key$typedoc, "'"
   )
 
+  out <- DBI::dbGetQuery(connection, sql)
   if (!nrow(out)) return(NA_character_)
   as.character(out$HEX[[1L]])
 }
@@ -205,6 +227,28 @@
   if (is.na(hex) || !nzchar(hex)) return(raw())
   pos <- seq.int(1L, nchar(hex), by = 2L)
   as.raw(strtoi(substring(hex, pos, pos + 1L), base = 16L))
+}
+
+.cora_decode_gzip <- function(compressed, nodocument = NULL) {
+  label <- if (is.null(nodocument)) "CORA document" else
+    paste0("CORA Diet document `", nodocument, "`")
+
+  if (length(compressed) < 3L ||
+      !identical(as.integer(compressed[1:3]), c(31L, 139L, 8L))) {
+    stop(label, " does not contain the expected GZIP payload.", call. = FALSE)
+  }
+
+  decoded <- tryCatch(
+    memDecompress(compressed, type = "gzip"),
+    error = function(e) {
+      stop(label, " could not be decompressed: ", conditionMessage(e),
+           call. = FALSE)
+    }
+  )
+
+  text <- rawToChar(decoded)
+  converted <- iconv(text, from = "latin1", to = "UTF-8")
+  if (is.na(converted)) text else converted
 }
 
 .cora_read_diet_blob <- function(connection, nodocument, typedoc,
@@ -226,30 +270,7 @@
     )
   })
 
-  compressed <- do.call(c, chunks)
-  if (length(compressed) < 3L ||
-      !identical(as.integer(compressed[1:3]), c(31L, 139L, 8L))) {
-    stop(
-      "CORA Diet document `", nodocument,
-      "` does not contain the expected GZIP payload.",
-      call. = FALSE
-    )
-  }
-
-  decoded <- tryCatch(
-    memDecompress(compressed, type = "gzip"),
-    error = function(e) {
-      stop(
-        "Could not decompress CORA Diet document `", nodocument, "`: ",
-        conditionMessage(e),
-        call. = FALSE
-      )
-    }
-  )
-
-  text <- rawToChar(decoded)
-  converted <- iconv(text, from = "latin1", to = "UTF-8")
-  if (is.na(converted)) text else converted
+  .cora_decode_gzip(do.call(c, chunks), nodocument = nodocument)
 }
 
 #' Retrieve CORA Diet observations by IEP
@@ -266,11 +287,14 @@
 #' @param ojdbc_jar Optional path to an Oracle JDBC driver. Used only when
 #'   `connection` is `NULL`.
 #' @param chunk_size Maximum number of BLOB bytes requested per Oracle
-#'   `DBMS_LOB.SUBSTR()` call.
+#'   `DBMS_LOB.SUBSTR()` call. The default (2000) is deliberately conservative
+#'   for Oracle RAW conversion through RJDBC.
 #' @return A tibble with one row per active Diet document and a `TEXT` column
 #'   containing the decompressed observation.
 #' @details This function performs indexed lookups by IEP and document key; it
-#'   does not scan `T_DOCUMENT` or `T_DOCUMENT_MEMO` for text.
+#'   does not scan `T_DOCUMENT` or `T_DOCUMENT_MEMO` for text. IEP values are
+#'   validated as digits before being interpolated into Oracle SQL because the
+#'   RJDBC backend used for CORA does not reliably support DBI parameter binding.
 #' @export
 get_cora_diet <- function(ieps, connection = NULL, ojdbc_jar = NULL,
                           chunk_size = 2000L) {
