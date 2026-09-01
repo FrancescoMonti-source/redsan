@@ -40,6 +40,8 @@ Suggests:
     httr,
     odbc,
     reticulate,
+    RJDBC,
+    rJava,
     testthat (>= 3.0.0)
 Enhances:
     d2imr
