@@ -2,12 +2,22 @@
 % Please edit documentation in R/cora-diet.R
 \name{get_cora_diet}
 \alias{get_cora_diet}
-\title{Retrieve CORA Diet observations by IEP}
+\title{Retrieve CORA Diet observations by IEP or EVTID}
 \usage{
-get_cora_diet(ieps, connection = NULL, ojdbc_jar = NULL, chunk_size = 2000L)
+get_cora_diet(
+  ids,
+  id_type = c("IEP", "EVTID"),
+  connection = NULL,
+  ojdbc_jar = NULL,
+  chunk_size = 2000L,
+  env = "edsan-ct",
+  ks_path = NULL
+)
 }
 \arguments{
-\item{ieps}{Character vector of IEP values.}
+\item{ids}{Character vector of stay identifiers.}
+
+\item{id_type}{Input identifier type: \code{"IEP"} (default) or \code{"EVTID"}.}
 
 \item{connection}{Optional existing CORA DBI connection. When \code{NULL},
 \code{redsan} opens a CORA JDBC connection and closes it before returning.}
@@ -18,21 +28,33 @@ get_cora_diet(ieps, connection = NULL, ojdbc_jar = NULL, chunk_size = 2000L)
 \item{chunk_size}{Maximum number of BLOB bytes requested per Oracle
 \code{DBMS_LOB.SUBSTR()} call. The default (2000) is deliberately conservative
 for Oracle RAW conversion through RJDBC.}
+
+\item{env}{EDSaN CT web-service environment used for EVTID/IEP mapping.}
+
+\item{ks_path}{Optional d2imr keystore path for EDSaN CT correspondence.}
 }
 \value{
-A tibble with one row per active Diet document and a \code{TEXT} column
-containing the decompressed observation.
+A tibble with one row per active Diet document. The first two columns,
+\code{EVTID} and \code{IEP}, expose the identifier correspondence; \code{TEXT} contains
+the decompressed observation.
 }
 \description{
-Retrieves the Diet observation documents associated with one or more CORA
-hospital stays. In CORA, the IEP is stored as \code{MVTSEJ.NOSEJ}; Diet documents
-are linked through \code{MVTUS.NOMVTUS} to \code{T_DOCUMENT.NOEVT} and identified by
-\code{NOSOUSVOLET = 443}. The document payload is read from
-\code{T_DOCUMENT_MEMO.DOCUMENT_BRUT}, decompressed from GZIP, and returned as text.
+Retrieves Diet observation documents associated with one or more hospital
+stays. Input identifiers may be real hospital IEPs or pseudonymized EDSaN
+EVTIDs. Both identifiers are returned in the output so their correspondence
+is preserved alongside the CORA document.
 }
 \details{
-This function performs indexed lookups by IEP and document key; it does not
-scan \code{T_DOCUMENT} or \code{T_DOCUMENT_MEMO} for text. IEP values are validated
-as digits before being interpolated into Oracle SQL because the RJDBC backend
-used for CORA does not reliably support DBI parameter binding.
+CORA stores the IEP as \code{MVTSEJ.NOSEJ}. Diet documents are linked via
+\code{MVTUS.NOMVTUS} to \code{T_DOCUMENT.NOEVT}, restricted to
+\code{NOSOUSVOLET = 443}. \code{T_DOCUMENT.NOEVT} is a CORA-internal event key and is
+returned as \code{CORA_NOEVT} to avoid confusion with the EDSaN \code{EVTID}.
+
+EVTID input is reidentified to IEP through EDSaN CT before the indexed CORA
+lookup. IEP input is pseudonymized through EDSaN CT so the corresponding
+EVTID can be returned. A valid IEP with no EDSaN correspondence can still
+produce CORA rows with \code{EVTID = NA}; a CT backend failure raises an error.
+
+The function performs indexed lookups by IEP and document key; it does not
+scan \code{T_DOCUMENT} or \code{T_DOCUMENT_MEMO} for text.
 }
