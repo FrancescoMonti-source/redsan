@@ -7,6 +7,7 @@
 get_cora_diet(
   ids,
   id_type = c("IEP", "EVTID"),
+  event_type = c("H", "R"),
   connection = NULL,
   ojdbc_jar = NULL,
   chunk_size = 2000L,
@@ -18,6 +19,10 @@ get_cora_diet(
 \item{ids}{Character vector of stay identifiers.}
 
 \item{id_type}{Input identifier type: \code{"IEP"} (default) or \code{"EVTID"}.}
+
+\item{event_type}{CORA event types to retrieve. The default \code{c("H", "R")}
+returns both hospital-linked (\code{"H"}) and rendez-vous-linked (\code{"R"})
+Diet documents. Use \code{"H"} or \code{"R"} to restrict the lookup.}
 
 \item{connection}{Optional existing CORA DBI connection. When \code{NULL},
 \code{redsan} opens a CORA JDBC connection and closes it before returning.}
@@ -46,11 +51,14 @@ preserved alongside the CORA document.
 }
 \details{
 Diet documents are identified in \code{T_DOCUMENT} by \code{NOSOUSVOLET = 443}
-and active documents by \code{ETATDOC = 1}. Two CORA event paths are queried.
-Hospital documents (\code{TYPEEVT = "H"}) are reached through
-\code{MVTUS.NOSEJ = IEP} and \code{MVTUS.NOMVTUS = T_DOCUMENT.NOEVT}.
-Rendez-vous documents (\code{TYPEEVT = "R"}) are reached through
-\code{T_EVT_RDV.NOSEJ = IEP} and \code{T_EVT_RDV.NOEVT = T_DOCUMENT.NOEVT}.
+and active documents by \code{ETATDOC = 1}. By default both validated CORA
+event paths are queried. Hospital documents (\code{TYPEEVT = "H"}) are reached
+through \code{MVTUS.NOSEJ = IEP} and
+\code{MVTUS.NOMVTUS = T_DOCUMENT.NOEVT}. Rendez-vous documents
+(\code{TYPEEVT = "R"}) are reached through \code{T_EVT_RDV.NOSEJ = IEP} and
+\code{T_EVT_RDV.NOEVT = T_DOCUMENT.NOEVT}. The \code{event_type} argument can
+restrict retrieval to either path.
+
 \code{T_DOCUMENT.NOEVT} is a CORA-internal event key and is returned as
 \code{CORA_NOEVT} to avoid confusion with the EDSaN \code{EVTID}.
 
