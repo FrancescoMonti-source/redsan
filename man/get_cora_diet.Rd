@@ -39,22 +39,30 @@ A tibble with one row per active Diet document. The first two columns,
 the decompressed observation.
 }
 \description{
-Retrieves Diet observation documents associated with one or more hospital
-stays. Input identifiers may be real hospital IEPs or pseudonymized EDSaN
-EVTIDs. Both identifiers are returned in the output so their correspondence
-is preserved alongside the CORA document.
+Retrieves Diet observation documents associated with one or more stays.
+Input identifiers may be real hospital IEPs or pseudonymized EDSaN EVTIDs.
+Both identifiers are returned in the output so their correspondence is
+preserved alongside the CORA document.
 }
 \details{
-CORA stores the IEP as \code{MVTSEJ.NOSEJ}. Diet documents are linked via
-\code{MVTUS.NOMVTUS} to \code{T_DOCUMENT.NOEVT}, restricted to
-\code{NOSOUSVOLET = 443}. \code{T_DOCUMENT.NOEVT} is a CORA-internal event key and is
-returned as \code{CORA_NOEVT} to avoid confusion with the EDSaN \code{EVTID}.
+Diet documents are identified in \code{T_DOCUMENT} by \code{NOSOUSVOLET = 443}
+and active documents by \code{ETATDOC = 1}. Two CORA event paths are queried.
+Hospital documents (\code{TYPEEVT = "H"}) are reached through
+\code{MVTUS.NOSEJ = IEP} and \code{MVTUS.NOMVTUS = T_DOCUMENT.NOEVT}.
+Rendez-vous documents (\code{TYPEEVT = "R"}) are reached through
+\code{T_EVT_RDV.NOSEJ = IEP} and \code{T_EVT_RDV.NOEVT = T_DOCUMENT.NOEVT}.
+\code{T_DOCUMENT.NOEVT} is a CORA-internal event key and is returned as
+\code{CORA_NOEVT} to avoid confusion with the EDSaN \code{EVTID}.
 
-EVTID input is reidentified to IEP through EDSaN CT before the indexed CORA
-lookup. IEP input is pseudonymized through EDSaN CT so the corresponding
-EVTID can be returned. A valid IEP with no EDSaN correspondence can still
-produce CORA rows with \code{EVTID = NA}; a CT backend failure raises an error.
+For both event types, the document payload is retrieved from
+\code{T_DOCUMENT_MEMO.DOCUMENT_BRUT} using the pair
+\code{(NODOCUMENT, TYPEDOC)} and decompressed from GZIP.
 
-The function performs indexed lookups by IEP and document key; it does not
-scan \code{T_DOCUMENT} or \code{T_DOCUMENT_MEMO} for text.
+EVTID input is reidentified to IEP through EDSaN CT before the CORA lookup.
+IEP input is pseudonymized through EDSaN CT so the corresponding EVTID can be
+returned. A valid IEP with no EDSaN correspondence can still produce CORA rows
+with \code{EVTID = NA}; a CT backend failure raises an error.
+
+The function uses identifier/document-key lookups and does not scan
+\code{T_DOCUMENT} or \code{T_DOCUMENT_MEMO} for text.
 }
