@@ -101,8 +101,9 @@
 #' @param connection Optional existing CORA DBI connection. When `NULL`,
 #'   `redsan` opens a transient JDBC connection and closes it before returning.
 #'   A caller-supplied connection is never closed by `query_cora()`.
-#' @param ojdbc_jar Optional path to an Oracle JDBC driver. Used only when
-#'   `connection` is `NULL`.
+#' @param ojdbc_jar Optional path to an Oracle JDBC driver. When omitted,
+#'   `redsan` resolves the driver automatically from `REDSAN_OJDBC_JAR`, the
+#'   standard CORA workstation installation, or known Podsan Oracle paths.
 #' @return A tibble containing the Oracle query result.
 #' @details
 #' `redsan` does not hard-code a CORA account or schema. The active environment
