@@ -42,6 +42,7 @@ Suggests:
     reticulate,
     RJDBC,
     rJava,
+    rstudioapi,
     testthat (>= 3.0.0)
 Enhances:
     d2imr
