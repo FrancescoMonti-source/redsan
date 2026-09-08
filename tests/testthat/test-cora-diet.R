@@ -113,7 +113,15 @@ test_that("CORA GZIP payloads decode to UTF-8 text", {
     from = "UTF-8",
     to = "latin1"
   ))
-  compressed <- memCompress(original, type = "gzip")
+
+  path <- tempfile(fileext = ".gz")
+  con <- gzfile(path, open = "wb")
+  writeBin(original, con)
+  close(con)
+  on.exit(unlink(path), add = TRUE)
+
+  compressed <- readBin(path, what = "raw", n = file.info(path)$size)
+  expect_identical(as.integer(compressed[1:3]), c(31L, 139L, 8L))
 
   expect_identical(
     redsan:::.cora_decode_gzip(compressed),
