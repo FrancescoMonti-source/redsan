@@ -1,15 +1,15 @@
-# DIM desktop integration ---------------------------------------------------
+# Keystore resolution -------------------------------------------------------
 #
-# Keystore resolution is environment-first:
+# redsan has one effective keystore path. The path can come from different
+# runtime sources, but those sources are not different kinds of keystore:
 #   1. an explicitly supplied path;
 #   2. the active d2imr keystore, when the runtime provides one (Entrepot/Podsan);
 #   3. DIM_KEYSTORE_PATH from .Renviron, for a DIM workstation outside EDSaN.
 #
-# DIM_KEYSTORE_PATH points to a generic DIM keystore. It is not owned by CORA
-# or EDSaN and may contain keys for several DIM services. redsan reads only the
-# keys needed by the current backend and never changes d2imr's active keystore.
+# The source is retained only as provenance because some backends need to choose
+# an environment-specific route. redsan never changes d2imr's active keystore.
 
-.d2im_active_keystore_path <- function() {
+.d2imr_active_keystore_path <- function() {
   if (!requireNamespace("d2imr", quietly = TRUE)) return(NULL)
 
   active_path <- tryCatch(
@@ -23,25 +23,35 @@
   value
 }
 
-.dim_keystore_path <- function(path = NULL) {
-  if (.edsan_ct_valid_scalar(path)) return(path)
+.redsan_keystore_context <- function(path = NULL) {
+  if (.edsan_ct_valid_scalar(path)) {
+    return(list(path = path, source = "explicit"))
+  }
 
-  active <- .d2im_active_keystore_path()
-  if (.edsan_ct_valid_scalar(active)) return(active)
+  active <- .d2imr_active_keystore_path()
+  if (.edsan_ct_valid_scalar(active)) {
+    return(list(path = active, source = "d2imr_active"))
+  }
 
   configured <- Sys.getenv("DIM_KEYSTORE_PATH", unset = "")
-  if (.edsan_ct_valid_scalar(configured)) return(configured)
+  if (.edsan_ct_valid_scalar(configured)) {
+    return(list(path = configured, source = "DIM_KEYSTORE_PATH"))
+  }
 
-  NULL
+  list(path = NULL, source = "none")
 }
 
-# CORA follows the same environment-first resolution. Inside EDSaN the active
-# d2imr keystore wins; outside EDSaN, DIM_KEYSTORE_PATH supplies the workstation
-# keystore without mutating d2imr's global state.
+.redsan_keystore_path <- function(path = NULL) {
+  .redsan_keystore_context(path)$path
+}
+
+# CORA uses the single resolved keystore path. Inside EDSaN the runtime active
+# keystore wins; outside EDSaN, DIM_KEYSTORE_PATH provides the workstation path.
 .cora_keystore_value <- function(key, ks_path = NULL) {
   .cora_require_namespace("d2imr", "connection setup")
 
-  path <- .dim_keystore_path(ks_path)
+  context <- .redsan_keystore_context(ks_path)
+  path <- context$path
   if (!.edsan_ct_valid_scalar(path) || !file.exists(path)) {
     stop(
       "No readable keystore is available for CORA. Inside EDSaN, check the ",
@@ -84,10 +94,10 @@
   value
 }
 
-# EDSaN CT follows the same path resolution. A keystore without ws.edsan-ct.*
-# entries simply falls through to interactive desktop credentials.
+# EDSaN CT uses the same resolved path. A keystore without ws.edsan-ct.* entries
+# simply falls through to interactive desktop credentials.
 .edsan_ct_resolve_keystore_path <- function(ks_path = NULL) {
-  .dim_keystore_path(ks_path)
+  .redsan_keystore_path(ks_path)
 }
 
 .edsan_cora_iep_ipp_map <- function(ieps, query = .cora_query,
@@ -216,21 +226,18 @@
   }
 
   out <- tibble::tibble(EVTID = evtids)
-  out <- dplyr::left_join(out, valid, by = "EVTID")
-  out
+  dplyr::left_join(out, valid, by = "EVTID")
 }
 
-# Inside EDSaN, keep the historical PMSI/idtriplets EVTID -> PATID lookup.
-# Outside EDSaN, where d2imr has no active keystore and DIM_KEYSTORE_PATH is
-# configured, use only the already-validated EDSaN CT + CORA services.
+# The EVTID -> PATID route follows the origin of redsan's resolved keystore:
+# - d2imr_active: keep the historical PMSI/idtriplets path in EDSaN;
+# - DIM_KEYSTORE_PATH: use the verified EDSaN CT -> CORA -> EDSaN CT bridge.
+# An injected `get` remains authoritative for tests and explicit alternate use.
 .edsan_evtid_patid_map <- function(evtids, get = get_edsan) {
   evtids <- unique(.edsan_ct_validate_ids(evtids, require_character = TRUE))
 
-  active_path <- .d2im_active_keystore_path()
-  dim_path <- Sys.getenv("DIM_KEYSTORE_PATH", unset = "")
-  if (missing(get) &&
-      !.edsan_ct_valid_scalar(active_path) &&
-      .edsan_ct_valid_scalar(dim_path)) {
+  context <- .redsan_keystore_context()
+  if (missing(get) && identical(context$source, "DIM_KEYSTORE_PATH")) {
     return(.edsan_evtid_patid_via_cora(evtids))
   }
 
