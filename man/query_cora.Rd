@@ -9,7 +9,7 @@ query_cora(sql, connection = NULL, ojdbc_jar = NULL)
 \arguments{
 \item{sql}{One Oracle \code{SELECT} statement. Common table expressions are accepted; multiple statements, write operations, and \code{SELECT ... FOR UPDATE} are rejected.}
 \item{connection}{Optional existing CORA DBI connection. When \code{NULL}, \code{redsan} opens a transient JDBC connection and closes it before returning. A caller-supplied connection is never closed by \code{query_cora()}.}
-\item{ojdbc_jar}{Optional path to an Oracle JDBC driver. Used only when \code{connection} is \code{NULL}.}
+\item{ojdbc_jar}{Optional path to an Oracle JDBC driver. When omitted, \code{redsan} resolves the driver automatically from \code{REDSAN_OJDBC_JAR}, the standard CORA workstation installation, or known Podsan Oracle paths.}
 }
 \value{A tibble containing the Oracle query result.}
 \description{
