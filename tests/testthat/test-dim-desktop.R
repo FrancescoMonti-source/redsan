@@ -1,4 +1,26 @@
-test_that("DIM_KEYSTORE_PATH overrides the active d2imr keystore", {
+test_that("active Entrepot keystore wins before DIM_KEYSTORE_PATH", {
+  old <- Sys.getenv("DIM_KEYSTORE_PATH", unset = NA_character_)
+  on.exit({
+    if (is.na(old)) Sys.unsetenv("DIM_KEYSTORE_PATH") else Sys.setenv(DIM_KEYSTORE_PATH = old)
+  }, add = TRUE)
+
+  Sys.setenv(DIM_KEYSTORE_PATH = "/desktop/dim-keystore")
+  testthat::local_mocked_bindings(
+    .d2im_active_keystore_path = function() "/entrepot/active-keystore",
+    .package = "redsan"
+  )
+
+  expect_identical(
+    redsan:::.dim_keystore_path(),
+    "/entrepot/active-keystore"
+  )
+  expect_identical(
+    redsan:::.edsan_ct_resolve_keystore_path(),
+    "/entrepot/active-keystore"
+  )
+})
+
+test_that("DIM_KEYSTORE_PATH is used when there is no active Entrepot keystore", {
   old <- Sys.getenv("DIM_KEYSTORE_PATH", unset = NA_character_)
   on.exit({
     if (is.na(old)) Sys.unsetenv("DIM_KEYSTORE_PATH") else Sys.setenv(DIM_KEYSTORE_PATH = old)
@@ -7,9 +29,25 @@ test_that("DIM_KEYSTORE_PATH overrides the active d2imr keystore", {
   path <- tempfile("dim-keystore-")
   file.create(path)
   Sys.setenv(DIM_KEYSTORE_PATH = path)
+  testthat::local_mocked_bindings(
+    .d2im_active_keystore_path = function() NULL,
+    .package = "redsan"
+  )
 
   expect_identical(redsan:::.dim_keystore_path(), path)
   expect_identical(redsan:::.edsan_ct_resolve_keystore_path(), path)
+})
+
+test_that("explicit keystore path has highest priority", {
+  testthat::local_mocked_bindings(
+    .d2im_active_keystore_path = function() "/entrepot/active-keystore",
+    .package = "redsan"
+  )
+
+  expect_identical(
+    redsan:::.dim_keystore_path("/explicit/keystore"),
+    "/explicit/keystore"
+  )
 })
 
 test_that("CORA IEP to IPP mapping is explicit and preserves misses", {
