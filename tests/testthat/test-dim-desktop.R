@@ -1,71 +1,41 @@
-test_that("active Entrepot keystore wins before DIM_KEYSTORE_PATH", {
-  old <- Sys.getenv("DIM_KEYSTORE_PATH", unset = NA_character_)
-  on.exit({
-    if (is.na(old)) Sys.unsetenv("DIM_KEYSTORE_PATH") else Sys.setenv(DIM_KEYSTORE_PATH = old)
-  }, add = TRUE)
-
-  Sys.setenv(DIM_KEYSTORE_PATH = "/desktop/dim-keystore")
+test_that("redsan consumes the d2imr keystore contract", {
+  skip_if_not_installed("d2imr")
   testthat::local_mocked_bindings(
-    .d2imr_active_keystore_path = function() "/entrepot/active-keystore",
+    .d2imr_keystore_info = function() {
+      list(path = "/entrepot/active-keystore", resolution_source = "entrepot_config_file")
+    },
     .package = "redsan"
   )
 
   context <- redsan:::.redsan_keystore_context()
   expect_identical(context$path, "/entrepot/active-keystore")
-  expect_identical(context$source, "d2imr_active")
-  expect_identical(
-    redsan:::.edsan_ct_resolve_keystore_path(),
-    "/entrepot/active-keystore"
-  )
+  expect_identical(context$source, "entrepot_config_file")
+  expect_identical(redsan:::.redsan_keystore_path(), "/entrepot/active-keystore")
 })
 
-test_that("DIM_KEYSTORE_PATH is used when there is no runtime active keystore", {
-  old <- Sys.getenv("DIM_KEYSTORE_PATH", unset = NA_character_)
-  on.exit({
-    if (is.na(old)) Sys.unsetenv("DIM_KEYSTORE_PATH") else Sys.setenv(DIM_KEYSTORE_PATH = old)
-  }, add = TRUE)
-
-  path <- tempfile("dim-keystore-")
-  file.create(path)
-  Sys.setenv(DIM_KEYSTORE_PATH = path)
+test_that("redsan reports no keystore when d2imr reports none", {
+  skip_if_not_installed("d2imr")
   testthat::local_mocked_bindings(
-    .d2imr_active_keystore_path = function() NULL,
+    .d2imr_keystore_info = function() {
+      list(path = NULL, resolution_source = "none")
+    },
     .package = "redsan"
   )
 
   context <- redsan:::.redsan_keystore_context()
-  expect_identical(context$path, path)
-  expect_identical(context$source, "DIM_KEYSTORE_PATH")
-  expect_identical(redsan:::.redsan_keystore_path(), path)
-  expect_identical(redsan:::.edsan_ct_resolve_keystore_path(), path)
+  expect_null(context$path)
+  expect_identical(context$source, "none")
 })
 
 test_that("explicit keystore path has highest priority", {
-  old <- Sys.getenv("DIM_KEYSTORE_PATH", unset = NA_character_)
-  on.exit({
-    if (is.na(old)) Sys.unsetenv("DIM_KEYSTORE_PATH") else Sys.setenv(DIM_KEYSTORE_PATH = old)
-  }, add = TRUE)
-  Sys.setenv(DIM_KEYSTORE_PATH = "/desktop/dim-keystore")
-
-  testthat::local_mocked_bindings(
-    .d2imr_active_keystore_path = function() "/entrepot/active-keystore",
-    .package = "redsan"
-  )
-
   context <- redsan:::.redsan_keystore_context("/explicit/keystore")
   expect_identical(context$path, "/explicit/keystore")
   expect_identical(context$source, "explicit")
 })
 
-test_that("keystore context is explicit when no path can be resolved", {
-  old <- Sys.getenv("DIM_KEYSTORE_PATH", unset = NA_character_)
-  on.exit({
-    if (is.na(old)) Sys.unsetenv("DIM_KEYSTORE_PATH") else Sys.setenv(DIM_KEYSTORE_PATH = old)
-  }, add = TRUE)
-  Sys.unsetenv("DIM_KEYSTORE_PATH")
-
+test_that("keystore context is empty when d2imr is unavailable", {
   testthat::local_mocked_bindings(
-    .d2imr_active_keystore_path = function() NULL,
+    .d2imr_keystore_info = function() NULL,
     .package = "redsan"
   )
 
@@ -146,22 +116,6 @@ test_that("desktop EVTID to PATID bridge composes EDSaN CT and CORA", {
   expect_identical(calls[[2L]]$input_types, c("IPP", "IPP"))
   expect_identical(out$EVTID, c("EVT-1", "EVT-2"))
   expect_identical(out$PATID, c("PAT-1", "PAT-2"))
-})
-
-test_that("DIM_KEYSTORE_PATH source selects the desktop EVTID bridge", {
-  testthat::local_mocked_bindings(
-    .redsan_keystore_context = function(path = NULL) {
-      list(path = "/desktop/dim-keystore", source = "DIM_KEYSTORE_PATH")
-    },
-    .edsan_evtid_patid_via_cora = function(evtids, ...) {
-      tibble::tibble(EVTID = evtids, PATID = paste0("PAT-", evtids))
-    },
-    .package = "redsan"
-  )
-
-  out <- redsan:::.edsan_evtid_patid_map("EVT-1")
-  expect_identical(out$EVTID, "EVT-1")
-  expect_identical(out$PATID, "PAT-EVT-1")
 })
 
 test_that("legacy EVTID to PATID lookup remains injectable", {

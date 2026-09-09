@@ -63,12 +63,12 @@
 .edsan_ct_backend <- function() {
   call_fn <- tryCatch(getExportedValue("d2imr", "call_edsan_ws"),
                       error = function(e) NULL)
-  path_fn <- tryCatch(getExportedValue("d2imr", "get_activ_keystore_path"),
+  path_fn <- tryCatch(getExportedValue("d2imr", "get_active_keystore_path"),
                       error = function(e) NULL)
   if (!is.function(call_fn) || !is.function(path_fn)) {
     stop(
       "Package `d2imr` with exported `call_edsan_ws()` and ",
-      "`get_activ_keystore_path()` is required for EDSaN CT correspondence.",
+      "`get_active_keystore_path()` is required for EDSaN CT correspondence.",
       call. = FALSE
     )
   }
@@ -83,7 +83,7 @@
       !nzchar(ks_path)) {
     stop(
       "No active d2imr keystore path is available. Supply `ks_path` explicitly ",
-      "or activate a keystore with `d2imr::set_activ_keystore_path()`.",
+      "or activate a keystore with `d2imr::set_active_keystore_path()`.",
       call. = FALSE
     )
   }

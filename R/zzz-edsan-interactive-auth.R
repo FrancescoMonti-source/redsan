@@ -18,19 +18,6 @@
   is.character(x) && length(x) == 1L && !is.na(x) && nzchar(trimws(x))
 }
 
-.edsan_ct_resolve_keystore_path <- function(ks_path = NULL) {
-  if (!is.null(ks_path)) return(ks_path)
-  if (!requireNamespace("d2imr", quietly = TRUE)) return(NULL)
-
-  path_fn <- tryCatch(
-    getExportedValue("d2imr", "get_activ_keystore_path"),
-    error = function(e) NULL
-  )
-  if (!is.function(path_fn)) return(NULL)
-
-  tryCatch(path_fn(), error = function(e) NULL)
-}
-
 .edsan_ct_keystore_get <- function(key, ks_path) {
   if (!.edsan_ct_valid_scalar(ks_path) || !file.exists(ks_path) ||
       !requireNamespace("d2imr", quietly = TRUE)) {
@@ -53,7 +40,7 @@
 }
 
 .edsan_ct_keystore_auth <- function(env = "edsan-ct", ks_path = NULL) {
-  ks_path <- .edsan_ct_resolve_keystore_path(ks_path)
+  ks_path <- .redsan_keystore_path(ks_path)
   if (!.edsan_ct_valid_scalar(ks_path) || !file.exists(ks_path)) return(NULL)
 
   prefix <- paste0("ws.", env, ".")
@@ -73,7 +60,7 @@
 }
 
 .edsan_ct_configured_url <- function(env = "edsan-ct", ks_path = NULL) {
-  ks_path <- .edsan_ct_resolve_keystore_path(ks_path)
+  ks_path <- .redsan_keystore_path(ks_path)
   if (.edsan_ct_valid_scalar(ks_path) && file.exists(ks_path)) {
     key_url <- .edsan_ct_keystore_get(paste0("ws.", env, ".url"), ks_path)
     if (.edsan_ct_valid_scalar(key_url)) return(sub("/+$", "", key_url))
@@ -230,7 +217,7 @@
 # when the three EDSaN CT keystore entries are unavailable.
 .edsan_ct_call <- function(api_fct, api_type, api_query,
                            env = "edsan-ct", ks_path = NULL) {
-  resolved_path <- .edsan_ct_resolve_keystore_path(ks_path)
+  resolved_path <- .redsan_keystore_path(ks_path)
   key_auth <- .edsan_ct_keystore_auth(env = env, ks_path = resolved_path)
 
   if (!is.null(key_auth)) {
@@ -290,7 +277,7 @@
 # Patient identity enrichment uses the same authentication policy as identifier
 # translation. This supersedes the earlier keystore-only implementation.
 .edsan_ct_patient_call <- function(patid, ks_path = NULL) {
-  resolved_path <- .edsan_ct_resolve_keystore_path(ks_path)
+  resolved_path <- .redsan_keystore_path(ks_path)
   key_auth <- .edsan_ct_keystore_auth(env = "edsan-ct", ks_path = resolved_path)
 
   interactive_auth <- is.null(key_auth)

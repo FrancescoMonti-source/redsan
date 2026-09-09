@@ -10,7 +10,7 @@
          call. = FALSE)
   }
 
-  active_path <- getExportedValue("d2imr", "get_activ_keystore_path")
+  active_path <- getExportedValue("d2imr", "get_active_keystore_path")
   unlock <- getExportedValue("d2imr", "d2im_keystore.unlock")
   keystore_get <- getExportedValue("d2imr", "d2im_keystore.get")
 
