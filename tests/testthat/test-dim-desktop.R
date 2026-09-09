@@ -127,3 +127,47 @@ test_that("legacy EVTID to PATID lookup remains injectable", {
   expect_identical(out$EVTID, "EVT-1")
   expect_identical(out$PATID, "PAT-1")
 })
+
+test_that("PMSI capability remains the preferred identifier route", {
+  testthat::local_mocked_bindings(
+    .redsan_workflow_capabilities = function() {
+      list(pmsi = TRUE, edsan_ct_cora = TRUE)
+    },
+    get_edsan = function(...) {
+      tibble::tibble(EVTID = "EVT-1", PATID = "PAT-1")
+    },
+    .package = "redsan"
+  )
+
+  out <- redsan:::.edsan_evtid_patid_map("EVT-1")
+  expect_identical(out$PATID, "PAT-1")
+})
+
+test_that("fallback capability selects the EDSaN CT and CORA bridge", {
+  testthat::local_mocked_bindings(
+    .redsan_workflow_capabilities = function() {
+      list(pmsi = FALSE, edsan_ct_cora = TRUE)
+    },
+    .edsan_evtid_patid_via_cora = function(evtids, ...) {
+      tibble::tibble(EVTID = evtids, PATID = paste0("PAT-", evtids))
+    },
+    .package = "redsan"
+  )
+
+  out <- redsan:::.edsan_evtid_patid_map("EVT-1")
+  expect_identical(out$PATID, "PAT-EVT-1")
+})
+
+test_that("identifier routing fails clearly without a configured capability", {
+  testthat::local_mocked_bindings(
+    .redsan_workflow_capabilities = function() {
+      list(pmsi = FALSE, edsan_ct_cora = FALSE)
+    },
+    .package = "redsan"
+  )
+
+  expect_error(
+    redsan:::.edsan_evtid_patid_map("EVT-1"),
+    "No configured keystore capability"
+  )
+})

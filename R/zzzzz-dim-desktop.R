@@ -26,6 +26,45 @@
   .redsan_keystore_context(path)$path
 }
 
+.redsan_keystore_has <- function(required_keys) {
+  if (!requireNamespace("d2imr", quietly = TRUE)) return(FALSE)
+
+  info <- .d2imr_keystore_info()
+  if (!is.list(info) || is.null(info$path)) return(FALSE)
+
+  checker <- tryCatch(
+    getExportedValue("d2imr", "keystore_has"),
+    error = function(e) NULL
+  )
+  if (!is.function(checker)) {
+    stop("Package `d2imr` must export `keystore_has()` for workflow routing.",
+         call. = FALSE)
+  }
+
+  tryCatch(
+    isTRUE(checker(required_keys)),
+    error = function(e) {
+      stop(
+        "Unable to inspect the active d2imr keystore capabilities: ",
+        conditionMessage(e),
+        call. = FALSE
+      )
+    }
+  )
+}
+
+.redsan_workflow_capabilities <- function() {
+  list(
+    pmsi = .redsan_keystore_has(c(
+      "ws.edsan.url", "ws.edsan.usr", "ws.edsan.pwd"
+    )),
+    edsan_ct_cora = .redsan_keystore_has(c(
+      "ws.edsan-ct.url", "ws.edsan-ct.usr", "ws.edsan-ct.pwd",
+      "db.cora.jdbc", "db.cora.usr", "db.cora.pwd"
+    ))
+  )
+}
+
 # CORA uses the single path selected by d2imr, unless a caller supplies one.
 .cora_keystore_value <- function(key, ks_path = NULL) {
   .cora_require_namespace("d2imr", "connection setup")
@@ -207,6 +246,20 @@
 # Capability-based workflow selection belongs to the downstream routing ticket.
 .edsan_evtid_patid_map <- function(evtids, get = get_edsan) {
   evtids <- unique(.edsan_ct_validate_ids(evtids, require_character = TRUE))
+
+  if (missing(get)) {
+    capabilities <- .redsan_workflow_capabilities()
+    if (!isTRUE(capabilities$pmsi) && isTRUE(capabilities$edsan_ct_cora)) {
+      return(.edsan_evtid_patid_via_cora(evtids))
+    }
+    if (!isTRUE(capabilities$pmsi) && !isTRUE(capabilities$edsan_ct_cora)) {
+      stop(
+        "No configured keystore capability can resolve EVTID to PATID. ",
+        "Configure the PMSI keys or the EDSaN CT and CORA fallback keys.",
+        call. = FALSE
+      )
+    }
+  }
 
   pmsi <- get(
     module = "pmsi",
