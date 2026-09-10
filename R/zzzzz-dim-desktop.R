@@ -54,14 +54,22 @@
 }
 
 .redsan_workflow_capabilities <- function() {
+  cora_configured <- .redsan_keystore_has(c(
+    "db.cora.url", "db.cora.usr", "db.cora.pwd"
+  ))
+  edsan_ct_url_configured <- .edsan_ct_valid_scalar(
+    .edsan_ct_configured_url(env = "edsan-ct")
+  )
+  edsan_ct_auth_available <- !is.null(.edsan_ct_keystore_auth(env = "edsan-ct")) ||
+    .edsan_ct_interactive_available()
+
   list(
     pmsi = .redsan_keystore_has(c(
       "ws.edsan.url", "ws.edsan.usr", "ws.edsan.pwd"
     )),
-    edsan_ct_cora = .redsan_keystore_has(c(
-      "ws.edsan-ct.url", "ws.edsan-ct.usr", "ws.edsan-ct.pwd",
-      "db.cora.jdbc", "db.cora.usr", "db.cora.pwd"
-    ))
+    edsan_ct_cora = isTRUE(cora_configured) &&
+      edsan_ct_url_configured &&
+      isTRUE(edsan_ct_auth_available)
   )
 }
 

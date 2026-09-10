@@ -118,6 +118,22 @@ test_that("desktop EVTID to PATID bridge composes EDSaN CT and CORA", {
   expect_identical(out$PATID, c("PAT-1", "PAT-2"))
 })
 
+test_that("desktop fallback accepts interactive EDSaN CT auth without personal keystore credentials", {
+  testthat::local_mocked_bindings(
+    .redsan_keystore_has = function(required_keys) {
+      identical(required_keys, c("db.cora.url", "db.cora.usr", "db.cora.pwd"))
+    },
+    .edsan_ct_keystore_auth = function(...) NULL,
+    .edsan_ct_interactive_available = function() TRUE,
+    .package = "redsan"
+  )
+  withr::local_options(redsan.edsan_ct_url = "https://test.invalid/edsan-ct")
+
+  capabilities <- redsan:::.redsan_workflow_capabilities()
+
+  expect_true(capabilities$edsan_ct_cora)
+})
+
 test_that("legacy EVTID to PATID lookup remains injectable", {
   fake_get <- function(...) {
     tibble::tibble(EVTID = "EVT-1", PATID = "PAT-1")
