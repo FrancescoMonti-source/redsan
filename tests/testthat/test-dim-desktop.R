@@ -127,7 +127,9 @@ test_that("desktop fallback accepts interactive EDSaN CT auth without personal k
     .edsan_ct_interactive_available = function() TRUE,
     .package = "redsan"
   )
-  withr::local_options(redsan.edsan_ct_url = "https://test.invalid/edsan-ct")
+  old_url <- getOption("redsan.edsan_ct_url", NULL)
+  on.exit(options(redsan.edsan_ct_url = old_url), add = TRUE)
+  options(redsan.edsan_ct_url = "https://test.invalid/edsan-ct")
 
   capabilities <- redsan:::.redsan_workflow_capabilities()
 
@@ -150,7 +152,9 @@ test_that("workflow capability wiring consumes d2imr keystore_has", {
     },
     .package = "d2imr"
   )
-  withr::local_options(redsan.edsan_ct_url = "https://test.invalid/edsan-ct")
+  old_url <- getOption("redsan.edsan_ct_url", NULL)
+  on.exit(options(redsan.edsan_ct_url = old_url), add = TRUE)
+  options(redsan.edsan_ct_url = "https://test.invalid/edsan-ct")
 
   capabilities <- redsan:::.redsan_workflow_capabilities()
 
