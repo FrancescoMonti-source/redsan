@@ -134,6 +134,30 @@ test_that("desktop fallback accepts interactive EDSaN CT auth without personal k
   expect_true(capabilities$edsan_ct_cora)
 })
 
+test_that("workflow capability wiring consumes d2imr keystore_has", {
+  skip_if_not_installed("d2imr")
+  testthat::local_mocked_bindings(
+    .d2imr_keystore_info = function() {
+      list(path = "/test/active-keystore", resolution_source = "environment_variable")
+    },
+    .edsan_ct_keystore_auth = function(...) NULL,
+    .edsan_ct_interactive_available = function() TRUE,
+    .package = "redsan"
+  )
+  testthat::local_mocked_bindings(
+    keystore_has = function(required_keys) {
+      identical(required_keys, c("db.cora.url", "db.cora.usr", "db.cora.pwd"))
+    },
+    .package = "d2imr"
+  )
+  withr::local_options(redsan.edsan_ct_url = "https://test.invalid/edsan-ct")
+
+  capabilities <- redsan:::.redsan_workflow_capabilities()
+
+  expect_true(capabilities$edsan_ct_cora)
+  expect_false(capabilities$pmsi)
+})
+
 test_that("legacy EVTID to PATID lookup remains injectable", {
   fake_get <- function(...) {
     tibble::tibble(EVTID = "EVT-1", PATID = "PAT-1")
