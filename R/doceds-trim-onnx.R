@@ -25,6 +25,12 @@
 #'
 #' # Directly on a character vector
 #' clean_text <- trim_doceds_onnx(bundle$sources$doceds$RECTXT)
+#'
+#' # On an entire event bundle
+#' clean_bundle <- trim_doceds_onnx(bundle)
+#'
+#' # On a list of event bundles (e.g. denut cohort)
+#' clean_bundles <- trim_doceds_onnx(denut)
 #' }
 #'
 #' @export
@@ -34,6 +40,53 @@ trim_doceds_onnx <- function(
   python_exe = .edsan_get_python_exe(),
   model_dir = NULL
 ) {
+  # 1. Single bundle support
+  if (inherits(data, "edsan_event_bundle")) {
+    if (!is.null(data$sources$doceds) && nrow(data$sources$doceds) > 0) {
+      data$sources$doceds <- trim_doceds_onnx(
+        data = data$sources$doceds,
+        text_col = text_col,
+        python_exe = python_exe,
+        model_dir = model_dir
+      )
+    }
+    return(data)
+  }
+
+  # 2. List of bundles support (High-performance Batch-and-Split)
+  if (is.list(data) && !is.data.frame(data) && length(data) > 0 && inherits(data[[1L]], "edsan_event_bundle")) {
+    doc_list <- vector("list", length(data))
+    for (i in seq_along(data)) {
+      d <- data[[i]]$sources$doceds
+      if (!is.null(d) && nrow(d) > 0) {
+        d$.bundle_idx <- i
+        doc_list[[i]] <- d
+      }
+    }
+    all_docs <- do.call(rbind, doc_list[!vapply(doc_list, is.null, logical(1))])
+    if (is.null(all_docs) || nrow(all_docs) == 0) {
+      return(data)
+    }
+
+    # Run ONE single batched GPU forward pass across the entire cohort!
+    trimmed_all <- trim_doceds_onnx(
+      data = all_docs,
+      text_col = text_col,
+      python_exe = python_exe,
+      model_dir = model_dir
+    )
+
+    # Split back into individual bundles
+    split_docs <- split(trimmed_all, trimmed_all$.bundle_idx)
+    for (idx_str in names(split_docs)) {
+      i <- as.integer(idx_str)
+      sub_df <- split_docs[[idx_str]]
+      sub_df$.bundle_idx <- NULL
+      data[[i]]$sources$doceds <- sub_df
+    }
+    return(data)
+  }
+
   is_char_input <- is.character(data)
 
   if (is_char_input) {
@@ -67,7 +120,7 @@ trim_doceds_onnx <- function(
     }
   } else {
     stop(
-      "trim_doceds_onnx() requires a character vector, data frame, or tibble.",
+      "trim_doceds_onnx() requires a character vector, data frame, tibble, edsan_event_bundle, or list of bundles.",
       call. = FALSE
     )
   }
