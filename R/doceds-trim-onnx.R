@@ -5,37 +5,69 @@
 #' transport vouchers) while preserving clinical narrative and exact grounding
 #' coordinates `[start, end]`.
 #'
-#' @param data A data frame or tibble containing at least `RECTXT` (e.g. `bundle$sources$doceds`).
-#' @param python_exe Path to Python executable with `onnxruntime` and `transformers` installed.
-#'   Defaults to `Sys.getenv("REDSAN_PYTHON_PATH", Sys.which("python"))`.
+#' @param data A character vector of texts, or a data frame / tibble containing text.
+#' @param text_col Column name containing the text if `data` is a data frame.
+#'   Defaults to `NULL`, which automatically checks `"RECTXT"`, `"text"`, `"raw_text"`,
+#'   `"content"`, or `"document"`.
+#' @param python_exe Path to Python executable with `onnxruntime` and `tokenizers` installed.
+#'   Defaults to auto-detecting the `edsan-doc-trimmer` virtual environment or `REDSAN_PYTHON_PATH`.
 #' @param model_dir Path to the directory containing `model.onnx`, `tokenizer.json`, and
 #'   `trim_batch_service.py`. If `NULL`, automatically resolved via [.edsan_get_trimmer_dir()].
 #'
-#' @return The input data frame augmented with:
-#'   * `RECTXT_TRIMMED`: clean clinical narrative text.
-#'   * `TRIM_REDUCTION_PCT`: percentage of prompt characters/tokens removed.
-#'   * `TRIM_IS_BT`: boolean indicating whether the document was an administrative transport voucher.
-#'   * `TRIM_PRESERVED_INTERVALS`: list of data frames with `start`, `end`, `family`, and `text`
-#'     representing exact character coordinates in raw `RECTXT`.
+#' @return If `data` is a character vector, returns a character vector of trimmed texts.
+#'   If `data` is a data frame, returns `data` augmented with `RECTXT_TRIMMED` (or
+#'   `<text_col>_TRIMMED`), `TRIM_REDUCTION_PCT`, `TRIM_IS_BT`, and `TRIM_PRESERVED_INTERVALS`.
 #'
 #' @examples
 #' \dontrun{
+#' # On a data frame
 #' data <- trim_doceds_onnx(bundle$sources$doceds)
-#' cat(data$RECTXT_TRIMMED[[1]])
+#'
+#' # Directly on a character vector
+#' clean_text <- trim_doceds_onnx(bundle$sources$doceds$RECTXT)
 #' }
 #'
 #' @export
 trim_doceds_onnx <- function(
   data,
+  text_col = NULL,
   python_exe = .edsan_get_python_exe(),
   model_dir = NULL
 ) {
-  if (!is.data.frame(data)) {
-    stop("trim_doceds_onnx() requires a data frame or tibble.", call. = FALSE)
-  }
-  if (!"RECTXT" %in% names(data)) {
+  is_char_input <- is.character(data)
+
+  if (is_char_input) {
+    df <- data.frame(
+      doc_id = paste0("doc_", seq_along(data)),
+      RECTXT = data,
+      stringsAsFactors = FALSE
+    )
+    col_to_use <- "RECTXT"
+  } else if (is.data.frame(data)) {
+    df <- data
+    if (is.null(text_col)) {
+      candidates <- c("RECTXT", "text", "raw_text", "content", "document")
+      found <- candidates[candidates %in% names(df)]
+      if (length(found) > 0) {
+        col_to_use <- found[1L]
+      } else {
+        stop(
+          sprintf(
+            "Could not auto-detect text column in data. Candidates searched: %s. Please specify 'text_col'.",
+            paste(candidates, collapse = ", ")
+          ),
+          call. = FALSE
+        )
+      }
+    } else {
+      if (!text_col %in% names(df)) {
+        stop(sprintf("Column '%s' not found in data.", text_col), call. = FALSE)
+      }
+      col_to_use <- text_col
+    }
+  } else {
     stop(
-      "trim_doceds_onnx() requires a 'RECTXT' column in data.",
+      "trim_doceds_onnx() requires a character vector, data frame, or tibble.",
       call. = FALSE
     )
   }
@@ -60,16 +92,17 @@ trim_doceds_onnx <- function(
   }
 
   # Build JSON payload
-  id_col <- intersect(c("ELTID", "doc_id", "ID"), names(data))[1L]
+  id_col <- intersect(c("ELTID", "doc_id", "ID"), names(df))[1L]
   ids <- if (!is.na(id_col)) {
-    as.character(data[[id_col]])
+    as.character(df[[id_col]])
   } else {
-    paste0("doc_", seq_len(nrow(data)))
+    paste0("doc_", seq_len(nrow(df)))
   }
 
+  raw_texts <- df[[col_to_use]]
   payload <- data.frame(
     id = ids,
-    text = ifelse(is.na(data$RECTXT), "", as.character(data$RECTXT)),
+    text = ifelse(is.na(raw_texts), "", as.character(raw_texts)),
     stringsAsFactors = FALSE
   )
 
@@ -101,10 +134,10 @@ trim_doceds_onnx <- function(
 
   output_data <- jsonlite::fromJSON(tmp_out, simplifyVector = FALSE)
 
-  trimmed_texts <- character(nrow(data))
-  reduc_pcts <- numeric(nrow(data))
-  is_bts <- logical(nrow(data))
-  intervals_list <- vector("list", nrow(data))
+  trimmed_texts <- character(nrow(df))
+  reduc_pcts <- numeric(nrow(df))
+  is_bts <- logical(nrow(df))
+  intervals_list <- vector("list", nrow(df))
 
   for (i in seq_along(output_data)) {
     item <- output_data[[i]]
@@ -140,7 +173,16 @@ trim_doceds_onnx <- function(
     }
   }
 
-  data$RECTXT_TRIMMED <- trimmed_texts
+  if (is_char_input) {
+    return(trimmed_texts)
+  }
+
+  out_col <- if (col_to_use == "RECTXT") {
+    "RECTXT_TRIMMED"
+  } else {
+    paste0(col_to_use, "_TRIMMED")
+  }
+  data[[out_col]] <- trimmed_texts
   data$TRIM_REDUCTION_PCT <- reduc_pcts
   data$TRIM_IS_BT <- is_bts
   data$TRIM_PRESERVED_INTERVALS <- intervals_list
@@ -191,8 +233,24 @@ edsan_trimmer_cache_dir <- function() {
     return(normalizePath(env_path))
   }
   candidates <- c(
-    file.path(Sys.getenv("USERPROFILE"), "Documents", "Git", "edsan-doc-trimmer", ".venv", "Scripts", "python.exe"),
-    file.path(Sys.getenv("HOME"), "Documents", "Git", "edsan-doc-trimmer", ".venv", "Scripts", "python.exe"),
+    file.path(
+      Sys.getenv("USERPROFILE"),
+      "Documents",
+      "Git",
+      "edsan-doc-trimmer",
+      ".venv",
+      "Scripts",
+      "python.exe"
+    ),
+    file.path(
+      Sys.getenv("HOME"),
+      "Documents",
+      "Git",
+      "edsan-doc-trimmer",
+      ".venv",
+      "Scripts",
+      "python.exe"
+    ),
     file.path("..", "edsan-doc-trimmer", ".venv", "Scripts", "python.exe"),
     Sys.which("python")
   )
