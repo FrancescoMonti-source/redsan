@@ -7,20 +7,40 @@
 query_cora(sql, connection = NULL, ojdbc_jar = NULL)
 }
 \arguments{
-\item{sql}{One Oracle \code{SELECT} statement. Common table expressions are accepted; multiple statements, write operations, and \code{SELECT ... FOR UPDATE} are rejected.}
-\item{connection}{Optional existing CORA DBI connection. When \code{NULL}, \code{redsan} opens a transient JDBC connection and closes it before returning. A caller-supplied connection is never closed by \code{query_cora()}.}
-\item{ojdbc_jar}{Optional path to an Oracle JDBC driver. When omitted, \code{redsan} resolves the driver automatically from \code{REDSAN_OJDBC_JAR}, the standard CORA workstation installation, or known Podsan Oracle paths.}
+\item{sql}{One Oracle \code{SELECT} statement. Common table expressions
+(\verb{WITH ... SELECT ...}) are accepted. Multiple statements, write operations,
+and \verb{SELECT ... FOR UPDATE} are rejected.}
+
+\item{connection}{Optional existing CORA DBI connection. When \code{NULL},
+\code{redsan} opens a transient JDBC connection and closes it before returning.
+A caller-supplied connection is never closed by \code{query_cora()}.}
+
+\item{ojdbc_jar}{Optional path to an Oracle JDBC driver. When omitted,
+\code{redsan} resolves the driver automatically from \code{REDSAN_OJDBC_JAR}, the
+standard CORA workstation installation, or known Podsan Oracle paths.}
 }
-\value{A tibble containing the Oracle query result.}
+\value{
+A tibble containing the Oracle query result.
+}
 \description{
-Executes one read-only Oracle query against CORA using the same JDBC connection settings already used by \code{get_cora_diet()}. The connection is configured through the active \code{d2imr} keystore (\code{db.cora.url}, \code{db.cora.usr}, and \code{db.cora.pwd}).
+Executes one read-only Oracle query against CORA using the same JDBC
+connection settings already used by \code{\link[=get_cora_diet]{get_cora_diet()}}. The connection is
+configured through the active \code{d2imr} keystore (\code{db.cora.url},
+\code{db.cora.usr}, and \code{db.cora.pwd}).
 }
 \details{
-\code{redsan} does not hard-code a CORA account or schema. The active environment decides which Oracle credentials are stored in the keystore, so the same function can use an EDSaN service account in Podsan and a dedicated DIM account on a workstation. Schema qualification should remain explicit in SQL, for example \code{CORA_REC.MY_TABLE}.
+\code{redsan} does not hard-code a CORA account or schema. The active environment
+decides which Oracle credentials are stored in the keystore, so the same
+function can use an EDSaN service account in Podsan and a dedicated DIM
+account on a workstation. Schema qualification should remain explicit in SQL,
+for example \code{CORA_REC.MY_TABLE}.
 
-The read-only guard validates SQL syntax conservatively before sending it to Oracle. Database privileges remain the authoritative security boundary.
+The read-only guard validates SQL syntax conservatively before sending it to
+Oracle. Database privileges remain the authoritative security boundary.
 
-Parameter binding is intentionally not exposed yet because CORA currently uses \code{RJDBC}; placeholder support should be validated against the deployed driver before adding it to the public API.
+Parameter binding is intentionally not exposed yet because CORA currently
+uses \code{RJDBC}; placeholder support should be validated against the deployed
+driver before adding it to the public API.
 }
 \examples{
 \dontrun{

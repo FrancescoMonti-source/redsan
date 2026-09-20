@@ -4,18 +4,26 @@
 \alias{query_icca}
 \title{Execute a read-only query against ICCA}
 \usage{
-query_icca(
-  sql,
-  params = NULL,
-  connection = NULL,
-  instance = c("adult", "ped")
-)
+query_icca(sql, params = NULL, connection = NULL, instance = c("adult", "ped"))
 }
 \arguments{
-\item{sql}{One SQL Server \code{SELECT} statement. Common table expressions are accepted; multiple statements and write operations are rejected.}
-\item{params}{Optional positional values for \code{?} placeholders.}
-\item{connection}{Optional existing DBI connection. A caller-supplied connection is never closed by \code{redsan}.}
-\item{instance}{ICCA instance to query: \code{"adult"} (default) or \code{"ped"}. Ignored when \code{connection} is supplied explicitly.}
+\item{sql}{One SQL Server \code{SELECT} statement. Common table expressions
+(\verb{WITH ... SELECT ...}) are accepted. Multiple statements and write
+operations are rejected.}
+
+\item{params}{Optional positional values for \verb{?} placeholders.}
+
+\item{connection}{Optional existing DBI connection. When \code{NULL}, \code{redsan}
+opens an ICCA connection and closes it after the query. A caller-supplied
+connection is never closed by \code{query_icca()}.}
+
+\item{instance}{ICCA instance to query: \code{"adult"} (default) or \code{"ped"}.
+Ignored when \code{connection} is supplied explicitly.}
 }
-\value{A tibble containing the SQL Server result.}
-\description{Executes one parameterized read-only SQL Server query against ICCA using native R DBI/ODBC access.}
+\value{
+A tibble containing the SQL Server result.
+}
+\description{
+Executes one parameterized read-only SQL Server query against the CHU ICCA
+database using native R DBI/ODBC access.
+}

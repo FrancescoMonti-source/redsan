@@ -4,27 +4,40 @@
 \alias{cora_dig}
 \title{Search CORA's accessible Oracle metadata}
 \usage{
-cora_dig(term, owner = NULL, exact = FALSE, connection = NULL, ojdbc_jar = NULL)
+cora_dig(
+  term,
+  owner = NULL,
+  exact = FALSE,
+  connection = NULL,
+  ojdbc_jar = NULL
+)
 }
 \arguments{
 \item{term}{Non-empty text to search for, case-insensitively.}
 
-\item{owner}{Optional Oracle schema/owner to restrict the search to. When \code{NULL}, every schema visible to the current CORA account is searched.}
+\item{owner}{Optional Oracle schema/owner to restrict the search to. When
+\code{NULL}, every schema visible to the current CORA account is searched.}
 
-\item{exact}{If \code{FALSE} (default), \code{term} is searched as a literal substring. If \code{TRUE}, only exact table/view or column-name matches are returned.}
+\item{exact}{If \code{FALSE} (default), \code{term} is searched as a literal substring.
+If \code{TRUE}, only exact table/view or column-name matches are returned.}
 
-\item{connection}{Optional existing CORA DBI connection. When \code{NULL}, a transient connection is opened through the same machinery as \code{query_cora()}.}
+\item{connection}{Optional existing CORA DBI connection. When \code{NULL}, a
+transient connection is opened through the same machinery as \code{\link[=query_cora]{query_cora()}}.}
 
 \item{ojdbc_jar}{Optional path to an Oracle JDBC driver.}
 }
 \value{
-A tibble identifying the owner, object type, table/view, matched column when applicable, datatype, match location, and declared PK status.
+A tibble identifying the owner, object type, table/view, matched
+column when applicable, datatype, match location, and declared PK status.
 }
 \description{
-Searches accessible table/view names and column names without assuming a particular CORA schema. Declared primary-key columns are annotated as \code{PK}.
+Searches accessible table/view names and column names without assuming a
+particular CORA schema. Declared primary-key columns are annotated as \code{PK}.
 }
 \details{
-\code{cora_dig()} reports metadata facts only. Shared column names are not interpreted as foreign-key relationships, and the function does not search patient-level data values.
+\code{cora_dig()} reports metadata facts only. Shared column names are not
+interpreted as foreign-key relationships, and the function does not search
+patient-level data values.
 }
 \examples{
 \dontrun{

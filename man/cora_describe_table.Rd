@@ -7,20 +7,27 @@
 cora_describe_table(table, connection = NULL, ojdbc_jar = NULL)
 }
 \arguments{
-\item{table}{Table or view name. Prefer a schema-qualified name such as \code{"CORA_REC.TB_SEJOUR"}. An unqualified name is accepted only when it exists in exactly one accessible schema.}
+\item{table}{Table or view name. Prefer a schema-qualified name such as
+\code{"CORA_REC.TB_SEJOUR"}. An unqualified name is accepted only when it exists
+in exactly one accessible schema.}
 
-\item{connection}{Optional existing CORA DBI connection. When \code{NULL}, a transient connection is opened through the same machinery as \code{query_cora()}.}
+\item{connection}{Optional existing CORA DBI connection. When \code{NULL}, a
+transient connection is opened through the same machinery as \code{\link[=query_cora]{query_cora()}}.}
 
 \item{ojdbc_jar}{Optional path to an Oracle JDBC driver.}
 }
 \value{
-A tibble with column position, name, datatype, nullability, and Oracle length/precision metadata.
+A tibble with column position, name, datatype, nullability, and Oracle
+length/precision metadata.
 }
 \description{
-Returns a compact structural description of one accessible Oracle table or view using \code{ALL_TAB_COLUMNS}. No CORA schema is assumed.
+Returns a compact structural description of one accessible Oracle table or
+view using \code{ALL_TAB_COLUMNS}. No CORA schema is assumed.
 }
 \details{
-Quoted Oracle identifiers are intentionally not supported. The helper is an ergonomic view over Oracle metadata, not a replacement for \code{query_cora()}.
+Quoted Oracle identifiers are intentionally not supported. The
+helper is an ergonomic view over Oracle metadata, not a replacement for
+\code{\link[=query_cora]{query_cora()}}.
 }
 \examples{
 \dontrun{

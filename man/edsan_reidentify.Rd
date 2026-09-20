@@ -2,15 +2,25 @@
 % Please edit documentation in R/edsan-ct.R
 \name{edsan_reidentify}
 \alias{edsan_reidentify}
-\title{Reidentify EDSaN identifiers through EDSaN CT}
+\title{Reidentify EDSaN identifiers}
 \usage{
-edsan_reidentify(ids, id_type, env = "edsan-ct", ks_path = NULL)
+edsan_reidentify(
+  ids,
+  id_type,
+  identity = FALSE,
+  env = "edsan-ct",
+  ks_path = NULL
+)
 }
 \arguments{
 \item{ids}{EDSaN \code{PATID} or \code{EVTID} values. Must be character; numeric input
 can silently alter identifier values through double-precision conversion.}
 
 \item{id_type}{Input type: \code{"PATID"} or \code{"EVTID"}.}
+
+\item{identity}{If \code{FALSE} (default), return only the direct identifier
+correspondence. If \code{TRUE}, also resolve patient identifiers and identity
+fields.}
 
 \item{env}{EDSaN CT web-service environment name.}
 
@@ -19,15 +29,16 @@ resolved and passed explicitly, avoiding the invalid default in some d2imr
 versions.}
 }
 \value{
-A tibble retaining every input and reporting matched, not-found, or
-multiple correspondences. \code{not-found} is only reported for a valid EDSaN
-CT response with no correspondence; a backend failure or error response
-raises an error instead.
+With \code{identity = FALSE}, a two-column tibble (\code{PATID | IPP} or
+\code{EVTID | IEP}). With \code{identity = TRUE}, patient identifiers and the fields
+returned by \code{getPatientReidentificationInformations/{patId}} are appended.
 }
 \description{
-Translates \code{PATID} to \code{IPP} or \code{EVTID} to \code{IEP}. The pseudonymized domains
-cannot be distinguished safely from the value alone, so \code{id_type} is required.
+Translates \code{PATID} to \code{IPP} or \code{EVTID} to \code{IEP}. With \code{identity = TRUE}, the
+same function also resolves the patient and appends identity fields exposed by
+EDSaN CT. For an \code{EVTID}, its \code{PATID} is resolved internally from PMSI first.
 }
 \details{
-This function deliberately exposes real hospital identifiers.
+This function deliberately exposes real hospital identifiers and,
+when \code{identity = TRUE}, directly identifying patient information.
 }

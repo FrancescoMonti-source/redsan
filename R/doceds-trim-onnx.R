@@ -27,7 +27,7 @@
 #' @export
 trim_doceds_onnx <- function(
   data,
-  python_exe = Sys.getenv("REDSAN_PYTHON_PATH", Sys.which("python")),
+  python_exe = .edsan_get_python_exe(),
   model_dir = NULL
 ) {
   if (!is.data.frame(data)) {
@@ -180,6 +180,28 @@ edsan_install_trimmer <- function(
 #' @export
 edsan_trimmer_cache_dir <- function() {
   file.path(tools::R_user_dir("edsan_doc_trimmer", "cache"), "v1")
+}
+
+#' Resolve edsan-doc-trimmer Python Executable
+#'
+#' @noRd
+.edsan_get_python_exe <- function() {
+  env_path <- Sys.getenv("REDSAN_PYTHON_PATH", "")
+  if (nzchar(env_path) && file.exists(env_path)) {
+    return(normalizePath(env_path))
+  }
+  candidates <- c(
+    file.path(Sys.getenv("USERPROFILE"), "Documents", "Git", "edsan-doc-trimmer", ".venv", "Scripts", "python.exe"),
+    file.path(Sys.getenv("HOME"), "Documents", "Git", "edsan-doc-trimmer", ".venv", "Scripts", "python.exe"),
+    file.path("..", "edsan-doc-trimmer", ".venv", "Scripts", "python.exe"),
+    Sys.which("python")
+  )
+  for (cand in candidates) {
+    if (nzchar(cand) && file.exists(cand)) {
+      return(normalizePath(cand))
+    }
+  }
+  ""
 }
 
 #' Resolve edsan-doc-trimmer Model Directory
