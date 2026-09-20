@@ -9,4 +9,7 @@
 ^\.gitignore$
 ^\.gitattributes$
 ^\.agents$
+^AGENTS\.md$
+^CONTEXT\.md$
+^docs$
 ^inst/extdata/reference/.*\.bak$
