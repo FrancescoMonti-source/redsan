@@ -24,3 +24,4 @@ The primary composite aggregate in `redsan`, packaging all multimodal data for a
 
 ### Grounding Guarantee
 The invariant that any transformation, summarization, or trimming of a `RECTXT` document must map preserved clinical narrative back to exact character intervals `[start, end]` in the raw, unedited source text to ensure auditability in downstream medical coding.
+
