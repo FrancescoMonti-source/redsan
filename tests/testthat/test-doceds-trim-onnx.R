@@ -160,6 +160,27 @@ test_that("grounding intervals must match the original RECTXT", {
   )
 })
 
+test_that("grounding compares French text independently of native encoding", {
+  utf8_text <- enc2utf8("Le patient présente une dyspnée aiguë.")
+  native_text <- iconv(utf8_text, from = "UTF-8", to = "latin1")
+  item <- list(
+    id = "doc-1",
+    trimmed_text = utf8_text,
+    reduction_pct = 0,
+    is_bt = FALSE,
+    preserved_intervals = list(list(
+      start = 1,
+      end = nchar(native_text),
+      family = "clinical",
+      text = utf8_text
+    ))
+  )
+
+  expect_invisible(
+    .doceds_onnx_validate_result(item, "doc-1", native_text)
+  )
+})
+
 test_that("trimmed text assembly may choose whitespace between grounded intervals", {
   fixture <- trimmer_protocol_fixture(
     c(

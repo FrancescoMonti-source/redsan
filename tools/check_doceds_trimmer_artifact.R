@@ -25,15 +25,24 @@ input <- data.frame(
   RECTXT = c(
     "FORMCHECKBOX\nBon de transport",
     "FORMCHECKBOX\nBon de transport",
-    "FORMCHECKBOX\nObservation clinique stable.",
-    "FORMCHECKBOX\nObservation clinique stable."
+    paste(
+      "FORMCHECKBOX\nDiagnostic: pneumopathie. Température 39 C.",
+      "Saturation 91 %. Amoxicilline 1 g trois fois par jour."
+    ),
+    paste(
+      "FORMCHECKBOX\nHospitalisation pour insuffisance cardiaque.",
+      "Furosémide 40 mg. Surveillance du poids et de la créatinine."
+    )
   ),
   acceptance_order = c(4L, 3L, 2L, 1L),
   stringsAsFactors = FALSE
 )
 missing_rectype <- data.frame(
   ELTID = "missing",
-  RECTXT = "FORMCHECKBOX\nObservation clinique stable.",
+  RECTXT = paste(
+    "FORMCHECKBOX\nAntécédent de diabète traité par metformine",
+    "850 mg matin et soir."
+  ),
   acceptance_order = 5L,
   stringsAsFactors = FALSE
 )

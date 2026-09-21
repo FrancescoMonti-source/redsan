@@ -361,7 +361,10 @@ trim_doceds_onnx <- function(
       start >= 1L &&
       end >= start &&
       end <= nchar(source_text) &&
-      identical(substr(source_text, start, end), interval$text)
+    identical(
+      enc2utf8(substr(source_text, start, end)),
+      enc2utf8(interval$text)
+    )
   }
   intervals <- item$preserved_intervals
   intervals_valid <- is.list(intervals) &&
@@ -380,7 +383,7 @@ trim_doceds_onnx <- function(
     ""
   }
   without_whitespace <- function(text) {
-    gsub("[[:space:]]", "", text)
+    gsub("[[:space:]]", "", enc2utf8(text))
   }
   trimmed_text_grounded <- scalar_character(item$trimmed_text) &&
     identical(
