@@ -283,8 +283,10 @@ same four output columns without starting the worker.
 The versioned runtime artifact must contain the model, tokenizer, worker, and an
 `artifact.json` manifest declaring the compatible worker contract. `redsan`
 validates request/result identity and verifies that every reported preserved
-interval matches the original text exactly. Model choice, inference rules, and
-the assembly of `trimmed_text` remain owned by the runtime artifact.
+interval matches the original text exactly. `trimmed_text` must contain those
+ordered interval contents without introducing other text, while the worker owns
+their whitespace assembly. Model choice and inference rules remain owned by the
+runtime artifact.
 
 Before a release claims compatibility with a specific artifact, install the
 package candidate and run the acceptance gate against that exact unpacked

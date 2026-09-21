@@ -41,6 +41,37 @@ trimmer_protocol_fixture <- function(result_mutation = character()) {
   )
 }
 
+trimmer_archive_fixture <- function(
+  nested = FALSE,
+  manifest = '{"artifact_version":"1.1.0","worker_contract":"rectype-aware-v1"}'
+) {
+  source_dir <- tempfile("trimmer_archive_")
+  artifact_dir <- if (nested) {
+    file.path(source_dir, "release", "runtime")
+  } else {
+    source_dir
+  }
+  dir.create(artifact_dir, recursive = TRUE)
+  writeLines("dummy model", file.path(artifact_dir, "model.onnx"))
+  writeLines("{}", file.path(artifact_dir, "tokenizer.json"))
+  writeLines("dummy script", file.path(artifact_dir, "trim_batch_service.py"))
+  writeLines(manifest, file.path(artifact_dir, "artifact.json"))
+
+  zip_file <- tempfile(fileext = ".zip")
+  old_dir <- setwd(source_dir)
+  on.exit({
+    setwd(old_dir)
+    unlink(source_dir, recursive = TRUE)
+  }, add = TRUE)
+  files <- if (nested) {
+    list.files("release", recursive = TRUE, full.names = TRUE)
+  } else {
+    list.files(".", recursive = TRUE, full.names = TRUE)
+  }
+  utils::zip(zip_file, files = files)
+  zip_file
+}
+
 test_that("RECTYPE is forwarded and worker results map back by identity", {
   fixture <- trimmer_protocol_fixture()
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
@@ -129,19 +160,41 @@ test_that("grounding intervals must match the original RECTXT", {
   )
 })
 
-test_that("trimmed text assembly remains owned by the worker", {
+test_that("trimmed text assembly may choose whitespace between grounded intervals", {
   fixture <- trimmer_protocol_fixture(
-    "results[[1L]]$trimmed_text <- 'Worker-owned assembly'"
+    c(
+      "results[[1L]]$preserved_intervals <- list(",
+      "  list(start = 1L, end = 5L, family = 'fixture', text = 'First'),",
+      "  list(start = 7L, end = 12L, family = 'fixture', text = 'Second')",
+      ")",
+      "results[[1L]]$trimmed_text <- 'First\\n\\nSecond'"
+    )
   )
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
   expect_identical(
     trim_doceds_onnx(
+      "First Second",
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir
+    ),
+    "First\n\nSecond"
+  )
+})
+
+test_that("trimmed text cannot introduce content outside grounded intervals", {
+  fixture <- trimmer_protocol_fixture(
+    "results[[1L]]$trimmed_text <- 'Unrelated text'"
+  )
+  on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
+
+  expect_error(
+    trim_doceds_onnx(
       "Clinical narrative",
       python_exe = fixture$runner,
       model_dir = fixture$model_dir
     ),
-    "Worker-owned assembly"
+    "invalid result for document doc_1"
   )
 })
 
@@ -510,6 +563,52 @@ test_that("edsan_install_trimmer rejects incompatible worker contracts", {
     edsan_install_trimmer(zip_file, dest_dir = tempfile("target_cache_")),
     "requires artifact_version >= 1.1.0 and worker_contract 'rectype-aware-v1'"
   )
+})
+
+test_that("edsan_install_trimmer rejects malformed manifests", {
+  zip_file <- trimmer_archive_fixture(manifest = "{not-json")
+  on.exit(unlink(zip_file), add = TRUE)
+
+  expect_error(
+    edsan_install_trimmer(zip_file, dest_dir = tempfile("target_cache_")),
+    "requires artifact_version >= 1.1.0 and worker_contract 'rectype-aware-v1'"
+  )
+})
+
+test_that("edsan_install_trimmer accepts one nested artifact root", {
+  zip_file <- trimmer_archive_fixture(nested = TRUE)
+  on.exit(unlink(zip_file), add = TRUE)
+  target_cache <- tempfile("nested_target_cache_")
+  on.exit(unlink(target_cache, recursive = TRUE), add = TRUE)
+
+  suppressMessages(edsan_install_trimmer(zip_file, dest_dir = target_cache))
+
+  expect_true(file.exists(file.path(target_cache, "model.onnx")))
+  expect_true(file.exists(file.path(target_cache, "artifact.json")))
+  expect_false(dir.exists(file.path(target_cache, "release")))
+})
+
+test_that("edsan_install_trimmer restores an existing install when publish fails", {
+  zip_file <- trimmer_archive_fixture()
+  on.exit(unlink(zip_file), add = TRUE)
+  target_cache <- tempfile("rollback_target_cache_")
+  dir.create(target_cache)
+  writeLines("keep me", file.path(target_cache, "existing.txt"))
+  on.exit(unlink(target_cache, recursive = TRUE), add = TRUE)
+  testthat::local_mocked_bindings(
+    .doceds_onnx_publish_artifact = function(...) FALSE,
+    .package = "redsan"
+  )
+
+  expect_error(
+    edsan_install_trimmer(zip_file, dest_dir = target_cache),
+    "Could not publish the validated trimmer artifact"
+  )
+  expect_identical(
+    readLines(file.path(target_cache, "existing.txt"), warn = FALSE),
+    "keep me"
+  )
+  expect_false(file.exists(file.path(target_cache, "model.onnx")))
 })
 
 test_that("edsan_trimmer_cache_dir returns valid path string", {

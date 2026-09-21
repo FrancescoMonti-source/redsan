@@ -3,7 +3,8 @@
 #' Sends DOCEDS text to a compatible `edsan-doc-trimmer` runtime artifact and
 #' maps its results back to the original warehouse objects. Worker results must
 #' preserve request identity and provide intervals grounded exactly in the
-#' original text.
+#' original text. The returned trimmed text must contain the ordered interval
+#' content exactly, apart from worker-selected whitespace.
 #'
 #' @param data A character vector of texts, a data frame / tibble containing text,
 #'   a single `edsan_event_bundle`, or a list of event bundles.
@@ -370,10 +371,26 @@ trim_doceds_onnx <- function(
     ends <- vapply(intervals, function(interval) interval$end, numeric(1))
     intervals_valid <- all(starts[-1L] > ends[-length(ends)])
   }
+  interval_text <- if (intervals_valid && length(intervals) > 0L) {
+    paste(
+      vapply(intervals, function(interval) interval$text, character(1)),
+      collapse = ""
+    )
+  } else {
+    ""
+  }
+  without_whitespace <- function(text) {
+    gsub("[[:space:]]", "", text)
+  }
+  trimmed_text_grounded <- scalar_character(item$trimmed_text) &&
+    identical(
+      without_whitespace(item$trimmed_text),
+      without_whitespace(interval_text)
+    )
   valid <- is.list(item) &&
     scalar_character(item$id) &&
     identical(item$id, document_id) &&
-    scalar_character(item$trimmed_text) &&
+    trimmed_text_grounded &&
     scalar_number(item$reduction_pct) &&
     scalar_logical(item$is_bt) &&
     intervals_valid
@@ -590,7 +607,7 @@ edsan_install_trimmer <- function(
       stop("Could not preserve the existing trimmer installation.", call. = FALSE)
     }
   }
-  if (!file.rename(artifact_dir, dest_dir)) {
+  if (!.doceds_onnx_publish_artifact(artifact_dir, dest_dir)) {
     stop("Could not publish the validated trimmer artifact.", call. = FALSE)
   }
   published <- TRUE
@@ -619,6 +636,16 @@ edsan_install_trimmer <- function(
   )
 
   invisible(dest_dir)
+}
+
+#' Publish a validated artifact from staging
+#'
+#' Kept behind a package-local seam so rollback behavior can be tested without
+#' relying on platform-specific filesystem permissions.
+#'
+#' @noRd
+.doceds_onnx_publish_artifact <- function(artifact_dir, dest_dir) {
+  file.rename(artifact_dir, dest_dir)
 }
 
 #' Find the model root inside an extracted trimmer archive

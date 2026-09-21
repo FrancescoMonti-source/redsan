@@ -13,8 +13,9 @@
 
 - Worker results are matched by document identity and rejected when incomplete
   or malformed; preserved intervals are checked against the original `RECTXT`
-  and stored as valid scalar JSON. Model-specific inference and text-assembly
-  policy remain owned by the runtime artifact.
+  and stored as valid scalar JSON. Trimmed text must contain those ordered
+  interval contents, apart from worker-selected whitespace. Model-specific
+  inference policy remains owned by the runtime artifact.
 
 - Empty DOCEDS tables in data frames, single bundles, and mixed cohorts receive
   the documented output columns without starting the worker. Add a release gate

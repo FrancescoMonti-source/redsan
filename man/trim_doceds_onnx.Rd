@@ -48,7 +48,8 @@ policies in R.
 Sends DOCEDS text to a compatible \code{edsan-doc-trimmer} runtime artifact and
 maps its results back to the original warehouse objects. Worker results must
 preserve request identity and provide intervals grounded exactly in the
-original text.
+original text. The returned trimmed text must contain the ordered interval
+content exactly, apart from worker-selected whitespace.
 }
 \examples{
 \dontrun{
