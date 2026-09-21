@@ -1,9 +1,9 @@
-#' Trim DOCEDS documents using DrBERT ONNX model
+#' Trim DOCEDS documents with a versioned external worker
 #'
-#' Evaluates hospital document lines using the trained `edsan-doc-trimmer` DrBERT
-#' model to strip administrative boilerplate (headers, footers, signatures, and
-#' transport vouchers) while preserving clinical narrative and exact grounding
-#' coordinates `[start, end]`.
+#' Sends DOCEDS text to a compatible `edsan-doc-trimmer` runtime artifact and
+#' maps its results back to the original warehouse objects. Worker results must
+#' preserve request identity and provide intervals grounded exactly in the
+#' original text.
 #'
 #' @param data A character vector of texts, a data frame / tibble containing text,
 #'   a single `edsan_event_bundle`, or a list of event bundles.
@@ -24,20 +24,14 @@
 #'       `TRIM_PRESERVED_INTERVALS` (character JSON string adhering to warehouse list-column contracts).
 #'     \item **Single bundle (`edsan_event_bundle`)**: Returns the bundle with its `sources$doceds`
 #'       table augmented.
-#'     \item **List of bundles**: Evaluates all document texts in a single high-performance batch
+#'     \item **List of bundles**: Evaluates all document texts in a single batch
 #'       and returns the list of bundles with each `sources$doceds` augmented, leaving all original
 #'       schema structures and attributes intact.
 #'   }
 #'
-#' Trimming is performed directly by the fine-tuned Student v3 DrBERT model
-#' across all document types (including transport vouchers `BT` and discharge
-#' letters `CRH*`, `LDL*`) without heuristic regexes or shadow pipelines.
-#' Administrative checkboxes, form headers, and boilerplate are stripped by the
-#' model while clinical narrative, vital signs, and conclusions are preserved
-#' verbatim with exact grounding coordinates.
-#'
-#' @seealso The \code{edsan-doc-trimmer} repository for model architecture,
-#'   DrBERT fine-tuning, weak supervision, and active learning pipeline details.
+#' The runtime artifact owns model selection and inference policy. `redsan`
+#' validates the artifact and response protocol, but does not reproduce those
+#' policies in R.
 #'
 #' @examples
 #' \dontrun{
@@ -64,14 +58,12 @@ trim_doceds_onnx <- function(
   # 1. Single bundle support
   if (inherits(data, "edsan_event_bundle")) {
     .doceds_onnx_validate_bundle(data, text_col = text_col)
-    if (nrow(data$sources$doceds) > 0) {
-      data$sources$doceds <- trim_doceds_onnx(
-        data = data$sources$doceds,
-        text_col = text_col,
-        python_exe = python_exe,
-        model_dir = model_dir
-      )
-    }
+    data$sources$doceds <- trim_doceds_onnx(
+      data = data$sources$doceds,
+      text_col = text_col,
+      python_exe = python_exe,
+      model_dir = model_dir
+    )
     return(data)
   }
 
@@ -94,14 +86,10 @@ trim_doceds_onnx <- function(
 
     for (i in seq_along(data)) {
       doc <- data[[i]]$sources$doceds
-      if (nrow(doc) > 0) {
-        col <- if (!is.null(text_col)) {
-          text_col
-        } else {
-          candidates <- c("RECTXT", "text", "raw_text", "content", "document")
-          found <- candidates[candidates %in% names(doc)]
-          if (length(found) > 0) found[1L] else "RECTXT"
-        }
+      col <- .doceds_onnx_text_col(doc, text_col)
+      if (nrow(doc) == 0L) {
+        data[[i]]$sources$doceds <- .doceds_onnx_add_output_columns(doc, col)
+      } else {
         bundle_map[[i]] <- seq.int(
           length(all_texts) + 1L,
           length(all_texts) + nrow(doc)
@@ -114,7 +102,7 @@ trim_doceds_onnx <- function(
       }
     }
 
-    if (length(all_texts) == 0) {
+    if (length(all_texts) == 0L) {
       return(data)
     }
 
@@ -175,33 +163,9 @@ trim_doceds_onnx <- function(
     col_to_use <- "RECTXT"
   } else if (is.data.frame(data)) {
     df <- data
-    if (is.null(text_col)) {
-      candidates <- c("RECTXT", "text", "raw_text", "content", "document")
-      found <- candidates[candidates %in% names(df)]
-      if (length(found) > 0) {
-        col_to_use <- found[1L]
-      } else {
-        stop(
-          sprintf(
-            "Could not auto-detect text column in data. Candidates searched: %s. Please specify 'text_col'.",
-            paste(candidates, collapse = ", ")
-          ),
-          call. = FALSE
-        )
-      }
-    } else {
-      if (!text_col %in% names(df)) {
-        stop(sprintf("Column '%s' not found in data.", text_col), call. = FALSE)
-      }
-      col_to_use <- text_col
-    }
+    col_to_use <- .doceds_onnx_text_col(df, text_col)
     if (nrow(data) == 0L) {
-      target_col <- paste0(col_to_use, "_TRIMMED")
-      data[[target_col]] <- character(0)
-      data$TRIM_REDUCTION_PCT <- numeric(0)
-      data$TRIM_IS_BT <- logical(0)
-      data$TRIM_PRESERVED_INTERVALS <- character(0)
-      return(data)
+      return(.doceds_onnx_add_output_columns(data, col_to_use))
     }
   } else {
     stop(
@@ -406,17 +370,10 @@ trim_doceds_onnx <- function(
     ends <- vapply(intervals, function(interval) interval$end, numeric(1))
     intervals_valid <- all(starts[-1L] > ends[-length(ends)])
   }
-  reconstructed_text <- if (intervals_valid && length(intervals) > 0L) {
-    interval_text <- vapply(intervals, function(interval) interval$text, character(1))
-    paste(interval_text[nzchar(trimws(interval_text))], collapse = "\n")
-  } else {
-    ""
-  }
   valid <- is.list(item) &&
     scalar_character(item$id) &&
     identical(item$id, document_id) &&
     scalar_character(item$trimmed_text) &&
-    identical(item$trimmed_text, reconstructed_text) &&
     scalar_number(item$reduction_pct) &&
     scalar_logical(item$is_bt) &&
     intervals_valid
@@ -430,6 +387,41 @@ trim_doceds_onnx <- function(
     )
   }
   invisible(item)
+}
+
+#' Resolve the text column used by the worker protocol
+#'
+#' @noRd
+.doceds_onnx_text_col <- function(data, text_col = NULL) {
+  if (!is.null(text_col)) {
+    if (!text_col %in% names(data)) {
+      stop(sprintf("Column '%s' not found in data.", text_col), call. = FALSE)
+    }
+    return(text_col)
+  }
+  candidates <- c("RECTXT", "text", "raw_text", "content", "document")
+  found <- candidates[candidates %in% names(data)]
+  if (length(found) == 0L) {
+    stop(
+      sprintf(
+        "Could not auto-detect text column in data. Candidates searched: %s. Please specify 'text_col'.",
+        paste(candidates, collapse = ", ")
+      ),
+      call. = FALSE
+    )
+  }
+  found[[1L]]
+}
+
+#' Add the stable worker output schema to an empty DOCEDS table
+#'
+#' @noRd
+.doceds_onnx_add_output_columns <- function(data, text_col) {
+  data[[paste0(text_col, "_TRIMMED")]] <- character(0)
+  data$TRIM_REDUCTION_PCT <- numeric(0)
+  data$TRIM_IS_BT <- logical(0)
+  data$TRIM_PRESERVED_INTERVALS <- character(0)
+  data
 }
 
 #' Validate the DOCEDS contract carried by an event bundle

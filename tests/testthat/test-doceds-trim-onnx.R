@@ -1,4 +1,4 @@
-trimmer_fixture <- function(result_mutation = character()) {
+trimmer_protocol_fixture <- function(result_mutation = character()) {
   model_dir <- tempfile("trimmer_model_")
   dir.create(model_dir)
   writeLines("dummy model", file.path(model_dir, "model.onnx"))
@@ -14,15 +14,14 @@ trimmer_fixture <- function(result_mutation = character()) {
     "documents <- jsonlite::fromJSON(arg('--input'), simplifyVector = FALSE)",
     "trim_one <- function(document) {",
     "  rectype <- if (is.null(document$rectype)) '' else document$rectype",
-    "  is_bt <- grepl('FORMCHECKBOX', document$text, fixed = TRUE) &&",
-    "    (identical(rectype, 'BT') || startsWith(rectype, 'ORDON'))",
-    "  intervals <- if (is_bt || !nzchar(document$text)) list() else list(list(",
-    "    start = 1L, end = nchar(document$text), family = 'model', text = document$text",
+    "  is_bt <- identical(rectype, 'protocol-true')",
+    "  intervals <- if (!nzchar(document$text)) list() else list(list(",
+    "    start = 1L, end = nchar(document$text), family = 'fixture', text = document$text",
     "  ))",
     "  list(",
     "    id = document$id,",
-    "    trimmed_text = if (is_bt) '' else document$text,",
-    "    reduction_pct = if (is_bt) 100 else 0,",
+    "    trimmed_text = document$text,",
+    "    reduction_pct = 0,",
     "    is_bt = is_bt,",
     "    preserved_intervals = intervals",
     "  )",
@@ -42,19 +41,14 @@ trimmer_fixture <- function(result_mutation = character()) {
   )
 }
 
-test_that("transport vouchers require FORMCHECKBOX and a transport RECTYPE", {
-  fixture <- trimmer_fixture()
+test_that("RECTYPE is forwarded and worker results map back by identity", {
+  fixture <- trimmer_protocol_fixture()
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
   doceds <- data.frame(
-    ELTID = c("clinical-form", "bt", "ordon", "bt-without-marker"),
-    RECTYPE = c("CRH2AB", "BT", "ORDON7", "BT"),
-    RECTXT = c(
-      "FORMCHECKBOX\nClinical narrative",
-      "FORMCHECKBOX\nTransport form",
-      "FORMCHECKBOX\nPrescription transport form",
-      "Clinical narrative"
-    ),
+    ELTID = c("first", "second"),
+    RECTYPE = c("protocol-false", "protocol-true"),
+    RECTXT = c("First text", "Second text"),
     stringsAsFactors = FALSE
   )
 
@@ -67,20 +61,20 @@ test_that("transport vouchers require FORMCHECKBOX and a transport RECTYPE", {
   expect_identical(result$ELTID, doceds$ELTID)
   expect_identical(
     result$RECTXT_TRIMMED,
-    c("FORMCHECKBOX\nClinical narrative", "", "", "Clinical narrative")
+    doceds$RECTXT
   )
-  expect_identical(result$TRIM_IS_BT, c(FALSE, TRUE, TRUE, FALSE))
+  expect_identical(result$TRIM_IS_BT, c(FALSE, TRUE))
 })
 
 test_that("preserved intervals are always valid scalar JSON", {
-  fixture <- trimmer_fixture()
+  fixture <- trimmer_protocol_fixture()
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
   result <- trim_doceds_onnx(
     data.frame(
       ELTID = c("clinical", "transport"),
-      RECTYPE = c("CRH2AB", "BT"),
-      RECTXT = c("Clinical narrative", "FORMCHECKBOX"),
+      RECTYPE = c("protocol-false", "protocol-false"),
+      RECTXT = c("Clinical narrative", ""),
       stringsAsFactors = FALSE
     ),
     python_exe = fixture$runner,
@@ -96,7 +90,7 @@ test_that("preserved intervals are always valid scalar JSON", {
 })
 
 test_that("malformed worker output is rejected", {
-  fixture <- trimmer_fixture("results[[1L]]$trimmed_text <- NULL")
+  fixture <- trimmer_protocol_fixture("results[[1L]]$trimmed_text <- NULL")
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
   expect_error(
@@ -115,7 +109,7 @@ test_that("malformed worker output is rejected", {
 })
 
 test_that("grounding intervals must match the original RECTXT", {
-  fixture <- trimmer_fixture(
+  fixture <- trimmer_protocol_fixture(
     "results[[1L]]$preserved_intervals[[1L]]$text <- 'Different text'"
   )
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
@@ -135,22 +129,24 @@ test_that("grounding intervals must match the original RECTXT", {
   )
 })
 
-test_that("trimmed text must be reconstructed from grounded intervals", {
-  fixture <- trimmer_fixture("results[[1L]]$trimmed_text <- 'Ungrounded text'")
+test_that("trimmed text assembly remains owned by the worker", {
+  fixture <- trimmer_protocol_fixture(
+    "results[[1L]]$trimmed_text <- 'Worker-owned assembly'"
+  )
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
-  expect_error(
+  expect_identical(
     trim_doceds_onnx(
       "Clinical narrative",
       python_exe = fixture$runner,
       model_dir = fixture$model_dir
     ),
-    "invalid result"
+    "Worker-owned assembly"
   )
 })
 
 test_that("worker result identities must match the request", {
-  fixture <- trimmer_fixture("results[[1L]]$id <- 'unexpected'")
+  fixture <- trimmer_protocol_fixture("results[[1L]]$id <- 'unexpected'")
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
   expect_error(
@@ -175,7 +171,7 @@ test_that("short and duplicate worker responses are rejected", {
   )
 
   for (mutation in mutations) {
-    fixture <- trimmer_fixture(mutation)
+    fixture <- trimmer_protocol_fixture(mutation)
     on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
     expect_error(
       trim_doceds_onnx(
@@ -193,51 +189,33 @@ test_that("short and duplicate worker responses are rejected", {
   }
 })
 
-test_that("missing RECTYPE never activates the transport shortcut", {
-  fixture <- trimmer_fixture()
+test_that("missing and blank RECTYPE are forwarded as empty protocol values", {
+  fixture <- trimmer_protocol_fixture()
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
   result <- trim_doceds_onnx(
     data.frame(
-      ELTID = "doc-1",
-      RECTXT = "FORMCHECKBOX\nClinical narrative",
+      ELTID = c("missing"),
+      RECTXT = c("Clinical narrative"),
       stringsAsFactors = FALSE
     ),
     python_exe = fixture$runner,
     model_dir = fixture$model_dir
   )
 
-  expect_identical(result$RECTXT_TRIMMED, "FORMCHECKBOX\nClinical narrative")
-  expect_identical(result$TRIM_IS_BT, FALSE)
-})
-
-test_that("blank RECTYPE never activates the transport shortcut", {
-  fixture <- trimmer_fixture()
-  on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
-
-  result <- trim_doceds_onnx(
-    data.frame(
-      ELTID = "doc-1",
-      RECTYPE = "",
-      RECTXT = "FORMCHECKBOX\nClinical narrative",
-      stringsAsFactors = FALSE
-    ),
-    python_exe = fixture$runner,
-    model_dir = fixture$model_dir
-  )
-
+  expect_identical(result$RECTXT_TRIMMED, "Clinical narrative")
   expect_identical(result$TRIM_IS_BT, FALSE)
 })
 
 test_that("cohort batching preserves bundle and DOCEDS structure", {
-  fixture <- trimmer_fixture()
+  fixture <- trimmer_protocol_fixture()
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
   first_doceds <- structure(
     data.frame(
       ELTID = "first",
-      RECTYPE = "BT",
-      RECTXT = "FORMCHECKBOX",
+      RECTYPE = "protocol-true",
+      RECTXT = "First text",
       keep = 11L,
       stringsAsFactors = FALSE
     ),
@@ -250,6 +228,16 @@ test_that("cohort batching preserves bundle and DOCEDS structure", {
     keep = 22L,
     stringsAsFactors = FALSE
   )
+  empty_doceds <- structure(
+    data.frame(
+      ELTID = character(),
+      RECTYPE = character(),
+      RECTXT = character(),
+      keep = integer(),
+      stringsAsFactors = FALSE
+    ),
+    source_note = "empty table"
+  )
   cohort <- list(
     structure(
       list(event_id = "evt-1", sources = list(doceds = first_doceds)),
@@ -259,8 +247,15 @@ test_that("cohort batching preserves bundle and DOCEDS structure", {
     structure(
       list(event_id = "evt-2", sources = list(doceds = second_doceds)),
       class = "edsan_event_bundle"
+    ),
+    structure(
+      list(event_id = "evt-3", sources = list(doceds = empty_doceds)),
+      class = "edsan_event_bundle",
+      bundle_note = "empty bundle"
     )
   )
+  names(cohort) <- c("first", "second", "empty")
+  attr(cohort, "cohort_note") <- "keep cohort attributes"
 
   result <- trim_doceds_onnx(
     cohort,
@@ -273,16 +268,33 @@ test_that("cohort batching preserves bundle and DOCEDS structure", {
   expect_identical(attr(result[[1L]]$sources$doceds, "source_note"), "first table")
   expect_identical(result[[1L]]$sources$doceds$keep, 11L)
   expect_identical(result[[2L]]$sources$doceds$keep, 22L)
-  expect_identical(result[[1L]]$sources$doceds$RECTXT_TRIMMED, "")
+  expect_identical(result[[1L]]$sources$doceds$RECTXT_TRIMMED, "First text")
   expect_identical(result[[1L]]$sources$doceds$TRIM_IS_BT, TRUE)
   expect_identical(
     result[[2L]]$sources$doceds$RECTXT_TRIMMED,
     "Clinical narrative"
   )
+  expect_identical(names(result), names(cohort))
+  expect_identical(attr(result, "cohort_note"), "keep cohort attributes")
+  expect_identical(attr(result[[3L]], "bundle_note"), "empty bundle")
+  expect_identical(
+    attr(result[[3L]]$sources$doceds, "source_note"),
+    "empty table"
+  )
+  expect_identical(
+    names(result[[3L]]$sources$doceds),
+    c(
+      names(empty_doceds),
+      "RECTXT_TRIMMED",
+      "TRIM_REDUCTION_PCT",
+      "TRIM_IS_BT",
+      "TRIM_PRESERVED_INTERVALS"
+    )
+  )
 })
 
 test_that("single and empty bundles preserve the bundle contract", {
-  fixture <- trimmer_fixture()
+  fixture <- trimmer_protocol_fixture()
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
   single <- structure(
@@ -320,11 +332,22 @@ test_that("single and empty bundles preserve the bundle contract", {
     single_result$sources$doceds$RECTXT_TRIMMED,
     "Clinical narrative"
   )
-  expect_identical(empty_result, empty)
+  expect_s3_class(empty_result, "edsan_event_bundle")
+  expect_identical(
+    names(empty_result$sources$doceds),
+    c(
+      names(empty$sources$doceds),
+      "RECTXT_TRIMMED",
+      "TRIM_REDUCTION_PCT",
+      "TRIM_IS_BT",
+      "TRIM_PRESERVED_INTERVALS"
+    )
+  )
+  expect_identical(empty_result$sources$doceds$RECTXT_TRIMMED, character())
 })
 
 test_that("bundle inputs reject malformed DOCEDS contracts", {
-  fixture <- trimmer_fixture()
+  fixture <- trimmer_protocol_fixture()
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
   valid <- structure(
@@ -557,11 +580,45 @@ test_that("trim_doceds_onnx handles empty inputs gracefully without spawning pro
   expect_identical(res_char, character(0))
 
   # Data frame with 0 rows
-  empty_df <- data.frame(RECTXT = character(0), stringsAsFactors = FALSE)
-  res_df <- trim_doceds_onnx(empty_df)
+  empty_df <- structure(
+    data.frame(RECTXT = character(0), keep = integer(), stringsAsFactors = FALSE),
+    class = c("custom_doceds", "data.frame"),
+    source_note = "preserve me"
+  )
+  res_df <- trim_doceds_onnx(
+    empty_df,
+    python_exe = "does-not-exist",
+    model_dir = "does-not-exist"
+  )
   expect_equal(nrow(res_df), 0L)
   expect_true("RECTXT_TRIMMED" %in% names(res_df))
   expect_true("TRIM_REDUCTION_PCT" %in% names(res_df))
   expect_true("TRIM_IS_BT" %in% names(res_df))
   expect_true("TRIM_PRESERVED_INTERVALS" %in% names(res_df))
+  expect_s3_class(res_df, "custom_doceds")
+  expect_identical(attr(res_df, "source_note"), "preserve me")
+  expect_identical(res_df$keep, integer())
+
+  empty_bundle <- structure(
+    list(sources = list(doceds = data.frame(
+      ELTID = character(),
+      RECTYPE = character(),
+      RECTXT = character(),
+      stringsAsFactors = FALSE
+    ))),
+    class = "edsan_event_bundle"
+  )
+  res_cohort <- trim_doceds_onnx(
+    list(named = empty_bundle),
+    python_exe = "does-not-exist",
+    model_dir = "does-not-exist"
+  )
+  expect_identical(names(res_cohort), "named")
+  expect_identical(
+    names(res_cohort[[1L]]$sources$doceds),
+    c(
+      "ELTID", "RECTYPE", "RECTXT", "RECTXT_TRIMMED",
+      "TRIM_REDUCTION_PCT", "TRIM_IS_BT", "TRIM_PRESERVED_INTERVALS"
+    )
+  )
 })

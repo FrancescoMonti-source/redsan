@@ -2,7 +2,7 @@
 % Please edit documentation in R/doceds-trim-onnx.R
 \name{trim_doceds_onnx}
 \alias{trim_doceds_onnx}
-\title{Trim DOCEDS documents using DrBERT ONNX model}
+\title{Trim DOCEDS documents with a versioned external worker}
 \usage{
 trim_doceds_onnx(
   data,
@@ -35,23 +35,20 @@ Depending on the input shape:
 \code{TRIM_PRESERVED_INTERVALS} (character JSON string adhering to warehouse list-column contracts).
 \item \strong{Single bundle (\code{edsan_event_bundle})}: Returns the bundle with its \code{sources$doceds}
 table augmented.
-\item \strong{List of bundles}: Evaluates all document texts in a single high-performance batch
+\item \strong{List of bundles}: Evaluates all document texts in a single batch
 and returns the list of bundles with each \code{sources$doceds} augmented, leaving all original
 schema structures and attributes intact.
 }
 
-Trimming is performed directly by the fine-tuned Student v3 DrBERT model
-across all document types (including transport vouchers \code{BT} and discharge
-letters \verb{CRH*}, \verb{LDL*}) without heuristic regexes or shadow pipelines.
-Administrative checkboxes, form headers, and boilerplate are stripped by the
-model while clinical narrative, vital signs, and conclusions are preserved
-verbatim with exact grounding coordinates.
+The runtime artifact owns model selection and inference policy. \code{redsan}
+validates the artifact and response protocol, but does not reproduce those
+policies in R.
 }
 \description{
-Evaluates hospital document lines using the trained \code{edsan-doc-trimmer} DrBERT
-model to strip administrative boilerplate (headers, footers, signatures, and
-transport vouchers) while preserving clinical narrative and exact grounding
-coordinates \verb{[start, end]}.
+Sends DOCEDS text to a compatible \code{edsan-doc-trimmer} runtime artifact and
+maps its results back to the original warehouse objects. Worker results must
+preserve request identity and provide intervals grounded exactly in the
+original text.
 }
 \examples{
 \dontrun{
@@ -68,8 +65,4 @@ clean_bundle <- trim_doceds_onnx(bundle)
 clean_bundles <- trim_doceds_onnx(denut)
 }
 
-}
-\seealso{
-The \code{edsan-doc-trimmer} repository for model architecture,
-DrBERT fine-tuning, weak supervision, and active learning pipeline details.
 }

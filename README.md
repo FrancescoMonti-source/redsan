@@ -256,9 +256,8 @@ administrative boundary, with the measured baseline and the reasoning in
 
 ### Contextual ML Trimming with DrBERT (`trim_doceds_onnx`)
 
-For deeper contextual recognition of complex letterheads, footers, signatures,
-and transport forms (BT), `redsan` provides `trim_doceds_onnx()`, powered by a
-fine-tuned French biomedical DrBERT model (`edsan-doc-trimmer`).
+For contextual document trimming, `redsan` provides `trim_doceds_onnx()`, backed
+by a compatible versioned runtime artifact from `edsan-doc-trimmer`.
 
 It can be applied at any level of granularity:
 
@@ -276,20 +275,29 @@ clean_bundle <- trim_doceds_onnx(bundle)
 clean_cohort <- trim_doceds_onnx(denut)
 ```
 
-Cohort batching extracts all texts across stays, loads the model once, and executes
-one forward pass, mapping results back directly without altering individual table
-schemas or violating warehouse table contracts.
+Cohort batching sends all non-empty texts in one worker request and maps results
+back by document identity. Original rows, source identifiers, unrelated columns,
+classes, names, and attributes are preserved. Empty DOCEDS tables receive the
+same four output columns without starting the worker.
 
-All documents, including transport vouchers (`BT`, `ORDON*`) and discharge letters
-(`CRH*`, `LDL*`), are evaluated directly by the fine-tuned Student v3 DrBERT model
-without heuristic regexes or shadow pipelines. Administrative checkboxes, form headers,
-and boilerplate are stripped by the model, while clinical narrative, vital signs, and
-conclusions are preserved verbatim with exact grounding coordinates.
-The versioned runtime artifact must contain the model, tokenizer, worker, and
-`artifact.json` manifest; `redsan` validates that complete set before use.
+The versioned runtime artifact must contain the model, tokenizer, worker, and an
+`artifact.json` manifest declaring the compatible worker contract. `redsan`
+validates request/result identity and verifies that every reported preserved
+interval matches the original text exactly. Model choice, inference rules, and
+the assembly of `trimmed_text` remain owned by the runtime artifact.
 
-For model architecture, DrBERT fine-tuning, weak supervision with LLM teacher,
-and active learning dataset curation, see the
+Before a release claims compatibility with a specific artifact, install the
+package candidate and run the acceptance gate against that exact unpacked
+artifact and Python environment:
+
+```sh
+Rscript tools/check_doceds_trimmer_artifact.R /path/to/python /path/to/versioned/artifact
+```
+
+This invokes the artifact through the public `trim_doceds_onnx()` interface and
+fails unless the versioned protocol, output schema, identity mapping, and exact
+source grounding are accepted. Protocol-fixture unit tests do not substitute for
+this gate. Model development and behavior are documented in the
 [`edsan-doc-trimmer`](https://github.com/FrancescoMonti-source/edsan-doc-trimmer) repository.
 
 ## Privacy

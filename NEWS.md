@@ -1,9 +1,7 @@
 # redsan 0.4.1
 
-- Add `trim_doceds_onnx()`, which uses a trained French biomedical DrBERT model
-  (`edsan-doc-trimmer`) to contextually strip hospital administrative frames,
-  signatures, typist residue, and transport vouchers (BT) while preserving
-  unbroken clinical narrative.
+- Add `trim_doceds_onnx()`, which orchestrates a compatible versioned
+  `edsan-doc-trimmer` runtime and maps its grounded results back to DOCEDS data.
 
 - Support multiple invocation shapes: character vectors, data frames / tibbles,
   single `edsan_event_bundle` objects, and cohort lists of bundles (e.g. `denut`).
@@ -13,10 +11,15 @@
   without mutating underlying table schemas, requiring `rbind()`, or creating
   list-columns in normalized tables.
 
-- Require both a `FORMCHECKBOX` marker and a transport `RECTYPE` (`BT` or an
-  `ORDON` prefix) before classifying and removing a complete transport voucher.
-  Worker results are matched by document identity and rejected when incomplete or
-  malformed; preserved intervals are stored as valid scalar JSON.
+- Worker results are matched by document identity and rejected when incomplete
+  or malformed; preserved intervals are checked against the original `RECTXT`
+  and stored as valid scalar JSON. Model-specific inference and text-assembly
+  policy remain owned by the runtime artifact.
+
+- Empty DOCEDS tables in data frames, single bundles, and mixed cohorts receive
+  the documented output columns without starting the worker. Add a release gate
+  that exercises the exact versioned runtime through `trim_doceds_onnx()`;
+  protocol-fixture unit tests do not claim production model coverage.
 
 - Add `edsan_install_trimmer()` and `edsan_trimmer_cache_dir()` for air-gapped
   hospital data warehouse (HDW) environments without internet access. Installation
