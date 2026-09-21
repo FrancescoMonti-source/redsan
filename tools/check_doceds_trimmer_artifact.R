@@ -64,7 +64,7 @@ output_columns <- c(
   "TRIM_IS_BT",
   "TRIM_PRESERVED_INTERVALS"
 )
-transport_rows <- match(c("bt", "ordon"), result$ELTID)
+voucher_rows <- match(c("bt", "ordon"), result$ELTID)
 preserved_rows <- match(c("unrelated", "blank"), result$ELTID)
 stopifnot(
   identical(result$ELTID, input$ELTID),
@@ -73,11 +73,13 @@ stopifnot(
   identical(missing_result$acceptance_order, missing_rectype$acceptance_order),
   all(output_columns %in% names(result)),
   all(output_columns %in% names(missing_result)),
-  identical(result$TRIM_IS_BT, c(TRUE, TRUE, FALSE, FALSE)),
+  # Student v3 owns voucher classification. The worker has no deterministic
+  # transport shortcut, so this compatibility field remains false.
+  identical(result$TRIM_IS_BT, rep(FALSE, nrow(result))),
   identical(missing_result$TRIM_IS_BT, FALSE),
-  all(result$RECTXT_TRIMMED[transport_rows] == ""),
-  all(result$TRIM_REDUCTION_PCT[transport_rows] == 100),
-  all(result$TRIM_PRESERVED_INTERVALS[transport_rows] == "[]"),
+  all(result$RECTXT_TRIMMED[voucher_rows] == ""),
+  all(result$TRIM_REDUCTION_PCT[voucher_rows] == 100),
+  all(result$TRIM_PRESERVED_INTERVALS[voucher_rows] == "[]"),
   all(nzchar(result$RECTXT_TRIMMED[preserved_rows])),
   nzchar(missing_result$RECTXT_TRIMMED),
   all(vapply(result$TRIM_PRESERVED_INTERVALS, jsonlite::validate, logical(1))),
