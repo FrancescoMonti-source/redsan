@@ -254,6 +254,44 @@ against, and a family that fires on nothing is wrong rather than inapplicable.
 administrative boundary, with the measured baseline and the reasoning in
 `tools/README.md`. Read it before adding or widening a family.
 
+### Contextual ML Trimming with DrBERT (`trim_doceds_onnx`)
+
+For deeper contextual recognition of complex letterheads, footers, signatures,
+and transport forms (BT), `redsan` provides `trim_doceds_onnx()`, powered by a
+fine-tuned French biomedical DrBERT model (`edsan-doc-trimmer`).
+
+It can be applied at any level of granularity:
+
+```r
+# 1. On a simple data frame or tibble (adds RECTXT_TRIMMED, TRIM_REDUCTION_PCT, TRIM_IS_BT)
+clean_table <- trim_doceds_onnx(bundle$sources$doceds)
+
+# 2. Directly on a character vector of texts
+clean_texts <- trim_doceds_onnx(bundle$sources$doceds$RECTXT)
+
+# 3. On a single event bundle
+clean_bundle <- trim_doceds_onnx(bundle)
+
+# 4. In batch across an entire cohort (e.g. 779 stays)
+clean_cohort <- trim_doceds_onnx(denut)
+```
+
+Cohort batching extracts all texts across stays, loads the model once, and executes
+one forward pass, mapping results back directly without altering individual table
+schemas or violating warehouse table contracts.
+
+All documents, including transport vouchers (`BT`, `ORDON*`) and discharge letters
+(`CRH*`, `LDL*`), are evaluated directly by the fine-tuned Student v3 DrBERT model
+without heuristic regexes or shadow pipelines. Administrative checkboxes, form headers,
+and boilerplate are stripped by the model, while clinical narrative, vital signs, and
+conclusions are preserved verbatim with exact grounding coordinates.
+The versioned runtime artifact must contain the model, tokenizer, worker, and
+`artifact.json` manifest; `redsan` validates that complete set before use.
+
+For model architecture, DrBERT fine-tuning, weak supervision with LLM teacher,
+and active learning dataset curation, see the
+[`edsan-doc-trimmer`](https://github.com/FrancescoMonti-source/edsan-doc-trimmer) repository.
+
 ## Privacy
 
 Request only the fields needed for the task. Keep patient-derived exports,

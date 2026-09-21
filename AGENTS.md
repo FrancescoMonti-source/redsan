@@ -33,12 +33,16 @@ Unit tests live in `tests/testthat/test-<kebab-case>.R`, matching their source m
 | Property | Heuristic Regex Trimmer (`trim_doceds_text`) | DrBERT ML Trimmer (`trim_doceds_onnx`) |
 |---|---|---|
 | **Location** | `R/doceds-trim.R` | `R/doceds-trim-onnx.R` |
-| **Input** | Scalar character string (`text`) | Data frame or tibble with `RECTXT` column |
-| **Output** | List with `text` and `removed_intervals` | Augmented data frame with `RECTXT_TRIMMED` and `TRIM_PRESERVED_INTERVALS` |
+| **Input** | Scalar character string (`text`) | Character vector, `data.frame`/`tibble`, single `edsan_event_bundle`, or list of bundles |
+| **Output** | List with `text` and `removed_intervals` | Character vector, or augmented table/bundle(s) with `RECTXT_TRIMMED`, `TRIM_REDUCTION_PCT`, `TRIM_IS_BT`, and `TRIM_PRESERVED_INTERVALS` (serialized JSON character) |
 | **Strategy** | Deterministic removal of known CHU Rouen letterhead patterns | Contextual sequence classification using `DrBERT/DrBERT-7GB` |
 | **Grounding** | Negative: tracks removed character spans | Positive: tracks preserved clinical character intervals `[start, end]` |
-| **Runtime** | Pure R, zero external dependencies | Background Python worker (`processx`) with `onnxruntime` |
+| **Runtime** | Pure R, zero external dependencies | Versioned background Python worker invoked with `processx` |
+| **Batching** | Sequential character string mapping | High-performance cohort batching: extracts texts across stays, runs one forward pass, maps back without altering schemas |
 | **Offline HDW** | Built-in | Requires one-time `edsan_install_trimmer("path/to/zip")` |
+
+### Boundary with `edsan-doc-trimmer`
+`edsan-doc-trimmer` (Python repo) owns model training, active learning, DrBERT tokenization, dataset curation, the batch worker, hardware selection, and model-specific inference rules. `redsan` owns the R integration: data structures (`data.frame`, `edsan_event_bundle`), warehouse table contracts (no list-columns), environment discovery (`REDSAN_PYTHON_PATH`), artifact validation, and identity-safe cohort mapping. Do not duplicate training or model-specific documentation inside `redsan`. See [`docs/adr/0001-decouple-drbert-trimmer-from-redsan.md`](docs/adr/0001-decouple-drbert-trimmer-from-redsan.md).
 
 ---
 
@@ -59,4 +63,3 @@ Five canonical roles (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-fo
 
 ### Domain docs
 Single-context (`CONTEXT.md` at root, ADRs in `docs/adr/`). See `docs/agents/domain.md`.
-

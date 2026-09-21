@@ -39,26 +39,36 @@ export(render_event_bundle)
 export(sync_d2im_keystore)
 export(trim_doceds_onnx)
 export(trim_doceds_text)
-importFrom(dplyr,any_of)
-importFrom(dplyr,bind_cols)
-importFrom(dplyr,bind_rows)
-importFrom(dplyr,contains)
-importFrom(dplyr,distinct)
-importFrom(dplyr,ends_with)
-importFrom(dplyr,filter)
-importFrom(dplyr,mutate)
-importFrom(dplyr,select)
+importFrom(dplyr,
+  any_of,
+  bind_cols,
+  bind_rows,
+  contains,
+  distinct,
+  ends_with,
+  filter,
+  mutate,
+  select
+)
 importFrom(hms,as_hms)
 importFrom(lubridate,parse_date_time)
 importFrom(magrittr,"%>%")
-importFrom(purrr,compact)
-importFrom(purrr,imap)
+importFrom(purrr,
+  compact,
+  imap
+)
 importFrom(rlang,.data)
-importFrom(stringr,str_detect)
-importFrom(stringr,str_extract)
-importFrom(stringr,str_sub)
-importFrom(stringr,str_to_lower)
-importFrom(tibble,as_tibble)
-importFrom(tibble,tibble)
-importFrom(tidyr,pivot_longer)
-importFrom(tidyr,separate_rows)
+importFrom(stringr,
+  str_detect,
+  str_extract,
+  str_sub,
+  str_to_lower
+)
+importFrom(tibble,
+  as_tibble,
+  tibble
+)
+importFrom(tidyr,
+  pivot_longer,
+  separate_rows
+)

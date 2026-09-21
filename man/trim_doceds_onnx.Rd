@@ -6,28 +6,46 @@
 \usage{
 trim_doceds_onnx(
   data,
-  python_exe = Sys.getenv("REDSAN_PYTHON_PATH", Sys.which("python")),
+  text_col = NULL,
+  python_exe = .edsan_get_python_exe(),
   model_dir = NULL
 )
 }
 \arguments{
-\item{data}{A data frame or tibble containing at least \code{RECTXT} (e.g. \code{bundle$sources$doceds}).}
+\item{data}{A character vector of texts, a data frame / tibble containing text,
+a single \code{edsan_event_bundle}, or a list of event bundles.}
 
-\item{python_exe}{Path to Python executable with \code{onnxruntime} and \code{transformers} installed.
-Defaults to \code{Sys.getenv("REDSAN_PYTHON_PATH", Sys.which("python"))}.}
+\item{text_col}{Column name containing the text if \code{data} is a data frame or bundle.
+Defaults to \code{NULL}, which automatically checks \code{"RECTXT"}, \code{"text"}, \code{"raw_text"},
+\code{"content"}, or \code{"document"}.}
 
-\item{model_dir}{Path to the directory containing \code{model.onnx}, \code{tokenizer.json}, and
-\code{trim_batch_service.py}. If \code{NULL}, automatically resolved via \code{\link[=.edsan_get_trimmer_dir]{.edsan_get_trimmer_dir()}}.}
+\item{python_exe}{Path to Python executable with \code{onnxruntime} and \code{tokenizers} installed.
+Defaults to auto-detecting the \code{edsan-doc-trimmer} virtual environment or \code{REDSAN_PYTHON_PATH}.}
+
+\item{model_dir}{Path to the versioned runtime artifact containing \code{model.onnx},
+\code{tokenizer.json}, \code{trim_batch_service.py}, and \code{artifact.json}. If \code{NULL},
+automatically resolved via \code{.edsan_get_trimmer_dir()}.}
 }
 \value{
-The input data frame augmented with:
+Depending on the input shape:
 \itemize{
-\item \code{RECTXT_TRIMMED}: clean clinical narrative text.
-\item \code{TRIM_REDUCTION_PCT}: percentage of prompt characters/tokens removed.
-\item \code{TRIM_IS_BT}: boolean indicating whether the document was an administrative transport voucher.
-\item \code{TRIM_PRESERVED_INTERVALS}: list of data frames with \code{start}, \code{end}, \code{family}, and \code{text}
-representing exact character coordinates in raw \code{RECTXT}.
+\item \strong{Character vector}: Returns a character vector of trimmed texts.
+\item \strong{Data frame / tibble}: Returns the input table augmented with \verb{<text_col>_TRIMMED}
+(defaults to \code{RECTXT_TRIMMED}), \code{TRIM_REDUCTION_PCT}, \code{TRIM_IS_BT}, and
+\code{TRIM_PRESERVED_INTERVALS} (character JSON string adhering to warehouse list-column contracts).
+\item \strong{Single bundle (\code{edsan_event_bundle})}: Returns the bundle with its \code{sources$doceds}
+table augmented.
+\item \strong{List of bundles}: Evaluates all document texts in a single high-performance batch
+and returns the list of bundles with each \code{sources$doceds} augmented, leaving all original
+schema structures and attributes intact.
 }
+
+Trimming is performed directly by the fine-tuned Student v3 DrBERT model
+across all document types (including transport vouchers \code{BT} and discharge
+letters \verb{CRH*}, \verb{LDL*}) without heuristic regexes or shadow pipelines.
+Administrative checkboxes, form headers, and boilerplate are stripped by the
+model while clinical narrative, vital signs, and conclusions are preserved
+verbatim with exact grounding coordinates.
 }
 \description{
 Evaluates hospital document lines using the trained \code{edsan-doc-trimmer} DrBERT
@@ -37,8 +55,21 @@ coordinates \verb{[start, end]}.
 }
 \examples{
 \dontrun{
+# On a data frame
 data <- trim_doceds_onnx(bundle$sources$doceds)
-cat(data$RECTXT_TRIMMED[[1]])
+
+# Directly on a character vector
+clean_text <- trim_doceds_onnx(bundle$sources$doceds$RECTXT)
+
+# On an entire event bundle
+clean_bundle <- trim_doceds_onnx(bundle)
+
+# On a list of event bundles (e.g. denut cohort)
+clean_bundles <- trim_doceds_onnx(denut)
 }
 
+}
+\seealso{
+The \code{edsan-doc-trimmer} repository for model architecture,
+DrBERT fine-tuning, weak supervision, and active learning pipeline details.
 }

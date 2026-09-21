@@ -1,3 +1,28 @@
+# redsan 0.4.1
+
+- Add `trim_doceds_onnx()`, which uses a trained French biomedical DrBERT model
+  (`edsan-doc-trimmer`) to contextually strip hospital administrative frames,
+  signatures, typist residue, and transport vouchers (BT) while preserving
+  unbroken clinical narrative.
+
+- Support multiple invocation shapes: character vectors, data frames / tibbles,
+  single `edsan_event_bundle` objects, and cohort lists of bundles (e.g. `denut`).
+
+- Cohort batching extracts texts across stays, loads the model once, and runs
+  the forward pass in a single job, delegating directly to the data frame trimmer
+  without mutating underlying table schemas, requiring `rbind()`, or creating
+  list-columns in normalized tables.
+
+- Require both a `FORMCHECKBOX` marker and a transport `RECTYPE` (`BT` or an
+  `ORDON` prefix) before classifying and removing a complete transport voucher.
+  Worker results are matched by document identity and rejected when incomplete or
+  malformed; preserved intervals are stored as valid scalar JSON.
+
+- Add `edsan_install_trimmer()` and `edsan_trimmer_cache_dir()` for air-gapped
+  hospital data warehouse (HDW) environments without internet access. Installation
+  validates a complete versioned artifact in staging before replacing an existing
+  runtime.
+
 # redsan 0.4.0
 
 - Add `trim_doceds_text()`, which removes the administrative frame from one
