@@ -686,6 +686,106 @@ edsan_install_trimmer <- function(
   invisible(version)
 }
 
+# The four files the archive is required to carry are exactly the four that
+# decide what comes back: the weights, the tokenizer that feeds them, the worker
+# that routes a document around them, and the manifest that names the contract.
+# Digesting the artifact means digesting these, not the manifest alone - a
+# manifest is maintained by hand and can stay put while the model moves.
+.DOCEDS_ONNX_ARTIFACT_FILES <- c(
+  "model.onnx",
+  "tokenizer.json",
+  "trim_batch_service.py",
+  "artifact.json"
+)
+
+# `model.onnx` is 442 MB, and a caller that builds one catalog per stay would
+# hash it once per stay. Cache on the artifact's own identity - path, sizes and
+# modification times - so installing a different archive produces a different
+# key rather than a stale answer.
+.doceds_onnx_digest_cache <- new.env(parent = emptyenv())
+
+#' @noRd
+.doceds_onnx_artifact_digest <- function(artifact_dir) {
+  paths <- file.path(artifact_dir, .DOCEDS_ONNX_ARTIFACT_FILES)
+  info <- file.info(paths)
+  key <- paste(
+    normalizePath(artifact_dir, winslash = "/", mustWork = FALSE),
+    paste(info$size, as.numeric(info$mtime), sep = "@", collapse = ";"),
+    sep = "|"
+  )
+  cached <- .doceds_onnx_digest_cache[[key]]
+  if (!is.null(cached)) {
+    return(cached)
+  }
+  parts <- vapply(
+    paths,
+    function(path) digest::digest(file = path, algo = "sha256"),
+    character(1),
+    USE.NAMES = FALSE
+  )
+  value <- digest::digest(
+    charToRaw(enc2utf8(paste(
+      .DOCEDS_ONNX_ARTIFACT_FILES,
+      parts,
+      sep = "=",
+      collapse = "\n"
+    ))),
+    algo = "sha256",
+    serialize = FALSE
+  )
+  .doceds_onnx_digest_cache[[key]] <- value
+  value
+}
+
+#' Which trimmer artifact produced a DrBERT-trimmed text
+#'
+#' The counterpart of [doceds_trim_spec()] for [trim_doceds_onnx()]. A caller
+#' that records a trimmed text needs to be able to say afterwards what produced
+#' it, and the two trimmers answer that question from different material: the
+#' heuristic one from the text of its own rules, this one from the runtime
+#' artifact it hands the documents to.
+#'
+#' `digest` is the field to compare between two runs. It is derived from the
+#' weights, the tokenizer, the worker script and the manifest themselves, so an
+#' artifact that changed changed it whether or not anybody edited
+#' `artifact_version`. The version and the contract are reported beside it
+#' because they are what a human reads, not because they can be trusted to move.
+#'
+#' @param model_dir Path to an installed runtime artifact. Defaults to the
+#'   artifact [trim_doceds_onnx()] would use.
+#'
+#' @return A list describing the artifact: `package`, `version`, `digest`,
+#'   `digest_algorithm`, `digest_schema`, and the manifest's `artifact_name`,
+#'   `artifact_version`, `worker_contract` and `model_type`.
+#' @seealso [doceds_trim_spec()], [trim_doceds_onnx()]
+#' @export
+doceds_onnx_spec <- function(model_dir = NULL) {
+  if (is.null(model_dir)) {
+    model_dir <- .edsan_get_trimmer_dir()
+  }
+  .doceds_onnx_validate_artifact(model_dir)
+  manifest <- jsonlite::fromJSON(file.path(model_dir, "artifact.json"))
+  field <- function(name) {
+    value <- manifest[[name]]
+    if (is.null(value) || !is.character(value) || length(value) != 1L) {
+      NA_character_
+    } else {
+      value
+    }
+  }
+  list(
+    package = "redsan",
+    version = as.character(utils::packageVersion("redsan")),
+    digest = .doceds_onnx_artifact_digest(model_dir),
+    digest_algorithm = "sha256",
+    digest_schema = "doceds-onnx-artifact-v1",
+    artifact_name = field("artifact_name"),
+    artifact_version = field("artifact_version"),
+    worker_contract = field("worker_contract"),
+    model_type = field("model_type")
+  )
+}
+
 #' Standard user cache directory for edsan-doc-trimmer
 #'
 #' @return Path string to the cache folder.
