@@ -40,6 +40,35 @@ Unit tests live in `tests/testthat/test-<kebab-case>.R`, matching their source m
 | **Runtime** | Pure R, zero external dependencies | Versioned background Python worker invoked with `processx` |
 | **Batching** | Sequential character string mapping | High-performance cohort batching: extracts texts across stays, runs one forward pass, maps back without altering schemas |
 | **Offline HDW** | Built-in | Requires one-time `edsan_install_trimmer("path/to/zip")` |
+| **Provenance** | `doceds_trim_spec()` | `doceds_onnx_spec()` |
+
+### Provenance: what produced a trimmed text
+
+Each trimmer reports its own identity, so a caller can record what produced a
+text and compare two runs afterwards. Both specs carry a `digest` field, and
+that is the field to compare. Neither digest is a version number that somebody
+maintains: each is derived from the material that decides the output, so the
+material changed means the digest changed, whether or not anybody said so.
+
+- `doceds_trim_spec()` digests the **text of the rules** in `doceds-trim.R`.
+- `doceds_onnx_spec()` digests the **runtime artifact**: `model.onnx`,
+  `tokenizer.json`, `trim_batch_service.py` and `artifact.json`. The worker
+  script is in there because it decides which documents are removed whole, so
+  two artifacts with the same weights and different routing must not agree.
+
+**Why the ONNX digest is cached.** `model.onnx` is 442 MB, and a caller that
+builds one catalog per stay would hash it once per stay - about 13 minutes over
+a 544-stay cohort. `doceds_onnx_spec()` therefore stores each result in a
+package-local environment, under a key built from the artifact's path and from
+the size and modification time of each of the four files. A repeated call finds
+the key and returns the stored digest: 1.5 s cold, 40 ms afterwards.
+
+The key is what makes the cache safe to trust. It is not the artifact path
+alone. Installing a different archive writes different files, which changes
+their sizes or their modification times, which builds a different key, which
+finds nothing stored and hashes again. The cache can only return a digest for
+an artifact whose four files are still exactly as they were when that digest
+was computed.
 
 ### Boundary with `edsan-doc-trimmer`
 `edsan-doc-trimmer` (Python repo) owns model training, active learning, DrBERT tokenization, dataset curation, the batch worker, hardware selection, and model-specific inference rules. `redsan` owns the R integration: data structures (`data.frame`, `edsan_event_bundle`), warehouse table contracts (no list-columns), environment discovery (`REDSAN_PYTHON_PATH`), artifact validation, and identity-safe cohort mapping. Do not duplicate training or model-specific documentation inside `redsan`. See [`docs/adr/0001-decouple-drbert-trimmer-from-redsan.md`](docs/adr/0001-decouple-drbert-trimmer-from-redsan.md).
