@@ -6,7 +6,7 @@ test_that("process_doceds distinguishes recorded dates from recorded times", {
     RECTXT = c("synthetic one", "synthetic two")
   )
 
-  out <- process_doceds(raw)
+  out <- doceds_normalize(raw)
 
   expect_true(inherits(out$RECDATE, "POSIXct"))
   expect_identical(

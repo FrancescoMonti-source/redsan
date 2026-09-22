@@ -51,8 +51,8 @@
 #' preserves every row and column of each selected source and performs no new
 #' EDSAN retrieval or clinical selection.
 #'
-#' @param bundle An `edsan_event_bundle` returned by [get_event_bundle()],
-#'   [build_event_bundle()], or extracted from the collection returned by their
+#' @param bundle An `edsan_event_bundle` returned by [edsan_get_event_bundle()],
+#'   [edsan_event_bundle()], or extracted from the collection returned by their
 #'   plural counterparts.
 #' @param sources Sources already present in `bundle` to include. `NULL` (the
 #'   default) or `"all"` includes every source in the bundle. A character vector
@@ -64,20 +64,20 @@
 #'   the selected normalized source payloads.
 #'
 #' @details
-#' `render_event_bundle()` never calls EDSAN. Asking for a source that was not
+#' `edsan_render_event_bundle()` never calls EDSAN. Asking for a source that was not
 #' retrieved into the bundle is therefore an error rather than an implicit
 #' network request. Empty source tables remain explicit empty arrays.
 #'
 #' @examples
 #' \dontrun{
-#' bundle <- get_event_bundle("123456789")
-#' full_context <- render_event_bundle(bundle)
-#' compact_context <- render_event_bundle(bundle, pretty = FALSE)
-#' documents_only <- render_event_bundle(bundle, sources = "doceds")
+#' bundle <- edsan_get_event_bundle("123456789")
+#' full_context <- edsan_render_event_bundle(bundle)
+#' compact_context <- edsan_render_event_bundle(bundle, pretty = FALSE)
+#' documents_only <- edsan_render_event_bundle(bundle, sources = "doceds")
 #' }
 #'
 #' @export
-render_event_bundle <- function(bundle, sources = NULL, pretty = TRUE) {
+edsan_render_event_bundle <- function(bundle, sources = NULL, pretty = TRUE) {
   .validate_event_bundle_for_render(bundle)
   sources <- .event_bundle_sources_to_render(bundle, sources)
 
@@ -102,4 +102,14 @@ render_event_bundle <- function(bundle, sources = NULL, pretty = TRUE) {
     digits = NA,
     pretty = isTRUE(pretty)
   ))
+}
+
+#' Deprecated event-bundle renderer name
+#'
+#' @inheritParams edsan_render_event_bundle
+#' @return The value returned by [edsan_render_event_bundle()].
+#' @export
+render_event_bundle <- function(bundle, sources = NULL, pretty = TRUE) {
+  .redsan_deprecate("render_event_bundle", "edsan_render_event_bundle")
+  edsan_render_event_bundle(bundle, sources = sources, pretty = pretty)
 }

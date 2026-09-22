@@ -177,7 +177,7 @@ test_that("PMSI capability remains the preferred identifier route", {
     .redsan_workflow_capabilities = function() {
       list(pmsi = TRUE, edsan_ct_cora = TRUE)
     },
-    get_edsan = function(...) {
+    edsan_get = function(...) {
       tibble::tibble(EVTID = "EVT-1", PATID = "PAT-1")
     },
     .package = "redsan"

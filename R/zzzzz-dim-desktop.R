@@ -252,7 +252,7 @@
 
 # The EVTID -> PATID route is independent of how d2imr resolved the keystore.
 # Capability-based workflow selection belongs to the downstream routing ticket.
-.edsan_evtid_patid_map <- function(evtids, get = get_edsan) {
+.edsan_evtid_patid_map <- function(evtids, get = edsan_get) {
   evtids <- unique(.edsan_ct_validate_ids(evtids, require_character = TRUE))
 
   if (missing(get)) {

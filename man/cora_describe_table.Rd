@@ -12,7 +12,7 @@ cora_describe_table(table, connection = NULL, ojdbc_jar = NULL)
 in exactly one accessible schema.}
 
 \item{connection}{Optional existing CORA DBI connection. When \code{NULL}, a
-transient connection is opened through the same machinery as \code{\link[=query_cora]{query_cora()}}.}
+transient connection is opened through the same machinery as \code{\link[=cora_query]{cora_query()}}.}
 
 \item{ojdbc_jar}{Optional path to an Oracle JDBC driver.}
 }
@@ -27,7 +27,7 @@ view using \code{ALL_TAB_COLUMNS}. No CORA schema is assumed.
 \details{
 Quoted Oracle identifiers are intentionally not supported. The
 helper is an ergonomic view over Oracle metadata, not a replacement for
-\code{\link[=query_cora]{query_cora()}}.
+\code{\link[=cora_query]{cora_query()}}.
 }
 \examples{
 \dontrun{

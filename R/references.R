@@ -8,10 +8,10 @@
 #'   and a short `description`.
 #'
 #' @examples
-#' edsan_references()
+#' edsan_reference_catalog()
 #'
 #' @export
-edsan_references <- function() {
+edsan_reference_catalog <- function() {
   tibble::tibble(
     name = c(
       "actes", "bact", "bio", "ccam", "cdam", "cim10", "csarr", "ghm",
@@ -47,6 +47,15 @@ edsan_references <- function() {
       "Medical unit codes"
     )
   )
+}
+
+#' Deprecated reference catalog name
+#'
+#' @return The reference catalog returned by [edsan_reference_catalog()].
+#' @export
+edsan_references <- function() {
+  .redsan_deprecate("edsan_references", "edsan_reference_catalog")
+  edsan_reference_catalog()
 }
 
 .edsan_reference_columns <- function(name) {
@@ -144,7 +153,7 @@ edsan_references <- function() {
 #' undocumented, as several `rectypes` entries do. Codes are never dropped for
 #' that reason.
 #'
-#' @param name One reference name listed by [edsan_references()].
+#' @param name One reference name listed by [edsan_reference_catalog()].
 #'
 #' @return A tibble preserving native reference headers: `TYPEANA` for biology
 #'   and bacteriology, `CODEACTE` for acts, `CODE` for CIM-10, `GHM` for
@@ -165,7 +174,7 @@ edsan_references <- function() {
 #'
 #' @export
 edsan_reference <- function(name) {
-  available <- edsan_references()$name
+  available <- edsan_reference_catalog()$name
 
   if (!is.character(name) || length(name) != 1L || is.na(name) ||
       !nzchar(name)) {

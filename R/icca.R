@@ -15,11 +15,11 @@
   sql_without_trailing_semicolon <- sub(";\\s*$", "", sql, perl = TRUE)
   check <- trimws(.icca_sql_for_validation(sql_without_trailing_semicolon))
   if (grepl(";", check, fixed = TRUE)) {
-    stop("`query_icca()` accepts exactly one SQL statement.", call. = FALSE)
+    stop("`icca_query()` accepts exactly one SQL statement.", call. = FALSE)
   }
 
   if (!grepl("(?is)^(select\\b|with\\b)", check, perl = TRUE)) {
-    stop("`query_icca()` accepts read-only SELECT queries (including CTEs) only.",
+    stop("`icca_query()` accepts read-only SELECT queries (including CTEs) only.",
          call. = FALSE)
   }
 
@@ -33,7 +33,7 @@
     ")\\b"
   )
   if (grepl(write_pattern, check, perl = TRUE)) {
-    stop("`query_icca()` rejects SQL that can modify database state.", call. = FALSE)
+    stop("`icca_query()` rejects SQL that can modify database state.", call. = FALSE)
   }
 
   sql_without_trailing_semicolon
@@ -191,12 +191,12 @@
 #' @param params Optional positional values for `?` placeholders.
 #' @param connection Optional existing DBI connection. When `NULL`, `redsan`
 #'   opens an ICCA connection and closes it after the query. A caller-supplied
-#'   connection is never closed by `query_icca()`.
+#'   connection is never closed by `icca_query()`.
 #' @param instance ICCA instance to query: `"adult"` (default) or `"ped"`.
 #'   Ignored when `connection` is supplied explicitly.
 #' @return A tibble containing the SQL Server result.
 #' @export
-query_icca <- function(sql, params = NULL, connection = NULL,
+icca_query <- function(sql, params = NULL, connection = NULL,
                        instance = c("adult", "ped")) {
   instance <- match.arg(instance)
 
@@ -207,6 +207,22 @@ query_icca <- function(sql, params = NULL, connection = NULL,
   connection <- .icca_connect(instance = instance)
   on.exit(.icca_disconnect(connection), add = TRUE)
   .icca_query(sql = sql, params = params, connection = connection)
+}
+
+#' Deprecated ICCA query name
+#'
+#' @inheritParams icca_query
+#' @return The value returned by [icca_query()].
+#' @export
+query_icca <- function(sql, params = NULL, connection = NULL,
+                       instance = c("adult", "ped")) {
+  .redsan_deprecate("query_icca", "icca_query")
+  icca_query(
+    sql = sql,
+    params = params,
+    connection = connection,
+    instance = instance
+  )
 }
 
 # High-level pseudonymized ICCA retrieval ------------------------------------
@@ -238,7 +254,7 @@ query_icca <- function(sql, params = NULL, connection = NULL,
 }
 
 .icca_evtid_map <- function(evtids, env = "edsan-ct", ks_path = NULL,
-                            reidentify = edsan_reidentify) {
+                            reidentify = .icca_ct_correspondence) {
   mapping <- reidentify(
     evtids,
     id_type = "EVTID",
@@ -246,19 +262,23 @@ query_icca <- function(sql, params = NULL, connection = NULL,
     ks_path = ks_path
   )
 
-  keep <- !is.na(mapping$HIS_ID) & nzchar(as.character(mapping$HIS_ID))
+  keep <- !is.na(mapping$IEP) & nzchar(as.character(mapping$IEP))
   mapping <- mapping[keep, , drop = FALSE]
 
   tibble::tibble(
-    EVTID = as.character(mapping$EDSAN_ID),
-    .IEP = as.character(mapping$HIS_ID)
+    EVTID = as.character(mapping$EVTID),
+    .IEP = as.character(mapping$IEP)
   )
+}
+
+.icca_ct_correspondence <- function(ids, id_type, env, ks_path) {
+  edsan_ct(ids, from = id_type, identity = FALSE, env = env, ks_path = ks_path)
 }
 
 .icca_get_encounter <- function(evtids, connection = NULL,
                                 env = "edsan-ct", ks_path = NULL,
-                                reidentify = edsan_reidentify,
-                                query = query_icca) {
+                                reidentify = .icca_ct_correspondence,
+                                query = icca_query) {
   evtids <- .icca_validate_evtids(evtids)
   if (!length(evtids)) return(.icca_empty_encounter())
 
@@ -404,8 +424,8 @@ query_icca <- function(sql, params = NULL, connection = NULL,
 
 .icca_get_detail <- function(evtids, source, connection = NULL,
                              env = "edsan-ct", ks_path = NULL,
-                             reidentify = edsan_reidentify,
-                             query = query_icca) {
+                             reidentify = .icca_ct_correspondence,
+                             query = icca_query) {
   source <- match.arg(source, c("assessment", "medication"))
   evtids <- .icca_validate_evtids(evtids)
   if (!length(evtids)) return(.icca_empty_detail(source))
@@ -451,16 +471,18 @@ query_icca <- function(sql, params = NULL, connection = NULL,
 #' ICCA encounter, then returns ICCA rows keyed by the original EVTID.
 #'
 #' @param evtids Character vector of EDSaN EVTID values.
-#' @param source ICCA source to retrieve: `"encounter"`, `"assessment"`, or
-#'   `"medication"`. Assessment and medication retrieval use the enriched
-#'   `DAR.PtAssessment` and `DAR.PtMedication` reporting views.
+#' @param source One ICCA source name from [icca_catalog()]. The convenience
+#'   names `"encounter"`, `"assessment"`, and `"medication"` select the
+#'   corresponding standard retrieval paths.
+#' @param link Link-selection policy for generic ICCA sources. `"auto"` uses
+#'   the source metadata to select the supported event linkage.
 #' @param connection Optional existing ICCA DBI connection.
 #' @param instance ICCA instance to query: `"adult"` (default) or `"ped"`.
 #'   Ignored when `connection` is supplied explicitly.
 #' @param env EDSaN CT web-service environment name.
 #' @param ks_path Optional d2imr keystore path for EDSaN CT correspondence.
 #' @return A tibble keyed by `EVTID`.
-#' @details `get_icca()` consumes the EVTID-to-IEP correspondences returned by
+#' @details `icca_get()` consumes the EVTID-to-IEP correspondences returned by
 #'   EDSaN CT directly. If CT returns several IEPs for one EVTID, all are queried;
 #'   EVTIDs without an IEP correspondence simply produce no ICCA rows.
 #'   `character(0)` returns an empty result immediately and never produces an
@@ -472,15 +494,38 @@ query_icca <- function(sql, params = NULL, connection = NULL,
 #'   span several rows carrying different `attributeId` / value combinations.
 #'   `redsan` does not pivot, deduplicate, or clinically filter these rows.
 #' @export
-get_icca <- function(evtids, source = "encounter", connection = NULL,
+icca_get <- function(evtids, source = "encounter", link = "auto", connection = NULL,
                      instance = c("adult", "ped"),
                      env = "edsan-ct", ks_path = NULL) {
-  source <- match.arg(source, c("encounter", "assessment", "medication"))
   instance <- match.arg(instance)
 
+  if (!is.character(source) || length(source) != 1L || is.na(source) ||
+      !nzchar(trimws(source))) {
+    stop("`source` must be one non-empty ICCA source.", call. = FALSE)
+  }
+
+  source <- trimws(source)
+
+  # Preserve the public empty-input contract: validation and empty result
+  # construction must not require an ICCA connection.
   if (!length(.icca_validate_evtids(evtids))) {
-    if (identical(source, "encounter")) return(.icca_empty_encounter())
-    return(.icca_empty_detail(source))
+    if (identical(source, "encounter")) {
+      return(.icca_get_encounter(
+        evtids,
+        connection = connection,
+        env = env,
+        ks_path = ks_path
+      ))
+    }
+
+    return(.icca_get_source(
+      evtids,
+      source = source,
+      link = link,
+      connection = connection,
+      env = env,
+      ks_path = ks_path
+    ))
   }
 
   owns_connection <- is.null(connection)
@@ -498,9 +543,10 @@ get_icca <- function(evtids, source = "encounter", connection = NULL,
     ))
   }
 
-  .icca_get_detail(
+  .icca_get_source(
     evtids,
     source = source,
+    link = link,
     connection = connection,
     env = env,
     ks_path = ks_path

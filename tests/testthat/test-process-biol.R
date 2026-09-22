@@ -20,7 +20,7 @@ test_that("label_biol refreshes labels and preserves unmatched rows", {
 
 test_that("label_biol validates its input contract", {
   expect_error(label_biol(list()), "must be a data frame")
-  expect_identical(nrow(process_biol(list())), 0L)
+  expect_identical(nrow(biol_normalize(list())), 0L)
   expect_identical(
     names(label_biol(tibble::tibble())),
     c("TYPEANA", "TYPEANA_LABEL")
@@ -46,7 +46,7 @@ test_that("list-column TYPEANA is labelled instead of breaking the reference joi
     )
   ))
 
-  out <- process_biol(raw)
+  out <- biol_normalize(raw)
 
   expect_identical(out$TYPEANA, c(known_code, "FAIT_MAISON"))
   expect_identical(
@@ -69,7 +69,7 @@ test_that("process_biol makes wrapped scalar result fields atomic", {
     )
   ))
 
-  out <- process_biol(raw)
+  out <- biol_normalize(raw)
 
   expect_false(any(vapply(out, is.list, logical(1))))
   expect_identical(out$STRRES, c("positif", NA_character_, "faible;douteux"))
@@ -99,7 +99,7 @@ test_that("label_biol flattens TYPEANA shapes it receives from older artifacts",
 })
 
 test_that("virology results expose an atomic analyte code", {
-  out <- process_viro(list(L1 = list(
+  out <- viro_normalize(list(L1 = list(
     PATID = "P1", EVTID = "E1", DATEPRELEV = "2024-01-01",
     RESULTATS = data.frame(TYPEANA = I(list("VIRO.PCR")), STRRES = "NEGATIF")
   )))

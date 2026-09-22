@@ -2,7 +2,7 @@
 % Please edit documentation in R/cora.R
 \name{query_cora}
 \alias{query_cora}
-\title{Execute a read-only query against CORA}
+\title{Deprecated CORA query name}
 \usage{
 query_cora(sql, connection = NULL, ojdbc_jar = NULL)
 }
@@ -13,43 +13,15 @@ and \verb{SELECT ... FOR UPDATE} are rejected.}
 
 \item{connection}{Optional existing CORA DBI connection. When \code{NULL},
 \code{redsan} opens a transient JDBC connection and closes it before returning.
-A caller-supplied connection is never closed by \code{query_cora()}.}
+A caller-supplied connection is never closed by \code{cora_query()}.}
 
 \item{ojdbc_jar}{Optional path to an Oracle JDBC driver. When omitted,
 \code{redsan} resolves the driver automatically from \code{REDSAN_OJDBC_JAR}, the
 standard CORA workstation installation, or known Podsan Oracle paths.}
 }
 \value{
-A tibble containing the Oracle query result.
+The value returned by \code{\link[=cora_query]{cora_query()}}.
 }
 \description{
-Executes one read-only Oracle query against CORA using the same JDBC
-connection settings already used by \code{\link[=get_cora_diet]{get_cora_diet()}}. The connection is
-configured through the active \code{d2imr} keystore (\code{db.cora.url},
-\code{db.cora.usr}, and \code{db.cora.pwd}).
-}
-\details{
-\code{redsan} does not hard-code a CORA account or schema. The active environment
-decides which Oracle credentials are stored in the keystore, so the same
-function can use an EDSaN service account in Podsan and a dedicated DIM
-account on a workstation. Schema qualification should remain explicit in SQL,
-for example \code{CORA_REC.MY_TABLE}.
-
-The read-only guard validates SQL syntax conservatively before sending it to
-Oracle. Database privileges remain the authoritative security boundary.
-
-Parameter binding is intentionally not exposed yet because CORA currently
-uses \code{RJDBC}; placeholder support should be validated against the deployed
-driver before adding it to the public API.
-}
-\examples{
-\dontrun{
-query_cora("SELECT USER AS session_user FROM dual")
-
-query_cora(
-  "SELECT owner, table_name
-   FROM all_tables
-   WHERE owner = 'CORA_REC' AND ROWNUM <= 10"
-)
-}
+Deprecated CORA query name
 }

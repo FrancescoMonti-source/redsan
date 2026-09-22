@@ -11,16 +11,16 @@
 #'   an explicit time. When `PATAGE` is present, it is converted to numeric.
 #'
 #' @examples
-#' process_doceds(data.frame(
+#' doceds_normalize(data.frame(
 #'   ELTID = "L1",
 #'   RECDATE = "2024-01-01 08:30",
 #'   RECTYPE = "CR"
 #' ))
 #'
 #' @export
-process_doceds <- function(data) {
+doceds_normalize <- function(data) {
   if (!is.data.frame(data)) {
-    stop("process_doceds() requires a data frame.", call. = FALSE)
+    stop("doceds_normalize() requires a data frame.", call. = FALSE)
   }
 
   out <- tibble::as_tibble(data)
@@ -43,6 +43,16 @@ process_doceds <- function(data) {
   out
 }
 
+#' Deprecated DOCEDS normalizer name
+#'
+#' @inheritParams doceds_normalize
+#' @return The value returned by [doceds_normalize()].
+#' @export
+process_doceds <- function(data) {
+  .redsan_deprecate("process_doceds", "doceds_normalize")
+  doceds_normalize(data)
+}
+
 #' Label DOCEDS document types
 #'
 #' Adds the authoritative document-type label to a normalized DOCEDS table by
@@ -60,7 +70,7 @@ process_doceds <- function(data) {
 #' values become `NA`.
 #'
 #' @param documents A normalized documents data frame containing `RECTYPE`,
-#'   normally returned by [process_doceds()].
+#'   normally returned by [doceds_normalize()].
 #'
 #' @return The input documents data frame with `RECTYPE_LABEL` added, and
 #'   `RECTYPE` as character. All other columns and rows are preserved.

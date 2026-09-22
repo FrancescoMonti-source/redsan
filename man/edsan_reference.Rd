@@ -7,7 +7,7 @@
 edsan_reference(name)
 }
 \arguments{
-\item{name}{One reference name listed by \code{\link[=edsan_references]{edsan_references()}}.}
+\item{name}{One reference name listed by \code{\link[=edsan_reference_catalog]{edsan_reference_catalog()}}.}
 }
 \value{
 A tibble preserving native reference headers: \code{TYPEANA} for biology

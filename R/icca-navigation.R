@@ -70,7 +70,7 @@
   out
 }
 
-.icca_object_metadata <- function(source, connection = NULL, query = query_icca) {
+.icca_object_metadata <- function(source, connection = NULL, query = icca_query) {
   src <- .icca_normalize_source(source)
   sql <- paste(
     "SELECT", .icca_metadata_select(),
@@ -87,7 +87,7 @@
   tibble::as_tibble(.icca_logical_metadata(out))
 }
 
-.icca_catalog_rows <- function(connection = NULL, query = query_icca) {
+.icca_catalog_rows <- function(connection = NULL, query = icca_query) {
   sql <- paste(
     "SELECT",
     "  s.name AS schema_name,",
@@ -207,7 +207,7 @@ icca_catalog <- function(search = NULL, schema = NULL, type = NULL,
   tibble::as_tibble(out)
 }
 
-.icca_relation_rows <- function(connection = NULL, query = query_icca) {
+.icca_relation_rows <- function(connection = NULL, query = icca_query) {
   fk_sql <- paste(
     "SELECT",
     "  'foreign_key' AS relation_type,",
@@ -339,7 +339,7 @@ icca_describe <- function(source, connection = NULL,
     "WHERE s.name = ? AND o.name = ?",
     "ORDER BY c.column_id"
   )
-  columns <- query_icca(
+  columns <- icca_query(
     columns_sql,
     params = c(src$schema, src$object),
     connection = connection
@@ -390,7 +390,7 @@ print.icca_description <- function(x, ...) {
     stop(
       "This ICCA object has none of the direct D_Encounter linkage columns ",
       "(`encounterId`, `patientId`, `episodeId`). Use `icca_relations()` to ",
-      "inspect indirect linkage and `query_icca()` for unrestricted access.",
+      "inspect indirect linkage and `icca_query()` for unrestricted access.",
       call. = FALSE
     )
   }
@@ -414,8 +414,8 @@ print.icca_description <- function(x, ...) {
 
 .icca_get_source <- function(evtids, source, link = "auto", connection = NULL,
                              env = "edsan-ct", ks_path = NULL,
-                             reidentify = edsan_reidentify,
-                             query = query_icca,
+                             reidentify = .icca_ct_correspondence,
+                             query = icca_query,
                              metadata = .icca_object_metadata) {
   evtids <- .icca_validate_evtids(evtids)
   src <- .icca_normalize_source(source)

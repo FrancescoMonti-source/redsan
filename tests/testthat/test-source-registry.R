@@ -1,6 +1,6 @@
 test_that("registered identifiers remain opaque character coordinates", {
   ids <- list(PATID = 100000, EVTID = 200000, ELTID = 300000)
-  pmsi <- process_pmsi(list(c(
+  pmsi <- pmsi_normalize(list(c(
     ids,
     list(
       DATENT = "2024-01-01",
@@ -11,11 +11,11 @@ test_that("registered identifiers remain opaque character coordinates", {
     )
   )))
   tables <- list(
-    "doceds/documents" = process_doceds(as.data.frame(ids)),
+    "doceds/documents" = doceds_normalize(as.data.frame(ids)),
     "pmsi/main" = pmsi$main,
     "pmsi/actes" = pmsi$actes,
     "pmsi/diag" = pmsi$diag,
-    "biol/results" = process_biol(list(
+    "biol/results" = biol_normalize(list(
       `300000` = c(
         ids,
         list(
@@ -24,7 +24,7 @@ test_that("registered identifiers remain opaque character coordinates", {
         )
       )
     )),
-    "viro/results" = process_viro(list(
+    "viro/results" = viro_normalize(list(
       `300000` = list(
         PATID = 100000,
         EVTID = 200000,
@@ -33,7 +33,7 @@ test_that("registered identifiers remain opaque character coordinates", {
       )
     ))
   )
-  registry <- edsan_sources()
+  registry <- edsan_source_catalog()
   identifier_columns <- unlist(
     lapply(seq_len(nrow(registry)), function(index) {
       table_key <- paste(
@@ -60,4 +60,13 @@ test_that("registered identifiers remain opaque character coordinates", {
     unique(unlist(identifier_columns, use.names = FALSE)),
     c("100000", "200000", "300000")
   )
+})
+
+test_that("edsan_sources delegates to the canonical source catalog", {
+  legacy <- NULL
+  expect_warning(
+    legacy <- edsan_sources("pmsi", "diag"),
+    "use `edsan_source_catalog\\(\\)`"
+  )
+  expect_identical(legacy, edsan_source_catalog("pmsi", "diag"))
 })

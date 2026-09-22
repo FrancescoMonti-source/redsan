@@ -1,5 +1,5 @@
 test_that("packaged reference mappings have usable unique codes", {
-  stored_names <- setdiff(edsan_references()$name, "actes")
+  stored_names <- setdiff(edsan_reference_catalog()$name, "actes")
   invalid <- vapply(stored_names, function(name) {
     reference <- edsan_reference(name)
     key <- reference[[1L]]
@@ -11,6 +11,15 @@ test_that("packaged reference mappings have usable unique codes", {
   }, logical(1))
 
   expect_identical(names(invalid)[invalid], character())
+})
+
+test_that("edsan_references delegates to the canonical reference catalog", {
+  legacy <- NULL
+  expect_warning(
+    legacy <- edsan_references(),
+    "use `edsan_reference_catalog\\(\\)`"
+  )
+  expect_identical(legacy, edsan_reference_catalog())
 })
 
 test_that("the derived acts reference keeps one row per nomenclature and code", {

@@ -2,7 +2,7 @@
 % Please edit documentation in R/biol.R
 \name{process_biol}
 \alias{process_biol}
-\title{Process BIOL results}
+\title{Deprecated biology normalizer name}
 \usage{
 process_biol(data)
 }
@@ -11,21 +11,8 @@ process_biol(data)
 data.frame/tibble already in result form.}
 }
 \value{
-A tibble with exam metadata columns and lab result columns. When
-available, adds \code{HEURE_DATEXAM}. \code{PATAGE} and \code{NUMRES}, when present, are
-numeric. Qualitative result fields such as \code{STRRES} are preserved.
+The value returned by \code{\link[=biol_normalize]{biol_normalize()}}.
 }
 \description{
-Flattens BIOL lab results from the EDSaN API into a single tibble.
-If \code{DATEXAM} is present, it is parsed into \code{POSIXct} and \code{HEURE_DATEXAM}
-(\code{hms}) is derived only when an explicit time is present in the raw string.
-}
-\examples{
-raw <- list(L1 = list(
-  PATID="P1", EVTID="E1", ELTID="L1",
-  DATEXAM="2020-01-01 08:30",
-  RESULTATS=data.frame(TYPEANA="K.K", NUMRES=4.2)
-))
-process_biol(raw)
-
+Deprecated biology normalizer name
 }

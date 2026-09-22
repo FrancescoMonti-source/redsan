@@ -2,41 +2,26 @@
 % Please edit documentation in R/event-bundle.R
 \name{get_event_bundles}
 \alias{get_event_bundles}
-\title{Retrieve normalized EDSAN sources for several events}
+\alias{get_event_bundle}
+\title{Deprecated event-bundle retrieval names}
 \usage{
 get_event_bundles(event_ids, modules = "all")
+
+get_event_bundle(event_id, modules = "all")
 }
 \arguments{
 \item{event_ids}{Non-empty vector of unique EDSAN \code{EVTID} values.}
 
 \item{modules}{EDSAN modules to retrieve. Use \code{"all"} (the default) for every
-module registered by \code{\link[=edsan_sources]{edsan_sources()}}, or provide a character vector.}
+module registered by \code{\link[=edsan_source_catalog]{edsan_source_catalog()}}, or provide a character vector.}
+
+\item{event_id}{One non-missing EDSAN \code{EVTID}.}
 }
 \value{
-A named list of \code{edsan_event_bundle} objects in requested event order.
+The value returned by \code{\link[=edsan_get_event_bundles]{edsan_get_event_bundles()}}.
+
+The value returned by \code{\link[=edsan_get_event_bundle]{edsan_get_event_bundle()}}.
 }
 \description{
-Retrieves each selected EDSAN module once for the complete set of requested
-\code{EVTID} values, then delegates local partitioning to \code{\link[=build_event_bundles]{build_event_bundles()}}.
-\code{get_edsan()} remains responsible for any technical ID batching.
-}
-\details{
-Retrieval is fail-fast. If any requested module cannot be retrieved,
-no partial bundle collection is returned. Each selected module is retrieved
-once for the complete \code{event_ids} vector and then partitioned locally. Empty
-normalized module results are retained in every affected bundle.
-
-Modules are retrieved with \code{process = TRUE}, so reference labels added by the
-module processors are present in every bundle: \code{biol} carries \code{TYPEANA_LABEL}
-from \code{\link[=label_biol]{label_biol()}} and PMSI carries the labels added by \code{\link[=label_pmsi]{label_pmsi()}}.
-}
-\examples{
-\dontrun{
-bundles <- get_event_bundles(
-  c("123456789", "987654321"),
-  modules = c("doceds", "pmsi", "biol")
-)
-bundles[["123456789"]]
-}
-
+Deprecated event-bundle retrieval names
 }

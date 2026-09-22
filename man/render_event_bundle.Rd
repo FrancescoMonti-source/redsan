@@ -2,13 +2,13 @@
 % Please edit documentation in R/event-bundle-render.R
 \name{render_event_bundle}
 \alias{render_event_bundle}
-\title{Render an EDSAN event bundle}
+\title{Deprecated event-bundle renderer name}
 \usage{
 render_event_bundle(bundle, sources = NULL, pretty = TRUE)
 }
 \arguments{
-\item{bundle}{An \code{edsan_event_bundle} returned by \code{\link[=get_event_bundle]{get_event_bundle()}},
-\code{\link[=build_event_bundle]{build_event_bundle()}}, or extracted from the collection returned by their
+\item{bundle}{An \code{edsan_event_bundle} returned by \code{\link[=edsan_get_event_bundle]{edsan_get_event_bundle()}},
+\code{\link[=edsan_event_bundle]{edsan_event_bundle()}}, or extracted from the collection returned by their
 plural counterparts.}
 
 \item{sources}{Sources already present in \code{bundle} to include. \code{NULL} (the
@@ -19,26 +19,8 @@ selects whole sources without filtering their contents.}
 more compact representation.}
 }
 \value{
-One JSON character string containing \code{event_id}, \code{created_at}, and
-the selected normalized source payloads.
+The value returned by \code{\link[=edsan_render_event_bundle]{edsan_render_event_bundle()}}.
 }
 \description{
-Serializes a retrieved event bundle into one JSON character string suitable
-for inspection, storage, or downstream model input. Rendering is neutral: it
-preserves every row and column of each selected source and performs no new
-EDSAN retrieval or clinical selection.
-}
-\details{
-\code{render_event_bundle()} never calls EDSAN. Asking for a source that was not
-retrieved into the bundle is therefore an error rather than an implicit
-network request. Empty source tables remain explicit empty arrays.
-}
-\examples{
-\dontrun{
-bundle <- get_event_bundle("123456789")
-full_context <- render_event_bundle(bundle)
-compact_context <- render_event_bundle(bundle, pretty = FALSE)
-documents_only <- render_event_bundle(bundle, sources = "doceds")
-}
-
+Deprecated event-bundle renderer name
 }

@@ -41,4 +41,6 @@ EDSaN CT. For an \code{EVTID}, its \code{PATID} is resolved internally from PMSI
 \details{
 This function deliberately exposes real hospital identifiers and,
 when \code{identity = TRUE}, directly identifying patient information.
+
+Deprecated in favor of \code{\link[=edsan_ct]{edsan_ct()}}.
 }

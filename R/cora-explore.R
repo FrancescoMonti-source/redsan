@@ -118,13 +118,13 @@
 #'   `"CORA_REC.TB_SEJOUR"`. An unqualified name is accepted only when it exists
 #'   in exactly one accessible schema.
 #' @param connection Optional existing CORA DBI connection. When `NULL`, a
-#'   transient connection is opened through the same machinery as [query_cora()].
+#'   transient connection is opened through the same machinery as [cora_query()].
 #' @param ojdbc_jar Optional path to an Oracle JDBC driver.
 #' @return A tibble with column position, name, datatype, nullability, and Oracle
 #'   length/precision metadata.
 #' @details Quoted Oracle identifiers are intentionally not supported. The
 #'   helper is an ergonomic view over Oracle metadata, not a replacement for
-#'   [query_cora()].
+#'   [cora_query()].
 #' @examples
 #' \dontrun{
 #' cora_describe_table("CORA_REC.TB_SEJOUR")
@@ -245,7 +245,7 @@ cora_describe_table <- function(table, connection = NULL, ojdbc_jar = NULL) {
 #' @param exact If `FALSE` (default), `term` is searched as a literal substring.
 #'   If `TRUE`, only exact table/view or column-name matches are returned.
 #' @param connection Optional existing CORA DBI connection. When `NULL`, a
-#'   transient connection is opened through the same machinery as [query_cora()].
+#'   transient connection is opened through the same machinery as [cora_query()].
 #' @param ojdbc_jar Optional path to an Oracle JDBC driver.
 #' @return A tibble identifying the owner, object type, table/view, matched
 #'   column when applicable, datatype, match location, and declared PK status.

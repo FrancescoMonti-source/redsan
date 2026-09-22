@@ -392,7 +392,7 @@
     error = function(e) {
       stop(
         "Package 'd2imr' is required for live EDSAN retrieval. ",
-        "Install it in the EDSAN environment before calling get_edsan().",
+        "Install it in the EDSAN environment before calling edsan_get().",
         call. = FALSE
       )
     }
@@ -593,7 +593,7 @@
 # Post-retrieval normalization step. Retrieval and normalization are separate
 # concerns (the raw payload is the expensive, cacheable artifact), but for the
 # common case -- `what = "data"` on a module that HAS a processor -- returning the
-# analysis tables directly is what callers want, so `get_edsan()` chains the
+# analysis tables directly is what callers want, so `edsan_get()` chains the
 # matching processor by default. `process = FALSE` is the escape hatch: it returns
 # the raw list unchanged, for re-normalizing later with an updated redsan, auditing
 # the payload, or holding the raw at a cache boundary. `idtriplets` has nothing to
@@ -601,14 +601,14 @@
 .edsan_maybe_process <- function(combined, module, what, process, source_policy = NULL) {
   if (!isTRUE(process) || !identical(what, "data")) return(combined)
   switch(module,
-    doceds = process_doceds(combined),
+    doceds = doceds_normalize(combined),
     pmsi = if (is.null(source_policy)) {
-      process_pmsi(combined)
+      pmsi_normalize(combined)
     } else {
-      process_pmsi(combined, source_policy = source_policy)
+      pmsi_normalize(combined, source_policy = source_policy)
     },
-    biol = process_biol(combined),
-    viro = process_viro(combined),
+    biol = biol_normalize(combined),
+    viro = viro_normalize(combined),
     combined
   )
 }
@@ -617,7 +617,7 @@
 #'
 #' Calls the EDSAN API for one module and splits large requests by source time
 #' and, when present, by native identifiers. Module date keys and default
-#' batching keys are read from [edsan_sources()], so validation follows the same
+#' batching keys are read from [edsan_source_catalog()], so validation follows the same
 #' source contracts documented by the package.
 #'
 #' @param module EDSAN module to query: `"doceds"`, `"pmsi"`, `"biol"`, or `"viro"`.
@@ -652,13 +652,13 @@
 #'   `RECTYPE`, `RECDATE`, `SEJUM`, `SEJUF`, and `RECTXT`.
 #' @param process If `TRUE` (default), a `what = "data"` payload for a module that
 #'   has a processor is normalized before it is returned: `doceds` through
-#'   [process_doceds()], `pmsi` through [process_pmsi()], `biol` through
-#'   [process_biol()], and `viro` through [process_viro()]. Set `FALSE` to return the
+#'   [doceds_normalize()], `pmsi` through [pmsi_normalize()], `biol` through
+#'   [biol_normalize()], and `viro` through [viro_normalize()]. Set `FALSE` to return the
 #'   raw payload unchanged -- the escape hatch for re-normalizing later with an
 #'   updated `redsan`, auditing the payload, or caching the raw. `idtriplets`
 #'   results pass through either way.
 #' @param source_policy Optional PMSI `main` source policy passed to
-#'   [process_pmsi()]. `NULL` uses its default (`"c_over_dw"`); `"all"` retains
+#'   [pmsi_normalize()]. `NULL` uses its default (`"c_over_dw"`); `"all"` retains
 #'   every normalized PMSI `main` row. An explicit value is valid only for
 #'   `module = "pmsi"`, `what = "data"`, and `process = TRUE`.
 #'
@@ -676,10 +676,10 @@
 #' - `biol`: `DATEXAM`
 #' - `viro`: `DATEPRELEV`
 #'
-#' Retrieval (batching, raw source fetch) and normalization ([process_doceds()],
-#' [process_pmsi()], [process_biol()], [process_viro()]) are separate concerns -- the raw payload is the expensive,
+#' Retrieval (batching, raw source fetch) and normalization ([doceds_normalize()],
+#' [pmsi_normalize()], [biol_normalize()], [viro_normalize()]) are separate concerns -- the raw payload is the expensive,
 #' cacheable artifact -- but because a `what = "data"` call almost always wants the
-#' analysis tables, `get_edsan()` chains the matching processor by default. Pass
+#' analysis tables, `edsan_get()` chains the matching processor by default. Pass
 #' `process = FALSE` to keep the two steps apart and hold the raw payload.
 #'
 #' Live retrieval requires the EDSAN client package `d2imr` to be installed in
@@ -688,7 +688,7 @@
 #' @examples
 #' \dontrun{
 #' # Default: normalized PMSI tables straight out of the call.
-#' pmsi <- get_edsan(
+#' pmsi <- edsan_get(
 #'   module = "pmsi",
 #'   what = "data",
 #'   query = list(DATENT = c("2024-01-01", "2024-01-31")),
@@ -698,7 +698,7 @@
 #'
 #' # Keep every normalized PMSI main source row without breaking the retrieval
 #' # and processing flow.
-#' pmsi_all_sources <- get_edsan(
+#' pmsi_all_sources <- edsan_get(
 #'   module = "pmsi",
 #'   what = "data",
 #'   query = list(DATENT = c("2024-01-01", "2024-01-31")),
@@ -706,11 +706,11 @@
 #' )
 #'
 #' # Escape hatch: keep the raw payload to (re)process yourself later.
-#' raw_pmsi <- get_edsan(module = "pmsi", what = "data", process = FALSE,
+#' raw_pmsi <- edsan_get(module = "pmsi", what = "data", process = FALSE,
 #'                       query = list(DATENT = c("2024-01-01", "2024-01-31")))
-#' pmsi <- process_pmsi(raw_pmsi)
+#' pmsi <- pmsi_normalize(raw_pmsi)
 #'
-#' ids <- get_edsan(
+#' ids <- edsan_get(
 #'   module = "biol",
 #'   what = "idtriplets",
 #'   query = list(DATEXAM = "{2024-01-01,2024-01-31}"),
@@ -720,7 +720,7 @@
 #' }
 #'
 #' @export
-get_edsan <- function(
+edsan_get <- function(
     module = c("doceds", "pmsi", "biol", "viro"),
     what = c("data", "idtriplets"),
     query = list(),
@@ -978,4 +978,56 @@ get_edsan <- function(
   if (!return_audit) return(combined)
 
   list(data = combined, audit = dplyr::bind_rows(audit))
+}
+
+#' Deprecated generic EDSaN retrieval name
+#'
+#' @inheritParams edsan_get
+#' @return The value returned by [edsan_get()].
+#' @export
+get_edsan <- function(
+    module = c("doceds", "pmsi", "biol", "viro"),
+    what = c("data", "idtriplets"),
+    query = list(),
+    start_date = NULL,
+    end_date = NULL,
+    periods_by = "6 months",
+    periods_prefix = "{",
+    periods_suffix = "}",
+    periods_end_inclusive = TRUE,
+    periods_overlap_days = 0L,
+    batch_key = NULL,
+    batch_ids_key = NULL,
+    max_in_ids = 3500,
+    max_time_batches = 1000,
+    return_audit = FALSE,
+    batch_on_error_only = FALSE,
+    verbose = FALSE,
+    fields = NULL,
+    process = TRUE,
+    source_policy = NULL
+) {
+  .redsan_deprecate("get_edsan", "edsan_get")
+  edsan_get(
+    module = module,
+    what = what,
+    query = query,
+    start_date = start_date,
+    end_date = end_date,
+    periods_by = periods_by,
+    periods_prefix = periods_prefix,
+    periods_suffix = periods_suffix,
+    periods_end_inclusive = periods_end_inclusive,
+    periods_overlap_days = periods_overlap_days,
+    batch_key = batch_key,
+    batch_ids_key = batch_ids_key,
+    max_in_ids = max_in_ids,
+    max_time_batches = max_time_batches,
+    return_audit = return_audit,
+    batch_on_error_only = batch_on_error_only,
+    verbose = verbose,
+    fields = fields,
+    process = process,
+    source_policy = source_policy
+  )
 }

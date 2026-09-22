@@ -8,7 +8,7 @@ label_biol(biology)
 }
 \arguments{
 \item{biology}{A normalized biology data frame containing \code{TYPEANA}, normally
-returned by \code{\link[=process_biol]{process_biol()}}.}
+returned by \code{\link[=biol_normalize]{biol_normalize()}}.}
 }
 \value{
 The input biology data frame with \code{TYPEANA_LABEL} added, and \code{TYPEANA}
@@ -16,7 +16,7 @@ as character. All other columns and rows are preserved.
 }
 \description{
 Enriches normalized biology rows with the analyte labels distributed with
-\code{redsan}. It can be applied to older artifacts; \code{\link[=process_biol]{process_biol()}} uses the
+\code{redsan}. It can be applied to older artifacts; \code{\link[=biol_normalize]{biol_normalize()}} uses the
 same function for new outputs.
 }
 \details{

@@ -32,10 +32,8 @@ test_that("generic ICCA retrieval queries any encounter-linked object", {
   seen <- NULL
   fake_reidentify <- function(ids, id_type, env, ks_path) {
     tibble::tibble(
-      EDSAN_ID = ids,
-      EDSAN_TYPE = "EVTID",
-      HIS_ID = "IEP-1",
-      HIS_TYPE = "IEP",
+      EVTID = ids,
+      IEP = "IEP-1",
       status = "matched",
       n_matches = 1L
     )
@@ -92,9 +90,9 @@ test_that("generic retrieval accepts another D_Encounter key only explicitly", {
   expect_error(redsan:::.icca_choose_link(object, "auto"), "broader linkage")
 })
 
-test_that("public get_icca no longer whitelists clinical sources", {
-  expect_s3_class(get_icca(character(), source = "DAR.PatientVentilation"), "tbl_df")
-  expect_s3_class(get_icca(character(), source = "dbo.PtLabResult"), "tbl_df")
-  expect_s3_class(get_icca(character(), source = "assessment"), "tbl_df")
-  expect_s3_class(get_icca(character(), source = "medication"), "tbl_df")
+test_that("public icca_get no longer whitelists clinical sources", {
+  expect_s3_class(icca_get(character(), source = "DAR.PatientVentilation"), "tbl_df")
+  expect_s3_class(icca_get(character(), source = "dbo.PtLabResult"), "tbl_df")
+  expect_s3_class(icca_get(character(), source = "assessment"), "tbl_df")
+  expect_s3_class(icca_get(character(), source = "medication"), "tbl_df")
 })

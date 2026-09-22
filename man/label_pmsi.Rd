@@ -8,7 +8,7 @@ label_pmsi(pmsi)
 }
 \arguments{
 \item{pmsi}{A list containing the \code{main}, \code{actes}, and \code{diag} data frames,
-normally returned by \code{\link[=process_pmsi]{process_pmsi()}}.}
+normally returned by \code{\link[=pmsi_normalize]{pmsi_normalize()}}.}
 }
 \value{
 The input PMSI list with \code{CODEACTE_LABEL} added to \code{actes} and
@@ -18,7 +18,7 @@ preserved.
 \description{
 Enriches normalized PMSI \code{actes} and \code{diag} tables with the reference labels
 distributed with \code{redsan}. It can be applied to older artifacts;
-\code{\link[=process_pmsi]{process_pmsi()}} uses the same function for new outputs. The \code{main} table is
+\code{\link[=pmsi_normalize]{pmsi_normalize()}} uses the same function for new outputs. The \code{main} table is
 returned unchanged.
 }
 \details{
@@ -42,7 +42,7 @@ raw <- list(list(
   NOMENCLATURE1 = "CCAM",
   DALL = "01:E46"
 ))
-normalized <- process_pmsi(raw)
+normalized <- pmsi_normalize(raw)
 labelled <- label_pmsi(normalized)
 labelled$actes[c("NOMENCLATURE", "CODEACTE", "CODEACTE_LABEL")]
 labelled$diag[c("diag", "CODE_LABEL")]

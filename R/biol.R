@@ -207,10 +207,10 @@
 #'   DATEXAM="2020-01-01 08:30",
 #'   RESULTATS=data.frame(TYPEANA="K.K", NUMRES=4.2)
 #' ))
-#' process_biol(raw)
+#' biol_normalize(raw)
 #'
 #' @export
-process_biol <- function(data) {
+biol_normalize <- function(data) {
   label_biol(
     .edsan_normalize_identifier_columns(
       .edsan_canonicalize_eltid(.biol_results(data), "biol"),
@@ -220,10 +220,20 @@ process_biol <- function(data) {
   )
 }
 
+#' Deprecated biology normalizer name
+#'
+#' @inheritParams biol_normalize
+#' @return The value returned by [biol_normalize()].
+#' @export
+process_biol <- function(data) {
+  .redsan_deprecate("process_biol", "biol_normalize")
+  biol_normalize(data)
+}
+
 #' Add reference labels to normalized biology results
 #'
 #' Enriches normalized biology rows with the analyte labels distributed with
-#' `redsan`. It can be applied to older artifacts; [process_biol()] uses the
+#' `redsan`. It can be applied to older artifacts; [biol_normalize()] uses the
 #' same function for new outputs.
 #'
 #' Results are matched to the biology reference by `TYPEANA`, producing
@@ -237,7 +247,7 @@ process_biol <- function(data) {
 #' PMSI records, and empty values become `NA`.
 #'
 #' @param biology A normalized biology data frame containing `TYPEANA`, normally
-#'   returned by [process_biol()].
+#'   returned by [biol_normalize()].
 #'
 #' @return The input biology data frame with `TYPEANA_LABEL` added, and `TYPEANA`
 #'   as character. All other columns and rows are preserved.
@@ -266,7 +276,7 @@ label_biol <- function(biology) {
     }
   }
 
-  # Older artifacts, and raw payloads normalized outside `process_biol()`, can
+  # Older artifacts, and raw payloads normalized outside `biol_normalize()`, can
   # still carry TYPEANA as a one-element list column, which the join cannot use.
   biology$TYPEANA <- .edsan_flatten_scalar_column(biology$TYPEANA)
 
@@ -294,10 +304,10 @@ label_biol <- function(biology) {
 #'   DATEPRELEV = "2024-01-01 08:30",
 #'   RESULTATS = data.frame(ANALYTE = "PCR", STRRES = "NEGATIF")
 #' ))
-#' process_viro(raw)
+#' viro_normalize(raw)
 #'
 #' @export
-process_viro <- function(data) {
+viro_normalize <- function(data) {
   .edsan_normalize_identifier_columns(
     .edsan_canonicalize_eltid(
       .biol_results(data, date_col = "DATEPRELEV"),
@@ -306,4 +316,14 @@ process_viro <- function(data) {
     "viro",
     "results"
   )
+}
+
+#' Deprecated virology normalizer name
+#'
+#' @inheritParams viro_normalize
+#' @return The value returned by [viro_normalize()].
+#' @export
+process_viro <- function(data) {
+  .redsan_deprecate("process_viro", "viro_normalize")
+  viro_normalize(data)
 }

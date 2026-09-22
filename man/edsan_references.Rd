@@ -2,20 +2,13 @@
 % Please edit documentation in R/references.R
 \name{edsan_references}
 \alias{edsan_references}
-\title{List reference mappings distributed with redsan}
+\title{Deprecated reference catalog name}
 \usage{
 edsan_references()
 }
 \value{
-A tibble with the reference \code{name}, its \code{scope}, its logical \code{key},
-and a short \code{description}.
+The reference catalog returned by \code{\link[=edsan_reference_catalog]{edsan_reference_catalog()}}.
 }
 \description{
-Returns the catalogue of code-to-label mappings available through
-\code{\link[=edsan_reference]{edsan_reference()}}. These mappings describe EDSAN source codes, national
-nomenclatures, and local organizational codes. They contain no patient data.
-}
-\examples{
-edsan_references()
-
+Deprecated reference catalog name
 }
