@@ -329,6 +329,11 @@
     stop("Identity enrichment returned duplicate field names.", call. = FALSE)
   }
 
+  direct_metadata <- c("status", "n_matches")
+  enrichment <- enrichment[
+    , setdiff(names(enrichment), direct_metadata), drop = FALSE
+  ]
+
   identifiers <- c("IPP", "IEP", "PATID", "EVTID")
   if (!allow_new_identifiers) {
     unsupported <- setdiff(intersect(names(enrichment), identifiers), names(result))

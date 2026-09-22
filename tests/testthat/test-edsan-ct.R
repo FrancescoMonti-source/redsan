@@ -248,6 +248,45 @@ test_that("edsan_ct exposes every direct direction with semantic columns", {
   }
 })
 
+test_that("edsan_ct preserves identifiers beyond safe numeric precision", {
+  large_id <- "9007199254740993"
+  fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
+    expect_identical(api_query, large_id)
+    stats::setNames(list(list(NIP = "0001234567")), large_id)
+  }
+  testthat::local_mocked_bindings(
+    .edsan_ct_call = fake_call,
+    .package = "redsan"
+  )
+
+  out <- edsan_ct(large_id, from = "PATID")
+
+  expect_identical(out$PATID, large_id)
+  expect_identical(out$IPP, "0001234567")
+})
+
+test_that("edsan_ct exposes backend and response failures as errors", {
+  failures <- list(
+    null = list(call = function(...) NULL, message = "call failed"),
+    http = list(
+      call = function(...) list(status = 500, message = "Internal Server Error"),
+      message = "Internal Server Error"
+    ),
+    malformed = list(
+      call = function(...) list(unrelated_key = "unexpected"),
+      message = "unrecognized response shape"
+    )
+  )
+
+  for (failure in failures) {
+    testthat::local_mocked_bindings(
+      .edsan_ct_call = failure$call,
+      .package = "redsan"
+    )
+    expect_error(edsan_ct("00123", from = "IPP"), failure$message)
+  }
+})
+
 test_that("edsan_ct results join directly by their source identifier", {
   fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
     list("000123" = list(NIP = "PAT-1"))
@@ -395,6 +434,32 @@ test_that("identity enrichment preserves direct multiple-match metadata", {
   expect_identical(out$PATID, c("PAT-1", "PAT-2"))
   expect_identical(out$status, rep("multiple_matches", 2L))
   expect_identical(out$n_matches, rep(2L, 2L))
+})
+
+test_that("identity payload metadata cannot replace direct-match metadata", {
+  fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
+    list(`00123` = list(NIP = "PAT-1"))
+  }
+  fake_patients <- function(patids, ks_path = NULL) {
+    tibble::tibble(
+      PATID = patids,
+      status = "identity_status",
+      n_matches = 99L,
+      NAME = "Patient"
+    )
+  }
+  testthat::local_mocked_bindings(
+    .edsan_ct_call = fake_call,
+    .edsan_patient_rows = fake_patients,
+    .package = "redsan"
+  )
+
+  out <- edsan_ct("00123", from = "IPP", identity = TRUE)
+
+  expect_identical(out$status, "matched")
+  expect_identical(out$n_matches, 1L)
+  expect_false(any(c("status.x", "status.y", "n_matches.x", "n_matches.y") %in%
+                     names(out)))
 })
 
 test_that("identity enrichment rejects contradictory identifier fields", {

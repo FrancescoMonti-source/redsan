@@ -18,11 +18,17 @@ Source files in `R/` follow `<module>-<subsystem>.R`:
 R collates and loads source files alphabetically. Files prefixed with `zzz-`, `zzzz-`, or `zzzzz-` are deliberate **collation overrides** that monkey-patch or extend earlier function definitions (e.g. `zzz-cora-diet-rdv.R`, `zzzz-edsan-desktop-direct.R`). Do not rename them to earlier alphabetical names.
 
 ### R Function Naming (`snake_case`)
-- **Public exported functions**: `<action>_<module>_<detail>()` (e.g. `trim_doceds_onnx()`, `process_doceds()`, `process_pmsi()`, `process_biol()`).
+- **Canonical domain-level exports** are domain-first. The remaining terms name
+  the concrete operation and, when needed, its object (e.g. `edsan_get()`,
+  `edsan_source_catalog()`, `edsan_get_event_bundle()`,
+  `edsan_render_event_bundle()`, `cora_query()`). Constructors may use the
+  object name directly when the return type is the operation
+  (`edsan_event_bundle()`). Established specialized exports may retain
+  action-first names until they are explicitly migrated.
 - **Internal helpers**: Dot-prefixed `.<module>_<helper>()` (e.g. `.edsan_get_trimmer_dir()`, `.doceds_onnx_validate_artifact()`).
 
 ### Test Conventions
-Unit tests live in `tests/testthat/test-<kebab-case>.R`, matching their source module (e.g. `test-doceds-trim-onnx.R`).
+Unit tests live in `tests/testthat/test-<kebab-case>.R`, matching their source module (e.g. `test-doceds-trim-onnx.R`). Package-wide public API contract tests may use a cross-module file such as `test-api-compatibility.R`.
 
 ---
 
