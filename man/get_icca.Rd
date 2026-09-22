@@ -17,9 +17,9 @@ get_icca(
 \arguments{
 \item{evtids}{Character vector of EDSaN EVTID values.}
 
-\item{source}{ICCA source to retrieve: \code{"encounter"}, \code{"assessment"}, or
-\code{"medication"}. Assessment and medication retrieval use the enriched
-\code{DAR.PtAssessment} and \code{DAR.PtMedication} reporting views.}
+\item{source}{One ICCA source name from \code{\link[=icca_catalog]{icca_catalog()}}. The convenience
+names \code{"encounter"}, \code{"assessment"}, and \code{"medication"} select the
+corresponding standard retrieval paths.}
 
 \item{link}{Link-selection policy for generic ICCA sources. \code{"auto"} uses
 the source metadata to select the supported event linkage.}

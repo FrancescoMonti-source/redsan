@@ -471,9 +471,9 @@ query_icca <- function(sql, params = NULL, connection = NULL,
 #' ICCA encounter, then returns ICCA rows keyed by the original EVTID.
 #'
 #' @param evtids Character vector of EDSaN EVTID values.
-#' @param source ICCA source to retrieve: `"encounter"`, `"assessment"`, or
-#'   `"medication"`. Assessment and medication retrieval use the enriched
-#'   `DAR.PtAssessment` and `DAR.PtMedication` reporting views.
+#' @param source One ICCA source name from [icca_catalog()]. The convenience
+#'   names `"encounter"`, `"assessment"`, and `"medication"` select the
+#'   corresponding standard retrieval paths.
 #' @param link Link-selection policy for generic ICCA sources. `"auto"` uses
 #'   the source metadata to select the supported event linkage.
 #' @param connection Optional existing ICCA DBI connection.
@@ -497,12 +497,35 @@ query_icca <- function(sql, params = NULL, connection = NULL,
 icca_get <- function(evtids, source = "encounter", link = "auto", connection = NULL,
                      instance = c("adult", "ped"),
                      env = "edsan-ct", ks_path = NULL) {
-  source <- match.arg(source, c("encounter", "assessment", "medication"))
   instance <- match.arg(instance)
 
+  if (!is.character(source) || length(source) != 1L || is.na(source) ||
+      !nzchar(trimws(source))) {
+    stop("`source` must be one non-empty ICCA source.", call. = FALSE)
+  }
+
+  source <- trimws(source)
+
+  # Preserve the public empty-input contract: validation and empty result
+  # construction must not require an ICCA connection.
   if (!length(.icca_validate_evtids(evtids))) {
-    if (identical(source, "encounter")) return(.icca_empty_encounter())
-    return(.icca_empty_detail(source))
+    if (identical(source, "encounter")) {
+      return(.icca_get_encounter(
+        evtids,
+        connection = connection,
+        env = env,
+        ks_path = ks_path
+      ))
+    }
+
+    return(.icca_get_source(
+      evtids,
+      source = source,
+      link = link,
+      connection = connection,
+      env = env,
+      ks_path = ks_path
+    ))
   }
 
   owns_connection <- is.null(connection)
@@ -520,9 +543,10 @@ icca_get <- function(evtids, source = "encounter", link = "auto", connection = N
     ))
   }
 
-  .icca_get_detail(
+  .icca_get_source(
     evtids,
     source = source,
+    link = link,
     connection = connection,
     env = env,
     ks_path = ks_path

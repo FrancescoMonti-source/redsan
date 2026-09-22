@@ -25,8 +25,9 @@ pmsi <- pmsi_normalize(raw)
 ids <- edsan_ct(c("123456789"), from = "EVTID")
 
 # Build locally, or retrieve and build.
-bundle <- edsan_event_bundle("123456789", sources)
-bundle <- edsan_get_event_bundle("123456789")
+sources <- list(pmsi = pmsi)
+local_bundle <- edsan_event_bundle("123456789", sources)
+retrieved_bundle <- edsan_get_event_bundle("123456789")
 ```
 
 Operations ending in `_catalog()` discover available things. `_get()` retrieves
@@ -215,6 +216,13 @@ carries `TYPEANA` without `TYPEANA_LABEL`, so bundles assembled from biology
 artifacts normalized before labelling existed expose the same columns. It also
 renames legacy `BIOL_ID` and `VIRO_ID` columns to canonical `ELTID`.
 
+When normalized sources are already available, construct the bundle locally:
+
+```r
+sources <- list(pmsi = pmsi, biol = biology)
+local_bundle <- edsan_event_bundle("123456789", sources)
+```
+
 Printing the bundle reports compact row counts while leaving the normalized
 source objects unchanged. Retrieval is fail-fast: if one requested module
 fails, `edsan_get_event_bundle()` does not return a silently partial bundle.
@@ -248,6 +256,25 @@ ICCA retrieval and `icca_query()` for unrestricted read-only ICCA queries.
 Already compliant discovery and description names, including
 `cora_describe_table()`, `cora_dig()`, `icca_catalog()`, `icca_describe()`, and
 `icca_relations()`, remain unchanged.
+
+```r
+# Inspect a CORA table, then query its schema explicitly.
+cora_describe_table("CORA_REC.MY_TABLE")
+cora_rows <- cora_query(
+  "SELECT * FROM CORA_REC.MY_TABLE WHERE ROWNUM <= 10"
+)
+
+# Retrieve a known ICCA source by EDSaN stay identifier.
+ventilation <- icca_get(
+  evtids = c("123456789"),
+  source = "DAR.PatientVentilation"
+)
+
+# Use a direct read-only query when retrieval by EVTID is not the intended path.
+icca_rows <- icca_query(
+  "SELECT TOP 10 * FROM DAR.PatientVentilation"
+)
+```
 
 ## Deprecated names
 
