@@ -767,3 +767,52 @@ test_that("trim_doceds_onnx handles empty inputs gracefully without spawning pro
     )
   )
 })
+
+
+test_that("the artifact spec identifies what produced a trimmed text", {
+  model_dir <- trimmer_protocol_fixture()$model_dir
+  spec <- doceds_onnx_spec(model_dir)
+
+  expect_identical(spec$package, "redsan")
+  expect_identical(spec$version, as.character(utils::packageVersion("redsan")))
+  expect_match(spec$digest, "^[0-9a-f]{64}$")
+  expect_identical(spec$digest_algorithm, "sha256")
+  expect_identical(spec$digest_schema, "doceds-onnx-artifact-v1")
+  expect_identical(spec$artifact_version, "1.2.0")
+  expect_identical(spec$worker_contract, "model-only-v1")
+
+  # A manifest that names nothing still produces a spec, because the digest is
+  # the field that answers the question. Absent prose reads as absent.
+  expect_identical(spec$artifact_name, NA_character_)
+})
+
+test_that("the digest follows the artifact and not the manifest", {
+  model_dir <- trimmer_protocol_fixture()$model_dir
+  before <- doceds_onnx_spec(model_dir)$digest
+
+  # Same artifact, asked twice: the cache must not be the reason two runs agree,
+  # so re-reading an untouched directory has to give the same answer as hashing
+  # it fresh would.
+  expect_identical(doceds_onnx_spec(model_dir)$digest, before)
+
+  # The weights moved and nobody edited `artifact_version`. This is the case the
+  # spec exists for: the version still reads 1.2.0 and the digest does not.
+  writeLines("different weights", file.path(model_dir, "model.onnx"))
+  after <- doceds_onnx_spec(model_dir)
+  expect_identical(after$artifact_version, "1.2.0")
+  expect_false(identical(after$digest, before))
+
+  # The worker script decides which documents are deleted whole, so it is part
+  # of what produced the text.
+  worker_changed <- trimmer_protocol_fixture()$model_dir
+  baseline <- doceds_onnx_spec(worker_changed)$digest
+  cat("\n# routing changed\n", file = file.path(worker_changed, "trim_batch_service.py"), append = TRUE)
+  expect_false(identical(doceds_onnx_spec(worker_changed)$digest, baseline))
+})
+
+test_that("an invalid artifact has no spec rather than an unverifiable one", {
+  model_dir <- trimmer_protocol_fixture()$model_dir
+  file.remove(file.path(model_dir, "artifact.json"))
+
+  expect_error(doceds_onnx_spec(model_dir), "missing required files")
+})
