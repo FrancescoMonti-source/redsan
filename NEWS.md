@@ -1,3 +1,11 @@
+# redsan (development)
+
+- Retire the regex trimmer (`trim_doceds_text()`), its provenance API
+  (`doceds_trim_spec()`), family summaries (`doceds_family_chars()`), and
+  regex-specific audit tools. Use `trim_doceds_onnx()` and `doceds_onnx_spec()`.
+  This is a breaking removal: callers must adopt the model runtime and its
+  output contract; there is no automatic fallback or API alias.
+
 # redsan 0.4.1
 
 - Add `trim_doceds_onnx()`, which orchestrates a compatible versioned

@@ -16,11 +16,9 @@ A list describing the artifact: \code{package}, \code{version}, \code{digest},
 \code{artifact_version}, \code{worker_contract} and \code{model_type}.
 }
 \description{
-The counterpart of \code{\link[=doceds_trim_spec]{doceds_trim_spec()}} for \code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}}. A caller
-that records a trimmed text needs to be able to say afterwards what produced
-it, and the two trimmers answer that question from different material: the
-heuristic one from the text of its own rules, this one from the runtime
-artifact it hands the documents to.
+Identifies the runtime artifact used by \code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}}.
+A caller can record this specification alongside trimmed text to identify
+what produced it.
 }
 \details{
 \code{digest} is the field to compare between two runs. It is derived from the
@@ -30,5 +28,5 @@ artifact that changed changed it whether or not anybody edited
 because they are what a human reads, not because they can be trusted to move.
 }
 \seealso{
-\code{\link[=doceds_trim_spec]{doceds_trim_spec()}}, \code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}}
+\code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}}
 }

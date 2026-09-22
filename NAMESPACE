@@ -7,9 +7,7 @@ export(build_event_bundles)
 export(cora_describe_table)
 export(cora_dig)
 export(count_idtriplets)
-export(doceds_family_chars)
 export(doceds_onnx_spec)
-export(doceds_trim_spec)
 export(edsan_install_trimmer)
 export(edsan_pseudonymize)
 export(edsan_reference)
@@ -39,7 +37,6 @@ export(query_icca)
 export(render_event_bundle)
 export(sync_d2im_keystore)
 export(trim_doceds_onnx)
-export(trim_doceds_text)
 importFrom(dplyr,
   any_of,
   bind_cols,

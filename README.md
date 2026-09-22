@@ -200,62 +200,6 @@ model-specific prompt.
 
 ## Trimming DOCEDS boilerplate
 
-A DOCEDS document is mostly not clinical text. A consultation letter is fifty
-lines of letterhead, correspondence block and RGPD notice around one paragraph,
-plus whatever residue the Word template left behind. `trim_doceds_text()`
-removes that frame from one document and reports exactly what it took.
-
-```r
-trimmed <- trim_doceds_text(bundle$sources$doceds$RECTXT[[1L]])
-trimmed$text                  # what survives
-trimmed$net_removed_chars     # the only total in the list
-trimmed$removed_intervals     # every span removed, in original coordinates
-```
-
-The administrative families are normalization: they remove the document frame
-and are meant never to touch what a clinician wrote. The optional `lab_table`
-family is deliberately different. It is disabled by default because it removes
-recognised pasted laboratory tables, including the clinical values they contain.
-Callers that deliberately exclude those tables from their evidence scope must
-request `remove_lab_tables = TRUE` explicitly.
-
-Two properties are the reason it can be trusted, and both are worth knowing
-before changing anything here:
-
-- **Every rule contributes spans, none edits the string.** Candidate spans are
-  collected in the coordinates of the original document, lines carrying a
-  measured constant (`TA : 130/80`, `Poids : 144 kg`) are subtracted from them,
-  and what survives is applied in one pass. That is what makes removals
-  auditable and order-independent, and what lets a family that swallowed a vital
-  sign give it back.
-- **Every per-rule count is standalone.** They measure what a rule would remove
-  on its own, so they overlap each other and must not be summed. Only
-  `net_removed_chars` is a total. `doceds_family_chars()` aggregates the
-  per-family counts across documents on the same basis.
-
-`near_total_match_detected` is a diagnostic for one failure — a rule that ran
-away on an unseen layout and matched essentially the whole document — and not a
-safety margin. A document losing 99.4 percent is not clinically different from
-one losing 99.6.
-
-`doceds_trim_spec()` reports which rules ran, for a caller that wants to record
-what produced a result alongside the result. Compare its `digest`: it is a
-SHA-256 digest, computed with `digest::digest()` over canonical UTF-8 rule bytes
-with R serialization disabled. It covers every pattern and threshold the
-trimmer holds, and the set is read from the namespace rather than listed, so a
-rule added tomorrow enters it by itself. The rule names carry no version on
-purpose — a version somebody has to remember can only fail by staying put while
-the rules move. What the digest does not cover is the code applying the rules,
-which is what `version` records.
-
-The families are **site-specific** to the Rouen corpus they were measured
-against, and a family that fires on nothing is wrong rather than inapplicable.
-`tools/` holds the three instruments that priced them and check the
-administrative boundary, with the measured baseline and the reasoning in
-`tools/README.md`. Read it before adding or widening a family.
-
-### Contextual ML Trimming with DrBERT (`trim_doceds_onnx`)
-
 For contextual document trimming, `redsan` provides `trim_doceds_onnx()`, backed
 by a compatible versioned runtime artifact from `edsan-doc-trimmer`.
 
@@ -279,7 +223,7 @@ clean_cohort <- trim_doceds_onnx(denut)
 Cohort batching sends all non-empty texts in one worker request and maps results
 back by document identity. Original rows, source identifiers, unrelated columns,
 classes, names, and attributes are preserved. Empty DOCEDS tables receive the
-same four output columns without starting the worker.
+same three output columns without starting the worker.
 
 The versioned runtime artifact must contain the model, tokenizer, worker, and an
 `artifact.json` manifest declaring the compatible worker contract. `redsan`

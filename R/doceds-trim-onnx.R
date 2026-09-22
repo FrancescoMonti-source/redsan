@@ -752,11 +752,9 @@ edsan_install_trimmer <- function(
 
 #' Which trimmer artifact produced a DrBERT-trimmed text
 #'
-#' The counterpart of [doceds_trim_spec()] for [trim_doceds_onnx()]. A caller
-#' that records a trimmed text needs to be able to say afterwards what produced
-#' it, and the two trimmers answer that question from different material: the
-#' heuristic one from the text of its own rules, this one from the runtime
-#' artifact it hands the documents to.
+#' Identifies the runtime artifact used by [trim_doceds_onnx()].
+#' A caller can record this specification alongside trimmed text to identify
+#' what produced it.
 #'
 #' `digest` is the field to compare between two runs. It is derived from the
 #' weights, the tokenizer, the worker script and the manifest themselves, so an
@@ -770,7 +768,7 @@ edsan_install_trimmer <- function(
 #' @return A list describing the artifact: `package`, `version`, `digest`,
 #'   `digest_algorithm`, `digest_schema`, and the manifest's `artifact_name`,
 #'   `artifact_version`, `worker_contract` and `model_type`.
-#' @seealso [doceds_trim_spec()], [trim_doceds_onnx()]
+#' @seealso [trim_doceds_onnx()]
 #' @export
 doceds_onnx_spec <- function(model_dir = NULL) {
   if (is.null(model_dir)) {

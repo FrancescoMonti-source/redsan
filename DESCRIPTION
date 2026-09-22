@@ -16,8 +16,8 @@ Description: Retrieves and normalizes EDSAN health data warehouse modules for
     downstream analysis. The package records module-level source contracts,
     batches live API calls, and prepares PMSI and biology/virology payloads into stable
     analysis tables while preserving native identifiers. Document text can be
-    normalized with auditable removal of configured administrative and pasted
-    laboratory spans.
+    trimmed through a versioned model runtime with auditable preserved source
+    intervals.
 License: file LICENSE
 Encoding: UTF-8
 Imports:

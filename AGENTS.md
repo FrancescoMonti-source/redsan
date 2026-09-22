@@ -8,7 +8,7 @@
 
 ### R File Naming (`kebab-case`)
 Source files in `R/` follow `<module>-<subsystem>.R`:
-- `doceds-trim.R`, `doceds-trim-onnx.R`, `doceds-structure.R`, `doceds-trim-patterns.R`
+- `doceds-trim-onnx.R`, `doceds-structure.R`
 - `event-bundle.R`, `event-bundle-render.R`
 - `cora-diet.R`, `cora-explore.R`
 - `edsan-ct.R`, `edsan-patient-reidentify.R`
@@ -18,43 +18,26 @@ Source files in `R/` follow `<module>-<subsystem>.R`:
 R collates and loads source files alphabetically. Files prefixed with `zzz-`, `zzzz-`, or `zzzzz-` are deliberate **collation overrides** that monkey-patch or extend earlier function definitions (e.g. `zzz-cora-diet-rdv.R`, `zzzz-edsan-desktop-direct.R`). Do not rename them to earlier alphabetical names.
 
 ### R Function Naming (`snake_case`)
-- **Public exported functions**: `<action>_<module>_<detail>()` (e.g. `trim_doceds_onnx()`, `trim_doceds_text()`, `process_doceds()`, `process_pmsi()`, `process_biol()`).
-- **Internal helpers**: Dot-prefixed `.<module>_<helper>()` (e.g. `.edsan_get_trimmer_dir()`, `.widest_join()`, `.merge_intervals()`).
+- **Public exported functions**: `<action>_<module>_<detail>()` (e.g. `trim_doceds_onnx()`, `process_doceds()`, `process_pmsi()`, `process_biol()`).
+- **Internal helpers**: Dot-prefixed `.<module>_<helper>()` (e.g. `.edsan_get_trimmer_dir()`, `.doceds_onnx_validate_artifact()`).
 
 ### Test Conventions
-Unit tests live in `tests/testthat/test-<kebab-case>.R`, matching their source module (e.g. `test-doceds-trim-spec.R`, `test-doceds-trim-onnx.R`).
+Unit tests live in `tests/testthat/test-<kebab-case>.R`, matching their source module (e.g. `test-doceds-trim-onnx.R`).
 
 ---
 
-## Dual Document Trimmer Architecture
+## Document Trimming
 
-`redsan` provides two complementary trimmers for `DOCEDS` texts:
+`trim_doceds_onnx()` is the sole document trimmer. It delegates inference to a
+versioned `edsan-doc-trimmer` artifact and accepts character vectors, tables,
+event bundles, and lists of bundles. Tables retain original text and receive
+`RECTXT_TRIMMED`, `TRIM_REDUCTION_PCT`, and `TRIM_PRESERVED_INTERVALS`.
+Preserved intervals refer to exact source coordinates and are stored as JSON.
 
-| Property | Heuristic Regex Trimmer (`trim_doceds_text`) | DrBERT ML Trimmer (`trim_doceds_onnx`) |
-|---|---|---|
-| **Location** | `R/doceds-trim.R` | `R/doceds-trim-onnx.R` |
-| **Input** | Scalar character string (`text`) | Character vector, `data.frame`/`tibble`, single `edsan_event_bundle`, or list of bundles |
-| **Output** | List with `text` and `removed_intervals` | Character vector, or augmented table/bundle(s) with `RECTXT_TRIMMED`, `TRIM_REDUCTION_PCT`, and `TRIM_PRESERVED_INTERVALS` (serialized JSON character) |
-| **Strategy** | Deterministic removal of known CHU Rouen letterhead patterns | Contextual sequence classification using `DrBERT/DrBERT-7GB` |
-| **Grounding** | Negative: tracks removed character spans | Positive: tracks preserved clinical character intervals `[start, end]` |
-| **Runtime** | Pure R, zero external dependencies | Versioned background Python worker invoked with `processx` |
-| **Batching** | Sequential character string mapping | High-performance cohort batching: extracts texts across stays, runs one forward pass, maps back without altering schemas |
-| **Offline HDW** | Built-in | Requires one-time `edsan_install_trimmer("path/to/zip")` |
-| **Provenance** | `doceds_trim_spec()` | `doceds_onnx_spec()` |
-
-### Provenance: what produced a trimmed text
-
-Each trimmer reports its own identity, so a caller can record what produced a
-text and compare two runs afterwards. Both specs carry a `digest` field, and
-that is the field to compare. Neither digest is a version number that somebody
-maintains: each is derived from the material that decides the output, so the
-material changed means the digest changed, whether or not anybody said so.
-
-- `doceds_trim_spec()` digests the **text of the rules** in `doceds-trim.R`.
-- `doceds_onnx_spec()` digests the **runtime artifact**: `model.onnx`,
-  `tokenizer.json`, `trim_batch_service.py` and `artifact.json`. The worker
-  script is in there because it decides which documents are removed whole, so
-  two artifacts with the same weights and different routing must not agree.
+`doceds_onnx_spec()` identifies the runtime artifact by hashing `model.onnx`,
+`tokenizer.json`, `trim_batch_service.py`, and `artifact.json`.
+The regex trimmer and its audit workflows have been retired; do not restore
+parallel heuristic trimming or its provenance API.
 
 **Why the ONNX digest is cached.** `model.onnx` is 442 MB, and a caller that
 builds one catalog per stay would hash it once per stay - about 13 minutes over
@@ -77,7 +60,7 @@ was computed.
 
 ## Key Reference Documentation
 
-- **Trimming heuristics rationale & prose audit**: See [`tools/README.md`](tools/README.md).
+- **Trimmer artifact validation**: See [`tools/README.md`](tools/README.md).
 - **Hospital database connection & driver setup**: See [`docs/source-access/`](docs/source-access).
 
 ---
