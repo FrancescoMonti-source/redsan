@@ -153,6 +153,20 @@ test_that("malformed worker output is rejected", {
   )
 })
 
+test_that("legacy worker response fields are rejected", {
+  fixture <- trimmer_protocol_fixture("results[[1L]]$is_bt <- FALSE")
+  on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
+
+  expect_error(
+    trim_doceds_onnx(
+      "Clinical narrative",
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir
+    ),
+    "Trimmer worker returned an invalid result for document doc_1"
+  )
+})
+
 test_that("grounding intervals must match the original RECTXT", {
   fixture <- trimmer_protocol_fixture(
     "results[[1L]]$preserved_intervals[[1L]]$text <- 'Different text'"

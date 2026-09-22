@@ -373,7 +373,9 @@ trim_doceds_onnx <- function(
       without_whitespace(item$trimmed_text),
       without_whitespace(interval_text)
     )
+  legacy_fields_absent <- !"is_bt" %in% names(item)
   valid <- is.list(item) &&
+    legacy_fields_absent &&
     scalar_character(item$id) &&
     identical(item$id, document_id) &&
     trimmed_text_grounded &&

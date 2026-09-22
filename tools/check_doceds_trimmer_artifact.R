@@ -30,8 +30,8 @@ input <- data.frame(
       "Saturation 91 %. Amoxicilline 1 g trois fois par jour."
     ),
     paste(
-      "FORMCHECKBOX\nHospitalisation pour insuffisance cardiaque.",
-      "Furosémide 40 mg. Surveillance du poids et de la créatinine."
+      "FORMCHECKBOX\nDiagnostic: insuffisance cardiaque.",
+      "Poids 72 kg. Furosémide 40 mg."
     )
   ),
   acceptance_order = c(4L, 3L, 2L, 1L),
@@ -64,7 +64,12 @@ output_columns <- c(
   "TRIM_PRESERVED_INTERVALS"
 )
 voucher_rows <- match(c("bt", "ordon"), result$ELTID)
-preserved_rows <- match(c("unrelated", "blank"), result$ELTID)
+contains_all <- function(text, phrases) {
+  all(vapply(phrases, grepl, logical(1), x = text, fixed = TRUE))
+}
+unrelated_text <- result$RECTXT_TRIMMED[[match("unrelated", result$ELTID)]]
+blank_rectype_text <- result$RECTXT_TRIMMED[[match("blank", result$ELTID)]]
+missing_rectype_text <- missing_result$RECTXT_TRIMMED[[1L]]
 stopifnot(
   identical(result$ELTID, input$ELTID),
   identical(result$RECTYPE, input$RECTYPE),
@@ -78,8 +83,18 @@ stopifnot(
   all(result$RECTXT_TRIMMED[voucher_rows] == ""),
   all(result$TRIM_REDUCTION_PCT[voucher_rows] == 100),
   all(result$TRIM_PRESERVED_INTERVALS[voucher_rows] == "[]"),
-  all(nzchar(result$RECTXT_TRIMMED[preserved_rows])),
-  nzchar(missing_result$RECTXT_TRIMMED),
+  contains_all(
+    unrelated_text,
+    c("Diagnostic: pneumopathie", "Saturation 91 %", "Amoxicilline 1 g")
+  ),
+  contains_all(
+    blank_rectype_text,
+    c("Diagnostic: insuffisance cardiaque", "Poids 72 kg", "Furosémide 40 mg")
+  ),
+  contains_all(
+    missing_rectype_text,
+    c("diabète", "metformine", "850 mg")
+  ),
   all(vapply(result$TRIM_PRESERVED_INTERVALS, jsonlite::validate, logical(1))),
   all(vapply(
     missing_result$TRIM_PRESERVED_INTERVALS,
