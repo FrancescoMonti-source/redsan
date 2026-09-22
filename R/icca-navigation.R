@@ -414,7 +414,7 @@ print.icca_description <- function(x, ...) {
 
 .icca_get_source <- function(evtids, source, link = "auto", connection = NULL,
                              env = "edsan-ct", ks_path = NULL,
-                             reidentify = .edsan_ct_legacy_reidentify,
+                             reidentify = .icca_ct_correspondence,
                              query = icca_query,
                              metadata = .icca_object_metadata) {
   evtids <- .icca_validate_evtids(evtids)

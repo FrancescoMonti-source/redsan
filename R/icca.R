@@ -254,7 +254,7 @@ query_icca <- function(sql, params = NULL, connection = NULL,
 }
 
 .icca_evtid_map <- function(evtids, env = "edsan-ct", ks_path = NULL,
-                            reidentify = .edsan_ct_legacy_reidentify) {
+                            reidentify = .icca_ct_correspondence) {
   mapping <- reidentify(
     evtids,
     id_type = "EVTID",
@@ -262,12 +262,12 @@ query_icca <- function(sql, params = NULL, connection = NULL,
     ks_path = ks_path
   )
 
-  keep <- !is.na(mapping$HIS_ID) & nzchar(as.character(mapping$HIS_ID))
+  keep <- !is.na(mapping$IEP) & nzchar(as.character(mapping$IEP))
   mapping <- mapping[keep, , drop = FALSE]
 
   tibble::tibble(
-    EVTID = as.character(mapping$EDSAN_ID),
-    .IEP = as.character(mapping$HIS_ID)
+    EVTID = as.character(mapping$EVTID),
+    .IEP = as.character(mapping$IEP)
   )
 }
 

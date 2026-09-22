@@ -39,10 +39,8 @@ test_that("get_icca uses transient IEPs and returns EVTIDs", {
   seen <- NULL
   fake_reidentify <- function(ids, id_type, env, ks_path) {
     tibble::tibble(
-      EDSAN_ID = ids,
-      EDSAN_TYPE = "EVTID",
-      HIS_ID = c("IEP-1", "IEP-2"),
-      HIS_TYPE = "IEP",
+      EVTID = ids,
+      IEP = c("IEP-1", "IEP-2"),
       status = "matched",
       n_matches = 1L
     )
@@ -71,13 +69,49 @@ test_that("get_icca uses transient IEPs and returns EVTIDs", {
   expect_false("encounterNumber" %in% names(out))
 })
 
+test_that("public icca_get consumes canonical EDSaN CT correspondences", {
+  fake_ct_call <- function(api_fct, api_type, api_query, env, ks_path) {
+    expect_identical(api_fct, "getEDSaNToHISCorrespondences")
+    expect_identical(api_type, "CPAGE")
+    expect_identical(api_query, "EVT-1")
+    list(`EVT-1` = list(CPAGE = "IEP-1"))
+  }
+  fake_query <- function(sql, params = NULL, connection = NULL) {
+    expect_match(sql, "D_Encounter", fixed = TRUE)
+    expect_identical(params, "IEP-1")
+    tibble::tibble(
+      encounterId = 11L,
+      patientId = 1L,
+      episodeId = 101L,
+      encounterNumber = "IEP-1",
+      gender = "F",
+      primaryDiagnosis = NA_character_,
+      isArchived = FALSE,
+      systemId = 7L
+    )
+  }
+  testthat::local_mocked_bindings(
+    .edsan_ct_call = fake_ct_call,
+    icca_query = fake_query,
+    .package = "redsan"
+  )
+
+  out <- icca_get(
+    "EVT-1",
+    source = "encounter",
+    connection = structure(list(), class = "fake_connection")
+  )
+
+  expect_identical(out$EVTID, "EVT-1")
+  expect_identical(out$encounterId, 11L)
+  expect_false("encounterNumber" %in% names(out))
+})
+
 test_that("get_icca trusts multiple mappings returned by CT", {
   fake_multiple <- function(ids, id_type, env, ks_path) {
     tibble::tibble(
-      EDSAN_ID = c("EVT-1", "EVT-1"),
-      EDSAN_TYPE = "EVTID",
-      HIS_ID = c("IEP-1", "IEP-2"),
-      HIS_TYPE = "IEP",
+      EVTID = c("EVT-1", "EVT-1"),
+      IEP = c("IEP-1", "IEP-2"),
       status = "multiple_matches",
       n_matches = 2L
     )
@@ -108,10 +142,8 @@ test_that("missing CT mappings produce no SQL query", {
     "EVT-1",
     reidentify = function(ids, id_type, env, ks_path) {
       tibble::tibble(
-        EDSAN_ID = ids,
-        EDSAN_TYPE = "EVTID",
-        HIS_ID = NA_character_,
-        HIS_TYPE = "IEP",
+        EVTID = ids,
+        IEP = NA_character_,
         status = "not_found",
         n_matches = 0L
       )
@@ -143,10 +175,8 @@ test_that("assessment retrieval uses DAR and preserves ICCA long rows", {
   seen_detail_sql <- NULL
   fake_reidentify <- function(ids, id_type, env, ks_path) {
     tibble::tibble(
-      EDSAN_ID = ids,
-      EDSAN_TYPE = "EVTID",
-      HIS_ID = "IEP-1",
-      HIS_TYPE = "IEP",
+      EVTID = ids,
+      IEP = "IEP-1",
       status = "matched",
       n_matches = 1L
     )
@@ -195,10 +225,8 @@ test_that("medication retrieval uses DAR and preserves ICCA long rows", {
   seen_detail_sql <- NULL
   fake_reidentify <- function(ids, id_type, env, ks_path) {
     tibble::tibble(
-      EDSAN_ID = ids,
-      EDSAN_TYPE = "EVTID",
-      HIS_ID = "IEP-1",
-      HIS_TYPE = "IEP",
+      EVTID = ids,
+      IEP = "IEP-1",
       status = "matched",
       n_matches = 1L
     )

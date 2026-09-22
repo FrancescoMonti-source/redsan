@@ -32,10 +32,8 @@ test_that("generic ICCA retrieval queries any encounter-linked object", {
   seen <- NULL
   fake_reidentify <- function(ids, id_type, env, ks_path) {
     tibble::tibble(
-      EDSAN_ID = ids,
-      EDSAN_TYPE = "EVTID",
-      HIS_ID = "IEP-1",
-      HIS_TYPE = "IEP",
+      EVTID = ids,
+      IEP = "IEP-1",
       status = "matched",
       n_matches = 1L
     )
