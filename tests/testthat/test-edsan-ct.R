@@ -568,3 +568,80 @@ test_that("legacy CT entry points warn and preserve their result contracts", {
   expect_identical(names(reidentified), c("PATID", "IPP"))
   expect_identical(reidentified$IPP, "IPP-123")
 })
+
+test_that("legacy pseudonymization preserves correspondence edge cases", {
+  large_iep <- "9007199254740993"
+  fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
+    if (identical(api_type, "NIP")) {
+      return(list(`00123` = list(NIP = c("PAT-1", "PAT-2"))))
+    }
+
+    stats::setNames(
+      list(list(CPAGE = "EVT-LARGE")),
+      large_iep
+    )
+  }
+  testthat::local_mocked_bindings(
+    .edsan_ct_call = fake_call,
+    .package = "redsan"
+  )
+
+  out <- NULL
+  expect_warning(
+    out <- edsan_pseudonymize(c("00123", large_iep, "00123", "404")),
+    "use `edsan_ct\\(\\)`"
+  )
+
+  expect_identical(
+    out$HIS_ID,
+    c("00123", "00123", large_iep, "00123", "00123", "404")
+  )
+  expect_identical(
+    out$HIS_TYPE,
+    c("IPP", "IPP", "IEP", "IPP", "IPP", "IEP")
+  )
+  expect_identical(
+    out$EDSAN_ID,
+    c("PAT-1", "PAT-2", "EVT-LARGE", "PAT-1", "PAT-2", NA_character_)
+  )
+  expect_identical(
+    out$status,
+    c(
+      "multiple_matches", "multiple_matches", "matched",
+      "multiple_matches", "multiple_matches", "not_found"
+    )
+  )
+  expect_identical(out$n_matches, c(2L, 2L, 1L, 2L, 2L, 0L))
+})
+
+test_that("legacy reidentification preserves correspondence edge cases", {
+  large_patid <- "9007199254740993"
+  fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
+    list(
+      `9007199254740993` = list(NIP = "0000123"),
+      `123` = list(NIP = c("0001", "0002"))
+    )
+  }
+  testthat::local_mocked_bindings(
+    .edsan_ct_call = fake_call,
+    .package = "redsan"
+  )
+
+  out <- NULL
+  expect_warning(
+    out <- edsan_reidentify(
+      c(large_patid, "123", large_patid, "404"),
+      id_type = "PATID"
+    ),
+    "use `edsan_ct\\(\\)`"
+  )
+
+  expect_identical(
+    out$PATID,
+    c(large_patid, "123", "123", large_patid, "404")
+  )
+  expect_identical(
+    out$IPP,
+    c("0000123", "0001", "0002", "0000123", NA_character_)
+  )
+})

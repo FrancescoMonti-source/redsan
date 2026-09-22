@@ -27,41 +27,61 @@ test_that("normalizer aliases warn and delegate", {
   )
 })
 
-test_that("CORA and ICCA aliases warn and delegate", {
+test_that("CORA and ICCA exported queries retain legacy behavior", {
+  connection <- structure(list(), class = "fake_connection")
   testthat::local_mocked_bindings(
-    cora_query = function(sql, connection = NULL, ojdbc_jar = NULL) sql,
-    icca_query = function(sql, params = NULL, connection = NULL,
-                          instance = c("adult", "ped")) {
-      list(sql = sql, params = params, instance = instance)
+    .cora_execute = function(connection, sql) {
+      expect_s3_class(connection, "fake_connection")
+      expect_identical(sql, "SELECT 1 AS n FROM dual")
+      tibble::tibble(n = 1L)
     },
-    icca_get = function(evtids, source = "encounter", link = "auto",
-                        connection = NULL, instance = c("adult", "ped"),
-                        env = "edsan-ct", ks_path = NULL) {
-      list(evtids = evtids, source = source, link = link, instance = instance)
+    .icca_execute = function(connection, sql, params) {
+      expect_s3_class(connection, "fake_connection")
+      expect_identical(sql, "SELECT ? AS n")
+      expect_identical(params, list(7L))
+      tibble::tibble(n = 7L)
     },
     .package = "redsan"
   )
 
+  canonical_cora <- cora_query(
+    "SELECT 1 AS n FROM dual",
+    connection = connection
+  )
+  legacy_cora <- NULL
   expect_warning(
-    expect_identical(query_cora("SELECT 1"), "SELECT 1"),
+    legacy_cora <- query_cora(
+      "SELECT 1 AS n FROM dual",
+      connection = connection
+    ),
     "use `cora_query\\(\\)`"
   )
-  legacy_query <- NULL
+  expect_identical(legacy_cora, canonical_cora)
+
+  canonical_icca <- icca_query(
+    "SELECT ? AS n",
+    params = 7L,
+    connection = connection
+  )
+  legacy_icca <- NULL
   expect_warning(
-    legacy_query <- query_icca("SELECT 1", params = 1, instance = "ped"),
+    legacy_icca <- query_icca(
+      "SELECT ? AS n",
+      params = 7L,
+      connection = connection,
+      instance = "ped"
+    ),
     "use `icca_query\\(\\)`"
   )
-  expect_identical(legacy_query$params, 1)
-  expect_identical(legacy_query$instance, "ped")
+  expect_identical(legacy_icca, canonical_icca)
 
+  canonical_get <- icca_get(character(), source = "DAR.PatientVentilation")
   legacy_get <- NULL
   expect_warning(
-    legacy_get <- get_icca("E1", source = "assessment", link = "direct"),
+    legacy_get <- get_icca(character(), source = "DAR.PatientVentilation"),
     "use `icca_get\\(\\)`"
   )
-  expect_identical(legacy_get$evtids, "E1")
-  expect_identical(legacy_get$source, "assessment")
-  expect_identical(legacy_get$link, "direct")
+  expect_identical(legacy_get, canonical_get)
 })
 
 test_that("the domain-first API is exported", {
