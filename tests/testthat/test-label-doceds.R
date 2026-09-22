@@ -13,7 +13,7 @@ test_that("label_doceds joins rectypes, keeping unmatched and list-column keys",
 })
 
 test_that("process_doceds tolerates a payload without RECTYPE", {
-  bare <- process_doceds(data.frame(ELTID = "L1", stringsAsFactors = FALSE))
+  bare <- doceds_normalize(data.frame(ELTID = "L1", stringsAsFactors = FALSE))
 
   expect_false("RECTYPE_LABEL" %in% names(bare))
   expect_identical(nrow(bare), 1L)
@@ -29,7 +29,7 @@ test_that("event bundles guarantee RECTYPE_LABEL on doceds", {
     )
   )
 
-  bundle <- build_event_bundle("E1", sources)
+  bundle <- edsan_event_bundle("E1", sources)
 
   expect_identical(bundle$sources$doceds$RECTYPE_LABEL, "Action Juridique Std")
 })

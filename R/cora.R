@@ -17,12 +17,12 @@
   check <- trimws(.cora_sql_for_validation(sql_without_trailing_semicolon))
 
   if (grepl(";", check, fixed = TRUE)) {
-    stop("`query_cora()` accepts exactly one SQL statement.", call. = FALSE)
+    stop("`cora_query()` accepts exactly one SQL statement.", call. = FALSE)
   }
 
   if (!grepl("(?is)^(select\\b|with\\b)", check, perl = TRUE)) {
     stop(
-      "`query_cora()` accepts read-only SELECT queries (including CTEs) only.",
+      "`cora_query()` accepts read-only SELECT queries (including CTEs) only.",
       call. = FALSE
     )
   }
@@ -42,7 +42,7 @@
   )
   if (grepl(write_pattern, check, perl = TRUE) ||
       grepl("(?i)\\bfor\\s+update\\b", check, perl = TRUE)) {
-    stop("`query_cora()` rejects SQL that can modify or lock database state.",
+    stop("`cora_query()` rejects SQL that can modify or lock database state.",
          call. = FALSE)
   }
 
@@ -100,7 +100,7 @@
 #'   and `SELECT ... FOR UPDATE` are rejected.
 #' @param connection Optional existing CORA DBI connection. When `NULL`,
 #'   `redsan` opens a transient JDBC connection and closes it before returning.
-#'   A caller-supplied connection is never closed by `query_cora()`.
+#'   A caller-supplied connection is never closed by `cora_query()`.
 #' @param ojdbc_jar Optional path to an Oracle JDBC driver. When omitted,
 #'   `redsan` resolves the driver automatically from `REDSAN_OJDBC_JAR`, the
 #'   standard CORA workstation installation, or known Podsan Oracle paths.
@@ -121,19 +121,29 @@
 #'
 #' @examples
 #' \dontrun{
-#' query_cora("SELECT USER AS session_user FROM dual")
+#' cora_query("SELECT USER AS session_user FROM dual")
 #'
-#' query_cora(
+#' cora_query(
 #'   "SELECT owner, table_name
 #'    FROM all_tables
 #'    WHERE owner = 'CORA_REC' AND ROWNUM <= 10"
 #' )
 #' }
 #' @export
-query_cora <- function(sql, connection = NULL, ojdbc_jar = NULL) {
+cora_query <- function(sql, connection = NULL, ojdbc_jar = NULL) {
   .cora_query(
     sql = sql,
     connection = connection,
     ojdbc_jar = ojdbc_jar
   )
+}
+
+#' Deprecated CORA query name
+#'
+#' @inheritParams cora_query
+#' @return The value returned by [cora_query()].
+#' @export
+query_cora <- function(sql, connection = NULL, ojdbc_jar = NULL) {
+  .redsan_deprecate("query_cora", "cora_query")
+  cora_query(sql = sql, connection = connection, ojdbc_jar = ojdbc_jar)
 }

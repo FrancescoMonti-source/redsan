@@ -7,14 +7,40 @@ module query rules, batching, parsing, and normalized source tables live here.
 Downstream projects should use `redsan` outputs for evidence selection and
 measurement rather than reimplementing EDSAN batching or payload parsing.
 
-## Source model
+## Public API grammar
 
-Use `edsan_sources()` to inspect the package's known source contracts:
+The central API is domain-first. Function names identify the system or source
+first and then the operation:
 
 ```r
-edsan_sources()
-edsan_sources("pmsi")
-edsan_sources("pmsi", "diag")
+# Discover available contracts and references.
+edsan_source_catalog()
+edsan_reference_catalog()
+
+# Retrieve, then normalize an already available raw payload when needed.
+raw <- edsan_get("pmsi", process = FALSE)
+pmsi <- pmsi_normalize(raw)
+
+# Translate identifiers through EDSaN CT.
+ids <- edsan_ct(c("123456789"), from = "EVTID")
+
+# Build locally, or retrieve and build.
+bundle <- edsan_event_bundle("123456789", sources)
+bundle <- edsan_get_event_bundle("123456789")
+```
+
+Operations ending in `_catalog()` discover available things. `_get()` retrieves
+data, `_normalize()` transforms data already available to the caller, and
+`_render()` serializes an existing object.
+
+## Source model
+
+Use `edsan_source_catalog()` to inspect the package's known source contracts:
+
+```r
+edsan_source_catalog()
+edsan_source_catalog("pmsi")
+edsan_source_catalog("pmsi", "diag")
 ```
 
 The registry records each module's normalized table, row grain, identifiers,
@@ -36,11 +62,11 @@ Current modules:
 
 ## Basic workflow
 
-Live retrieval through `get_edsan()` requires the EDSAN client package `d2imr`
+Live retrieval through `edsan_get()` requires the EDSAN client package `d2imr`
 to be installed in the calling environment.
 
 ```r
-raw_pmsi <- get_edsan(
+raw_pmsi <- edsan_get(
   module = "pmsi",
   what = "data",
   query = list(DATENT = c("2024-01-01", "2024-01-31")),
@@ -51,21 +77,21 @@ raw_pmsi <- get_edsan(
   process = FALSE
 )
 
-pmsi <- process_pmsi(raw_pmsi)
+pmsi <- pmsi_normalize(raw_pmsi)
 pmsi$main
 pmsi$actes
 pmsi$diag
 
-pmsi_all_sources <- process_pmsi(raw_pmsi, source_policy = "all")
+pmsi_all_sources <- pmsi_normalize(raw_pmsi, source_policy = "all")
 ```
 
-`process_pmsi()` returns exactly `list(main, actes, diag)`. Its default
+`pmsi_normalize()` returns exactly `list(main, actes, diag)`. Its default
 `source_policy = "c_over_dw"` applies the PMSI rule `C > DW` within each
 `PATID + EVTID + SEJUM + SEJUF`: `DW` is removed where `C` exists and remains
 the fallback otherwise. `source_policy = "all"` retains every normalized
 `main` row. Event limits inherited by `actes` and `diag` are always derived
 from the complete `main` before that policy is applied; the two detail tables
-are not source-filtered. `process_pmsi()` reuses `label_pmsi()` to add the
+are not source-filtered. `pmsi_normalize()` reuses `label_pmsi()` to add the
 matching CIM-10 `CODE_LABEL` to `diag` and CCAM/CDAM `CODEACTE_LABEL` to
 `actes`. Original codes and rows are preserved; unknown codes receive a
 missing label.
@@ -73,7 +99,7 @@ missing label.
 The same choice is available without breaking the retrieval flow:
 
 ```r
-pmsi_all_sources <- get_edsan(
+pmsi_all_sources <- edsan_get(
   module = "pmsi",
   what = "data",
   query = list(DATENT = c("2024-01-01", "2024-01-31")),
@@ -81,28 +107,28 @@ pmsi_all_sources <- get_edsan(
 )
 ```
 
-Passing `process = FALSE` to `get_edsan()` instead keeps the raw payload
+Passing `process = FALSE` to `edsan_get()` instead keeps the raw payload
 available when retrieval and normalization need to be audited separately.
 
 ```r
-raw_biol <- get_edsan(
+raw_biol <- edsan_get(
   module = "biol",
   what = "data",
   query = list(DATEXAM = "{2024-01-01,2024-01-31}")
 )
 
-biology <- process_biol(raw_biol)
+biology <- biol_normalize(raw_biol)
 ```
 
-`process_biol()` reuses `label_biol()` to add the matching
+`biol_normalize()` reuses `label_biol()` to add the matching
 `TYPEANA_LABEL`. Original analyte codes and rows are preserved; unknown codes
 receive a missing label.
 
 ## Reference mappings
 
-`edsan_references()` lists the mappings distributed with the package.
+`edsan_reference_catalog()` lists the mappings distributed with the package.
 `edsan_reference()` returns one normalized mapping as a tibble.
-`process_pmsi()` and `process_biol()` call their labelling helpers
+`pmsi_normalize()` and `biol_normalize()` call their labelling helpers
 automatically; the same helpers can enrich older normalized artifacts without
 replacing their source codes.
 
@@ -115,7 +141,7 @@ joins. A code whose label the source system leaves undocumented is retained with
 an `NA` label rather than dropped.
 
 ```r
-edsan_references()
+edsan_reference_catalog()
 
 labelled_pmsi <- label_pmsi(pmsi)
 labelled_pmsi$diag
@@ -140,18 +166,35 @@ actes_labelled <- dplyr::left_join(
 )
 ```
 
+## Identifier correspondence
+
+`edsan_ct()` resolves one explicit identifier type at a time. Results use real
+identifier names and can be joined directly:
+
+```r
+evtids <- edsan_ct(iep, from = "IEP")
+patient_ids <- edsan_ct(evtid, from = "EVTID", identity = TRUE)
+
+dplyr::left_join(stays, patient_ids, by = "EVTID")
+```
+
+The four direct directions are `IPP -> PATID`, `PATID -> IPP`, `IEP -> EVTID`,
+and `EVTID -> IEP`. A valid response without a correspondence is retained as
+`status = "not_found"`; network, authentication, HTTP, and malformed-response
+failures remain errors.
+
 ## Event bundles
 
-`get_event_bundle()` retrieves the normalized output of several modules for one
-`EVTID`. Each module follows its normal `get_edsan()` retrieval and field
+`edsan_get_event_bundle()` retrieves the normalized output of several modules for one
+`EVTID`. Each module follows its normal `edsan_get()` retrieval and field
 defaults; the bundle layer adds no clinical or content filtering after
-normalization. By default it uses every module in `edsan_sources()`; callers
+normalization. By default it uses every module in `edsan_source_catalog()`; callers
 may instead request modules explicitly.
 
 ```r
-bundle <- get_event_bundle("123456789")
+bundle <- edsan_get_event_bundle("123456789")
 
-bundle <- get_event_bundle(
+bundle <- edsan_get_event_bundle(
   "123456789",
   modules = c("doceds", "pmsi", "biol")
 )
@@ -163,32 +206,32 @@ bundle$sources$pmsi$diag
 bundle$sources$biol
 ```
 
-`get_event_bundle()` is a wrapper around `get_event_bundles()`: it retrieves
+`edsan_get_event_bundle()` is a wrapper around `edsan_get_event_bundles()`: it retrieves
 through the same code path and only unwraps the single bundle, so normalization
 and reference labels are identical in both forms. `bundle$sources$biol`
 therefore carries `TYPEANA_LABEL` and the PMSI tables carry their CIM-10 and
-CCAM/CDAM labels. `build_event_bundles()` also labels a `biol` source that
+CCAM/CDAM labels. `edsan_event_bundles()` also labels a `biol` source that
 carries `TYPEANA` without `TYPEANA_LABEL`, so bundles assembled from biology
 artifacts normalized before labelling existed expose the same columns. It also
 renames legacy `BIOL_ID` and `VIRO_ID` columns to canonical `ELTID`.
 
 Printing the bundle reports compact row counts while leaving the normalized
 source objects unchanged. Retrieval is fail-fast: if one requested module
-fails, `get_event_bundle()` does not return a silently partial bundle.
+fails, `edsan_get_event_bundle()` does not return a silently partial bundle.
 
-`render_event_bundle()` serializes the retrieved object to neutral JSON. By
+`edsan_render_event_bundle()` serializes the retrieved object to neutral JSON. By
 default every source already present in the bundle is rendered; callers may
 select whole retrieved sources without triggering new EDSAN calls.
 
 ```r
-full_context <- render_event_bundle(bundle)
+full_context <- edsan_render_event_bundle(bundle)
 
-compact_context <- render_event_bundle(
+compact_context <- edsan_render_event_bundle(
   bundle,
   pretty = FALSE
 )
 
-documents_and_biology <- render_event_bundle(
+documents_and_biology <- edsan_render_event_bundle(
   bundle,
   sources = c("doceds", "biol")
 )
@@ -197,6 +240,36 @@ documents_and_biology <- render_event_bundle(
 The renderer preserves all rows and columns of the selected sources. It does
 not decide which information is clinically relevant and does not construct a
 model-specific prompt.
+
+## CORA and ICCA
+
+Use `cora_query()` for read-only CORA SQL. Use `icca_get()` for EVTID-keyed
+ICCA retrieval and `icca_query()` for unrestricted read-only ICCA queries.
+Already compliant discovery and description names, including
+`cora_describe_table()`, `cora_dig()`, `icca_catalog()`, `icca_describe()`, and
+`icca_relations()`, remain unchanged.
+
+## Deprecated names
+
+The former names remain temporarily available and emit deprecation warnings.
+They delegate to the canonical implementations:
+
+| Former name | Canonical name |
+| --- | --- |
+| `get_edsan()` | `edsan_get()` |
+| `edsan_sources()` | `edsan_source_catalog()` |
+| `edsan_references()` | `edsan_reference_catalog()` |
+| `build_event_bundle()`, `build_event_bundles()` | `edsan_event_bundle()`, `edsan_event_bundles()` |
+| `get_event_bundle()`, `get_event_bundles()` | `edsan_get_event_bundle()`, `edsan_get_event_bundles()` |
+| `render_event_bundle()` | `edsan_render_event_bundle()` |
+| `process_doceds()` | `doceds_normalize()` |
+| `process_pmsi()` | `pmsi_normalize()` |
+| `process_biol()` | `biol_normalize()` |
+| `process_viro()` | `viro_normalize()` |
+| `query_cora()` | `cora_query()` |
+| `get_icca()` | `icca_get()` |
+| `query_icca()` | `icca_query()` |
+| `edsan_pseudonymize()`, `edsan_reidentify()` | `edsan_ct()` |
 
 ## Trimming DOCEDS boilerplate
 

@@ -8,7 +8,7 @@ label_doceds(documents)
 }
 \arguments{
 \item{documents}{A normalized documents data frame containing \code{RECTYPE},
-normally returned by \code{\link[=process_doceds]{process_doceds()}}.}
+normally returned by \code{\link[=doceds_normalize]{doceds_normalize()}}.}
 }
 \value{
 The input documents data frame with \code{RECTYPE_LABEL} added, and

@@ -84,7 +84,7 @@
   dplyr::bind_rows(rows)
 }
 
-.edsan_evtid_patid_map <- function(evtids, get = get_edsan) {
+.edsan_evtid_patid_map <- function(evtids, get = edsan_get) {
   evtids <- unique(.edsan_ct_validate_ids(evtids, require_character = TRUE))
 
   pmsi <- get(

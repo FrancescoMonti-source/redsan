@@ -32,3 +32,7 @@ classified from the local invariant: IPP starts with \code{00}; every other digi
 string is treated as IEP. An explicit \code{id_type} overrides this detection; it
 only warns, and never errors, when a value does not match the heuristic.
 }
+\details{
+Deprecated in favor of \code{\link[=edsan_ct]{edsan_ct()}}. The legacy wrapper retains
+optional IPP/IEP inference and its generic output columns.
+}

@@ -18,7 +18,7 @@ test_that("process_pmsi detects raw-export shape and parsing drift", {
     )
   )
 
-  out <- process_pmsi(raw)
+  out <- pmsi_normalize(raw)
 
   expect_named(out, c("main", "actes", "diag"))
   expect_true(all(
@@ -90,8 +90,8 @@ test_that("PMSI event bounds use complete main data at patient-event grain", {
     )
   )
 
-  out <- process_pmsi(raw)
-  out_all <- process_pmsi(raw, source_policy = "all")
+  out <- pmsi_normalize(raw)
+  out_all <- pmsi_normalize(raw, source_policy = "all")
   bounds <- lapply(out[c("actes", "diag")], function(table) {
     dplyr::distinct(
       table,

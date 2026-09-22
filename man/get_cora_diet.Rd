@@ -20,6 +20,9 @@ get_cora_diet(
 
 \item{id_type}{Input identifier type: \code{"IEP"} (default) or \code{"EVTID"}.}
 
+\item{event_type}{CORA event families to retrieve: hospital documents (\code{"H"}),
+rehabilitation documents (\code{"R"}), or both (the default).}
+
 \item{connection}{Optional existing CORA DBI connection. When \code{NULL},
 \code{redsan} opens a CORA JDBC connection and closes it before returning.}
 

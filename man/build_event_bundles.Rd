@@ -3,7 +3,7 @@
 \name{build_event_bundles}
 \alias{build_event_bundles}
 \alias{build_event_bundle}
-\title{Build event bundles from normalized EDSAN sources}
+\title{Deprecated event-bundle constructor names}
 \usage{
 build_event_bundles(event_ids, sources)
 
@@ -18,53 +18,10 @@ build_event_bundle(event_id, sources)
 \item{event_id}{One non-missing EDSAN \code{EVTID}.}
 }
 \value{
-\code{build_event_bundles()} returns a named list, in requested event order,
-containing one \code{edsan_event_bundle} per \code{EVTID}. \code{build_event_bundle()}
-returns the single bundle directly. Each bundle is a list with:
-\itemize{
-\item \code{event_id}: the requested \code{EVTID}, stored as character;
-\item \code{sources}: the named normalized source objects restricted to that event;
-\item \code{created_at}: the common bundle creation time.
-}
+The value returned by \code{\link[=edsan_event_bundles]{edsan_event_bundles()}}.
+
+The value returned by \code{\link[=edsan_event_bundle]{edsan_event_bundle()}}.
 }
 \description{
-Partitions already available normalized source objects by \code{EVTID}. No EDSAN
-retrieval is performed. Legacy \code{BIOL_ID} and \code{VIRO_ID} columns are renamed to
-canonical \code{ELTID}; otherwise no rows or columns are selected beyond the event
-boundary. PMSI retains its \code{main}, \code{actes}, and \code{diag} tables.
-}
-\details{
-Every table being partitioned must contain \code{EVTID}, including each of the
-\code{main}, \code{actes}, and \code{diag} PMSI tables. Empty tables are retained. All rows
-and columns belonging to the requested event are preserved.
-
-A \code{biol} source carrying \code{TYPEANA} without \code{TYPEANA_LABEL} is labelled with
-\code{\link[=label_biol]{label_biol()}} before partitioning, so bundles built from biology artifacts
-normalized before labelling existed carry the same columns as bundles built
-from \code{\link[=get_event_bundles]{get_event_bundles()}}. Existing \code{TYPEANA_LABEL} values are left as they
-are, and a \code{biol} source without \code{TYPEANA} is passed through untouched.
-Biology and virology artifacts using the former \code{BIOL_ID} or \code{VIRO_ID} names
-are upgraded to \code{ELTID}. When an artifact contains both names, their values
-must agree and only \code{ELTID} is retained.
-}
-\examples{
-sources <- list(
-  doceds = tibble::tibble(
-    EVTID = c("E1", "E2"),
-    ELTID = c("D1", "D2"),
-    RECTXT = c("First document", "Second document")
-  ),
-  biol = tibble::tibble(
-    EVTID = c("E1", "E2"),
-    ELTID = c("B1", "B2"),
-    NUMRES = c(12.3, 9.8)
-  )
-)
-
-bundles <- build_event_bundles(c("E2", "E1"), sources)
-names(bundles)
-bundles[["E1"]]
-
-one_bundle <- build_event_bundle("E1", sources)
-
+Deprecated event-bundle constructor names
 }

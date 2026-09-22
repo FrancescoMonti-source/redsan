@@ -2,7 +2,7 @@
 % Please edit documentation in R/biol.R
 \name{process_viro}
 \alias{process_viro}
-\title{Process VIRO results}
+\title{Deprecated virology normalizer name}
 \usage{
 process_viro(data)
 }
@@ -11,21 +11,8 @@ process_viro(data)
 data.frame/tibble already in result form.}
 }
 \value{
-A tibble with virology metadata columns and result columns. When
-available, adds \code{HEURE_DATEPRELEV}. \code{PATAGE} and \code{NUMRES}, when present, are
-numeric.
+The value returned by \code{\link[=viro_normalize]{viro_normalize()}}.
 }
 \description{
-Flattens VIRO results from the EDSaN API into a single tibble. VIRO shares
-the BIOL result shape, exposes source traceability through \code{ELTID}, and uses
-\code{DATEPRELEV} as its source date.
-}
-\examples{
-raw <- list(L1 = list(
-  PATID = "P1", EVTID = "E1",
-  DATEPRELEV = "2024-01-01 08:30",
-  RESULTATS = data.frame(ANALYTE = "PCR", STRRES = "NEGATIF")
-))
-process_viro(raw)
-
+Deprecated virology normalizer name
 }

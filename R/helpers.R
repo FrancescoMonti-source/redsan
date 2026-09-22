@@ -17,6 +17,13 @@
 #' @noRd
 `%||%` <- function(x, y) if (!is.null(x)) x else y
 
+.redsan_deprecate <- function(old, replacement) {
+  warning(
+    "`", old, "()` is deprecated; use `", replacement, "()`.",
+    call. = FALSE
+  )
+}
+
 
 
 #' Detect "limit exceeded" style errors returned by EDSaN calls

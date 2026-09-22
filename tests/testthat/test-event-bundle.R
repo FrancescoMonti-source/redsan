@@ -11,7 +11,7 @@ test_that("event bundles isolate rows at the EVTID boundary", {
     )
   )
 
-  bundles <- build_event_bundles(c("E2", "E1", "E3"), sources)
+  bundles <- edsan_event_bundles(c("E2", "E1", "E3"), sources)
   observed <- lapply(bundles, function(bundle) {
     list(
       event_id = bundle$event_id,
@@ -59,7 +59,7 @@ test_that("bundles upgrade legacy element IDs and biology labels", {
     )
   )
 
-  bundles <- build_event_bundles(c("E1", "E2"), sources)
+  bundles <- edsan_event_bundles(c("E1", "E2"), sources)
 
   expect_identical(bundles[["E1"]]$sources$biol$TYPEANA_LABEL, known_label)
   expect_identical(bundles[["E2"]]$sources$biol$TYPEANA_LABEL, NA_character_)
@@ -68,7 +68,7 @@ test_that("bundles upgrade legacy element IDs and biology labels", {
   expect_false("BIOL_ID" %in% names(bundles[["E1"]]$sources$biol))
   expect_false("VIRO_ID" %in% names(bundles[["E1"]]$sources$viro))
   expect_identical(
-    build_event_bundle("E1", sources)$sources$biol$TYPEANA_LABEL,
+    edsan_event_bundle("E1", sources)$sources$biol$TYPEANA_LABEL,
     known_label
   )
 })
@@ -83,14 +83,14 @@ test_that("bundles keep existing biology labels and untypeable sources as they a
     doceds = tibble::tibble(EVTID = "E1", TYPEANA = "not a biology column")
   )
 
-  bundle <- build_event_bundle("E1", sources)
+  bundle <- edsan_event_bundle("E1", sources)
 
   expect_identical(bundle$sources$biol$TYPEANA_LABEL, "local label")
   expect_false("TYPEANA_LABEL" %in% names(bundle$sources$doceds))
 })
 
 test_that("empty biology sources still expose the labelled columns", {
-  bundle <- build_event_bundle("E1", list(biol = tibble::tibble()))
+  bundle <- edsan_event_bundle("E1", list(biol = tibble::tibble()))
 
   expect_identical(
     names(bundle$sources$biol),
@@ -102,12 +102,12 @@ test_that("empty biology sources still expose the labelled columns", {
 test_that("biology sources without TYPEANA are partitioned unchanged", {
   sources <- list(biol = tibble::tibble(EVTID = c("E1", "E2"), NUMRES = c(1, 2)))
 
-  bundle <- build_event_bundle("E1", sources)
+  bundle <- edsan_event_bundle("E1", sources)
 
   expect_identical(names(bundle$sources$biol), c("EVTID", "NUMRES"))
 })
 
-test_that("get_event_bundle is a wrapper around get_event_bundles", {
+test_that("edsan_get_event_bundle is a wrapper around edsan_get_event_bundles", {
   reference <- edsan_reference("bio")
   known_code <- reference$TYPEANA[[1L]]
   known_label <- reference$TYPEANA_LABEL[[1L]]
@@ -124,12 +124,12 @@ test_that("get_event_bundle is a wrapper around get_event_bundles", {
   }
 
   testthat::local_mocked_bindings(
-    get_edsan = fake_get_edsan,
+    edsan_get = fake_get_edsan,
     .package = "redsan"
   )
 
-  bundle <- get_event_bundle("E1", modules = "biol")
-  plural <- get_event_bundles("E1", modules = "biol")
+  bundle <- edsan_get_event_bundle("E1", modules = "biol")
+  plural <- edsan_get_event_bundles("E1", modules = "biol")
 
   expect_identical(bundle$sources, plural[["E1"]]$sources)
   expect_identical(bundle$event_id, "E1")
@@ -140,10 +140,10 @@ test_that("get_event_bundle is a wrapper around get_event_bundles", {
   )
 })
 
-test_that("get_event_bundle rejects anything other than one EVTID", {
-  expect_error(get_event_bundle(c("E1", "E2")), "exactly one EVTID", fixed = TRUE)
+test_that("edsan_get_event_bundle rejects anything other than one EVTID", {
+  expect_error(edsan_get_event_bundle(c("E1", "E2")), "exactly one EVTID", fixed = TRUE)
   expect_error(
-    get_event_bundle(character()),
+    edsan_get_event_bundle(character()),
     "must contain one or more EVTID values",
     fixed = TRUE
   )
@@ -169,11 +169,11 @@ test_that("batch retrieval avoids per-event EDSAN queries", {
   }
 
   testthat::local_mocked_bindings(
-    get_edsan = fake_get_edsan,
+    edsan_get = fake_get_edsan,
     .package = "redsan"
   )
 
-  get_event_bundles(
+  edsan_get_event_bundles(
     c("E1", "E2"),
     modules = c("doceds", "pmsi", "biol")
   )
@@ -189,4 +189,61 @@ test_that("batch retrieval avoids per-event EDSAN queries", {
       )
     })
   )
+})
+
+test_that("legacy event-bundle constructors warn and delegate", {
+  sources <- list(doceds = tibble::tibble(EVTID = c("E1", "E2")))
+
+  plural <- NULL
+  expect_warning(
+    plural <- build_event_bundles(c("E1", "E2"), sources),
+    "use `edsan_event_bundles\\(\\)`"
+  )
+  singular <- NULL
+  expect_warning(
+    singular <- build_event_bundle("E1", sources),
+    "use `edsan_event_bundle\\(\\)`"
+  )
+
+  expect_identical(names(plural), c("E1", "E2"))
+  expect_true(all(vapply(plural, inherits, logical(1), "edsan_event_bundle")))
+  expect_identical(singular$event_id, "E1")
+  expect_s3_class(singular, "edsan_event_bundle")
+})
+
+test_that("legacy event-bundle retrieval names warn and delegate", {
+  fake_plural <- function(event_ids, modules = "all") {
+    stats::setNames(as.list(event_ids), event_ids)
+  }
+  fake_singular <- function(event_id, modules = "all") event_id
+  testthat::local_mocked_bindings(
+    edsan_get_event_bundles = fake_plural,
+    edsan_get_event_bundle = fake_singular,
+    .package = "redsan"
+  )
+
+  expect_warning(
+    expect_identical(get_event_bundles(c("E1", "E2")), list(E1 = "E1", E2 = "E2")),
+    "use `edsan_get_event_bundles\\(\\)`"
+  )
+  expect_warning(
+    expect_identical(get_event_bundle("E1"), "E1"),
+    "use `edsan_get_event_bundle\\(\\)`"
+  )
+})
+
+test_that("event-bundle rendering has one canonical implementation", {
+  bundle <- edsan_event_bundle(
+    "E1",
+    list(doceds = tibble::tibble(EVTID = "E1", RECTXT = "text"))
+  )
+  rendered <- edsan_render_event_bundle(bundle, pretty = FALSE)
+  legacy <- NULL
+  expect_warning(
+    legacy <- render_event_bundle(bundle, pretty = FALSE),
+    "use `edsan_render_event_bundle\\(\\)`"
+  )
+
+  expect_identical(legacy, rendered)
+  expect_match(rendered, '"event_id":"E1"', fixed = TRUE)
 })

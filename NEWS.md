@@ -1,5 +1,14 @@
 # redsan (development)
 
+- Normalize the public API around a consistent vocabulary: `edsan_*()` for
+  discovery, retrieval, identifier correspondence, and event bundles;
+  `*_normalize()` for source normalization; and `cora_*()` / `icca_*()` for
+  source-specific access. Existing public names remain as deprecated wrappers.
+
+- Add `edsan_ct()` as the explicit identifier-correspondence entry point for
+  IPP, IEP, PATID, and EVTID values. It reports direct match status and can add
+  patient identity fields without replacing the direct correspondence result.
+
 - Retire the regex trimmer (`trim_doceds_text()`), its provenance API
   (`doceds_trim_spec()`), family summaries (`doceds_family_chars()`), and
   regex-specific audit tools. Use `trim_doceds_onnx()` and `doceds_onnx_spec()`.

@@ -148,8 +148,8 @@
 
 .cora_diet_id_map <- function(ids, id_type = c("IEP", "EVTID"),
                               env = "edsan-ct", ks_path = NULL,
-                              reidentify = edsan_reidentify,
-                              pseudonymize = edsan_pseudonymize) {
+                              reidentify = .edsan_ct_legacy_reidentify,
+                              pseudonymize = .edsan_ct_legacy_pseudonymize) {
   id_type <- match.arg(id_type)
   ids <- .cora_validate_stay_ids(ids, id_type)
   if (!length(ids)) {
@@ -348,6 +348,8 @@
 #'
 #' @param ids Character vector of stay identifiers.
 #' @param id_type Input identifier type: `"IEP"` (default) or `"EVTID"`.
+#' @param event_type CORA event families to retrieve: hospital documents (`"H"`),
+#'   rehabilitation documents (`"R"`), or both (the default).
 #' @param connection Optional existing CORA DBI connection. When `NULL`,
 #'   `redsan` opens a CORA JDBC connection and closes it before returning.
 #' @param ojdbc_jar Optional path to an Oracle JDBC driver. Used only when

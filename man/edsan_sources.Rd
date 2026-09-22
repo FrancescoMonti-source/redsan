@@ -2,7 +2,7 @@
 % Please edit documentation in R/sources.R
 \name{edsan_sources}
 \alias{edsan_sources}
-\title{List EDSAN source contracts known by redsan}
+\title{Deprecated source catalog name}
 \usage{
 edsan_sources(module = NULL, table = NULL)
 }
@@ -14,25 +14,8 @@ edsan_sources(module = NULL, table = NULL)
 \code{"actes"}, \code{"diag"}, or \code{"results"}.}
 }
 \value{
-A tibble with one row per known source table.
+The source catalog returned by \code{\link[=edsan_source_catalog]{edsan_source_catalog()}}.
 }
 \description{
-Returns the package registry of EDSAN modules and normalized tables. The
-registry is intentionally about source mechanics: identifiers, row grain,
-query date keys, default batching keys, and point/interval time semantics.
-Clinical concepts and study-specific measurement rules belong downstream.
-}
-\details{
-Across EDSAN modules, each \code{ELTID} belongs to exactly one \code{EVTID}, and each
-\code{EVTID} belongs to exactly one \code{PATID}. These relationships describe document
-provenance; additional source-row coordinates may still be required for row
-uniqueness within normalized tables. Public module normalizers return every
-identifier declared by this registry as character. Character input is
-preserved exactly; numeric input is rendered without scientific notation.
-}
-\examples{
-edsan_sources()
-edsan_sources("pmsi")
-edsan_sources("pmsi", "diag")
-
+Deprecated source catalog name
 }

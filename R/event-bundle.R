@@ -128,8 +128,8 @@
 #' @param sources Named list of normalized EDSAN source objects, for example
 #'   `list(doceds = documents, pmsi = pmsi, biol = biology)`.
 #'
-#' @return `build_event_bundles()` returns a named list, in requested event order,
-#'   containing one `edsan_event_bundle` per `EVTID`. `build_event_bundle()`
+#' @return `edsan_event_bundles()` returns a named list, in requested event order,
+#'   containing one `edsan_event_bundle` per `EVTID`. `edsan_event_bundle()`
 #'   returns the single bundle directly. Each bundle is a list with:
 #'   * `event_id`: the requested `EVTID`, stored as character;
 #'   * `sources`: the named normalized source objects restricted to that event;
@@ -143,7 +143,7 @@
 #' A `biol` source carrying `TYPEANA` without `TYPEANA_LABEL` is labelled with
 #' [label_biol()] before partitioning, so bundles built from biology artifacts
 #' normalized before labelling existed carry the same columns as bundles built
-#' from [get_event_bundles()]. Existing `TYPEANA_LABEL` values are left as they
+#' from [edsan_get_event_bundles()]. Existing `TYPEANA_LABEL` values are left as they
 #' are, and a `biol` source without `TYPEANA` is passed through untouched.
 #' Biology and virology artifacts using the former `BIOL_ID` or `VIRO_ID` names
 #' are upgraded to `ELTID`. When an artifact contains both names, their values
@@ -163,14 +163,14 @@
 #'   )
 #' )
 #'
-#' bundles <- build_event_bundles(c("E2", "E1"), sources)
+#' bundles <- edsan_event_bundles(c("E2", "E1"), sources)
 #' names(bundles)
 #' bundles[["E1"]]
 #'
-#' one_bundle <- build_event_bundle("E1", sources)
+#' one_bundle <- edsan_event_bundle("E1", sources)
 #'
 #' @export
-build_event_bundles <- function(event_ids, sources) {
+edsan_event_bundles <- function(event_ids, sources) {
   event_ids <- .validate_event_ids(event_ids)
   sources <- .validate_event_bundle_sources(sources)
   sources[] <- lapply(names(sources), function(source_name) {
@@ -190,22 +190,22 @@ build_event_bundles <- function(event_ids, sources) {
   bundles
 }
 
-#' @rdname build_event_bundles
+#' @rdname edsan_event_bundles
 #' @param event_id One non-missing EDSAN `EVTID`.
 #' @export
-build_event_bundle <- function(event_id, sources) {
-  build_event_bundles(.validate_single_event_id(event_id), sources)[[1L]]
+edsan_event_bundle <- function(event_id, sources) {
+  edsan_event_bundles(.validate_single_event_id(event_id), sources)[[1L]]
 }
 
 #' Retrieve normalized EDSAN sources for several events
 #'
 #' Retrieves each selected EDSAN module once for the complete set of requested
-#' `EVTID` values, then delegates local partitioning to [build_event_bundles()].
-#' `get_edsan()` remains responsible for any technical ID batching.
+#' `EVTID` values, then delegates local partitioning to [edsan_event_bundles()].
+#' `edsan_get()` remains responsible for any technical ID batching.
 #'
 #' @param event_ids Non-empty vector of unique EDSAN `EVTID` values.
 #' @param modules EDSAN modules to retrieve. Use `"all"` (the default) for every
-#'   module registered by [edsan_sources()], or provide a character vector.
+#'   module registered by [edsan_source_catalog()], or provide a character vector.
 #'
 #' @return A named list of `edsan_event_bundle` objects in requested event order.
 #'
@@ -220,7 +220,7 @@ build_event_bundle <- function(event_id, sources) {
 #'
 #' @examples
 #' \dontrun{
-#' bundles <- get_event_bundles(
+#' bundles <- edsan_get_event_bundles(
 #'   c("123456789", "987654321"),
 #'   modules = c("doceds", "pmsi", "biol")
 #' )
@@ -228,13 +228,13 @@ build_event_bundle <- function(event_id, sources) {
 #' }
 #'
 #' @export
-get_event_bundles <- function(event_ids, modules = "all") {
+edsan_get_event_bundles <- function(event_ids, modules = "all") {
   event_ids <- .validate_event_ids(event_ids)
   modules <- .resolve_event_bundle_modules(modules)
 
   retrieved <- stats::setNames(vector("list", length(modules)), modules)
   for (module in modules) {
-    retrieved[[module]] <- get_edsan(
+    retrieved[[module]] <- edsan_get(
       module = module,
       what = "data",
       query = list(EVTID = event_ids),
@@ -242,12 +242,12 @@ get_event_bundles <- function(event_ids, modules = "all") {
     )
   }
 
-  build_event_bundles(event_ids, retrieved)
+  edsan_event_bundles(event_ids, retrieved)
 }
 
 #' Retrieve normalized EDSAN sources for one event
 #'
-#' Singular convenience wrapper around [get_event_bundles()]. It retrieves each
+#' Singular convenience wrapper around [edsan_get_event_bundles()]. It retrieves each
 #' selected module for one `EVTID` and returns the bundle directly rather than
 #' inside a named collection.
 #'
@@ -260,7 +260,7 @@ get_event_bundles <- function(event_ids, modules = "all") {
 #'   DOCEDS, BIOL, and VIRO remain normalized tibbles.
 #'
 #' @details
-#' This function only forwards to [get_event_bundles()] and unwraps the single
+#' This function only forwards to [edsan_get_event_bundles()] and unwraps the single
 #' bundle, so retrieval, normalization, and reference labelling behave exactly as
 #' in the plural form: `biol` carries `TYPEANA_LABEL` from [label_biol()] and
 #' PMSI carries the labels added by [label_pmsi()].
@@ -270,16 +270,54 @@ get_event_bundles <- function(event_ids, modules = "all") {
 #'
 #' @examples
 #' \dontrun{
-#' bundle <- get_event_bundle("123456789")
-#' bundle <- get_event_bundle(
+#' bundle <- edsan_get_event_bundle("123456789")
+#' bundle <- edsan_get_event_bundle(
 #'   "123456789",
 #'   modules = c("doceds", "pmsi", "biol")
 #' )
 #' }
 #'
 #' @export
+edsan_get_event_bundle <- function(event_id, modules = "all") {
+  edsan_get_event_bundles(.validate_single_event_id(event_id), modules)[[1L]]
+}
+
+#' Deprecated event-bundle constructor names
+#'
+#' @inheritParams edsan_event_bundles
+#' @return The value returned by [edsan_event_bundles()].
+#' @export
+build_event_bundles <- function(event_ids, sources) {
+  .redsan_deprecate("build_event_bundles", "edsan_event_bundles")
+  edsan_event_bundles(event_ids, sources)
+}
+
+#' @rdname build_event_bundles
+#' @inheritParams edsan_event_bundle
+#' @return The value returned by [edsan_event_bundle()].
+#' @export
+build_event_bundle <- function(event_id, sources) {
+  .redsan_deprecate("build_event_bundle", "edsan_event_bundle")
+  edsan_event_bundle(event_id, sources)
+}
+
+#' Deprecated event-bundle retrieval names
+#'
+#' @inheritParams edsan_get_event_bundles
+#' @return The value returned by [edsan_get_event_bundles()].
+#' @export
+get_event_bundles <- function(event_ids, modules = "all") {
+  .redsan_deprecate("get_event_bundles", "edsan_get_event_bundles")
+  edsan_get_event_bundles(event_ids, modules)
+}
+
+#' @rdname get_event_bundles
+#' @inheritParams edsan_get_event_bundle
+#' @return The value returned by [edsan_get_event_bundle()].
+#' @export
 get_event_bundle <- function(event_id, modules = "all") {
-  get_event_bundles(.validate_single_event_id(event_id), modules)[[1L]]
+  .redsan_deprecate("get_event_bundle", "edsan_get_event_bundle")
+  edsan_get_event_bundle(event_id, modules)
 }
 
 .event_bundle_count <- function(x) {

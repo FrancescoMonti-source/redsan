@@ -13,7 +13,7 @@ while preserving native identifiers and source time fields.
 }
 \section{Start with the source registry}{
 
-Call \code{\link[=edsan_sources]{edsan_sources()}} to inspect the modules and normalized tables supported
+Call \code{\link[=edsan_source_catalog]{edsan_source_catalog()}} to inspect the modules and normalized tables supported
 by the installed package. The registry describes row grain, identifiers,
 query date keys, batching keys, and whether source time is a point or an
 interval. It is a registry of the sources implemented by \code{redsan}, not an
@@ -22,40 +22,54 @@ exhaustive catalogue of EDSAN.
 
 \section{Retrieve and normalize}{
 
-\code{\link[=get_edsan]{get_edsan()}} is the main retrieval entry point. It batches requests by source
+\code{\link[=edsan_get]{edsan_get()}} is the main retrieval entry point. It batches requests by source
 time and native identifiers when needed. By default, it also applies the
 module normalizer:
 \itemize{
-\item \code{\link[=process_doceds]{process_doceds()}} for documents;
-\item \code{\link[=process_pmsi]{process_pmsi()}} for PMSI stays, actes, and diagnoses;
-\item \code{\link[=process_biol]{process_biol()}} for biology results;
-\item \code{\link[=process_viro]{process_viro()}} for virology results.
+\item \code{\link[=doceds_normalize]{doceds_normalize()}} for documents;
+\item \code{\link[=pmsi_normalize]{pmsi_normalize()}} for PMSI stays, actes, and diagnoses;
+\item \code{\link[=biol_normalize]{biol_normalize()}} for biology results;
+\item \code{\link[=viro_normalize]{viro_normalize()}} for virology results.
 }
 
-Set \code{process = FALSE} in \code{\link[=get_edsan]{get_edsan()}} when the raw response is the artifact
+Set \code{process = FALSE} in \code{\link[=edsan_get]{edsan_get()}} when the raw response is the artifact
 to retain or normalize later.
 }
 
 \section{Use reference mappings}{
 
-\code{\link[=edsan_references]{edsan_references()}} lists the code mappings distributed with the package.
+\code{\link[=edsan_reference_catalog]{edsan_reference_catalog()}} lists the code mappings distributed with the package.
 \code{\link[=label_pmsi]{label_pmsi()}} adds the packaged CIM-10 and CCAM/CDAM labels to normalized
-PMSI objects and can be applied to older artifacts. \code{\link[=process_pmsi]{process_pmsi()}} reuses
+PMSI objects and can be applied to older artifacts. \code{\link[=pmsi_normalize]{pmsi_normalize()}} reuses
 it so new normalized outputs are labelled automatically.
 \code{\link[=label_biol]{label_biol()}} similarly adds packaged analyte labels to normalized biology
-rows, and \code{\link[=process_biol]{process_biol()}} reuses it for new outputs. \code{\link[=edsan_reference]{edsan_reference()}}
+rows, and \code{\link[=biol_normalize]{biol_normalize()}} reuses it for new outputs. \code{\link[=edsan_reference]{edsan_reference()}}
 returns any normalized mapping for explicit joins. Enrichment preserves
 native codes and row grain; unmatched codes receive a missing label.
 }
 
 \section{Work at event level}{
 
-\code{\link[=get_event_bundle]{get_event_bundle()}} and \code{\link[=get_event_bundles]{get_event_bundles()}} retrieve several normalized
+\code{\link[=edsan_get_event_bundle]{edsan_get_event_bundle()}} and \code{\link[=edsan_get_event_bundles]{edsan_get_event_bundles()}} retrieve several normalized
 modules for one or more \code{EVTID} values. When the normalized sources are
-already available locally, use \code{\link[=build_event_bundle]{build_event_bundle()}} or
-\code{\link[=build_event_bundles]{build_event_bundles()}} to partition them without another EDSAN request.
-\code{\link[=render_event_bundle]{render_event_bundle()}} serializes a bundle to neutral JSON without selecting
+already available locally, use \code{\link[=edsan_event_bundle]{edsan_event_bundle()}} or
+\code{\link[=edsan_event_bundles]{edsan_event_bundles()}} to partition them without another EDSAN request.
+\code{\link[=edsan_render_event_bundle]{edsan_render_event_bundle()}} serializes a bundle to neutral JSON without selecting
 clinical content.
+}
+
+\section{Translate identifiers}{
+
+\code{\link[=edsan_ct]{edsan_ct()}} resolves explicit IPP, IEP, PATID, or EVTID correspondence and
+returns joinable semantic identifier columns. Set \code{identity = TRUE} to append
+the associated patient identity while preserving the requested direct-match
+status and multiplicity.
+}
+
+\section{Query CORA and ICCA}{
+
+\code{\link[=cora_query]{cora_query()}} and \code{\link[=icca_query]{icca_query()}} execute read-only queries against their
+respective systems. \code{\link[=icca_get]{icca_get()}} retrieves ICCA data by EDSaN EVTID.
 }
 
 \section{Source and downstream responsibilities}{
@@ -72,8 +86,8 @@ building, and rendering do not require a live EDSAN connection.
 }
 
 \seealso{
-\code{\link[=edsan_sources]{edsan_sources()}}, \code{\link[=edsan_references]{edsan_references()}}, \code{\link[=label_pmsi]{label_pmsi()}}, \code{\link[=label_biol]{label_biol()}},
-\code{\link[=get_edsan]{get_edsan()}}, \code{\link[=get_event_bundle]{get_event_bundle()}}
+\code{\link[=edsan_source_catalog]{edsan_source_catalog()}}, \code{\link[=edsan_reference_catalog]{edsan_reference_catalog()}}, \code{\link[=label_pmsi]{label_pmsi()}},
+\code{\link[=label_biol]{label_biol()}}, \code{\link[=edsan_get]{edsan_get()}}, \code{\link[=edsan_ct]{edsan_ct()}}, \code{\link[=edsan_get_event_bundle]{edsan_get_event_bundle()}}
 }
 \author{
 \strong{Maintainer}: Francesco Monti-source \email{58150610+FrancescoMonti-source@users.noreply.github.com}

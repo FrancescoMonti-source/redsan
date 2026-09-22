@@ -297,6 +297,179 @@
   out[order(out$input_index), , drop = FALSE]
 }
 
+.edsan_ct_direct <- function(ids, from, env = "edsan-ct", ks_path = NULL,
+                             call = .edsan_ct_call) {
+  direction <- if (from %in% c("IPP", "IEP")) {
+    "his_to_edsan"
+  } else {
+    "edsan_to_his"
+  }
+  type_spec <- .edsan_ct_specs[[direction]]$types[[from]]
+  out <- .edsan_ct_translate(
+    ids = ids,
+    input_types = rep.int(from, length(ids)),
+    direction = direction,
+    env = env,
+    ks_path = ks_path,
+    call = call
+  )
+
+  result <- tibble::tibble(out$input_id, out$output_id, out$status, out$n_matches)
+  names(result) <- c(from, type_spec$output_type, "status", "n_matches")
+  result
+}
+
+.edsan_ct_join_enrichment <- function(result, enrichment, by,
+                                      allow_new_identifiers = FALSE) {
+  if (!is.data.frame(enrichment) || !by %in% names(enrichment)) {
+    stop("Identity enrichment did not return the expected `", by, "` column.",
+         call. = FALSE)
+  }
+  if (anyDuplicated(names(enrichment))) {
+    stop("Identity enrichment returned duplicate field names.", call. = FALSE)
+  }
+
+  identifiers <- c("IPP", "IEP", "PATID", "EVTID")
+  if (!allow_new_identifiers) {
+    unsupported <- setdiff(intersect(names(enrichment), identifiers), names(result))
+    enrichment <- enrichment[, setdiff(names(enrichment), unsupported), drop = FALSE]
+  }
+  overlapping <- setdiff(
+    intersect(intersect(names(result), names(enrichment)), identifiers),
+    by
+  )
+
+  temporary <- paste0(".redsan_enrichment_", overlapping)
+  names(enrichment)[match(overlapping, names(enrichment))] <- temporary
+  out <- dplyr::left_join(result, enrichment, by = by)
+
+  for (i in seq_along(overlapping)) {
+    identifier <- overlapping[[i]]
+    extra <- temporary[[i]]
+    original_values <- .edsan_as_identifier(out[[identifier]])
+    extra_values <- .edsan_as_identifier(out[[extra]])
+    contradiction <- !is.na(original_values) & nzchar(original_values) &
+      !is.na(extra_values) & nzchar(extra_values) &
+      original_values != extra_values
+    if (any(contradiction)) {
+      stop(
+        "Identity enrichment returned contradictory `", identifier, "` values.",
+        call. = FALSE
+      )
+    }
+    missing <- is.na(original_values) | !nzchar(original_values)
+    original_values[missing] <- extra_values[missing]
+    out[[identifier]] <- original_values
+    out[[extra]] <- NULL
+  }
+
+  out
+}
+
+.edsan_ct_enrich_identity <- function(result, from,
+                                      env = "edsan-ct", ks_path = NULL) {
+  if (from %in% c("IPP", "PATID")) {
+    patids <- unique(result$PATID[!is.na(result$PATID) & nzchar(result$PATID)])
+    if (!length(patids)) return(result)
+    patient <- .edsan_patient_rows(patids, ks_path = ks_path)
+    return(.edsan_ct_join_enrichment(result, patient, by = "PATID"))
+  }
+
+  evtids <- unique(result$EVTID[!is.na(result$EVTID) & nzchar(result$EVTID)])
+  if (!length(evtids)) return(result)
+  evtid_patid <- .edsan_evtid_patid_map(evtids)
+  result <- .edsan_ct_join_enrichment(
+    result, evtid_patid, by = "EVTID", allow_new_identifiers = TRUE
+  )
+
+  patids <- unique(result$PATID[!is.na(result$PATID) & nzchar(result$PATID)])
+  if (!length(patids)) return(result)
+  patid_ipp <- .edsan_patid_ipp_map(patids, env = env, ks_path = ks_path)
+  result <- .edsan_ct_join_enrichment(
+    result, patid_ipp, by = "PATID", allow_new_identifiers = TRUE
+  )
+
+  patient <- .edsan_patient_rows(patids, ks_path = ks_path)
+  .edsan_ct_join_enrichment(result, patient, by = "PATID")
+}
+
+#' Resolve EDSaN CT identifier correspondence
+#'
+#' Translates one explicit identifier type through the EDSaN correspondence
+#' service. The direction is determined entirely by `from`: `IPP` resolves to
+#' `PATID`, `PATID` to `IPP`, `IEP` to `EVTID`, and `EVTID` to `IEP`.
+#'
+#' Results use the semantic identifier names so they can be joined directly to
+#' source data. A valid response without a correspondence is retained with
+#' `status = "not_found"` and `n_matches = 0`; service and response failures are
+#' errors.
+#'
+#' @param ids One or more identifiers as character strings. Character input is
+#'   required to preserve leading zeroes and values outside safe floating-point
+#'   precision.
+#' @param from Source identifier type: `"IPP"`, `"IEP"`, `"PATID"`, or
+#'   `"EVTID"`.
+#' @param identity One non-missing logical value. If `TRUE`, also resolve the
+#'   patient identity associated with the direct correspondence.
+#' @param env EDSaN CT web-service environment name.
+#' @param ks_path Optional d2imr keystore path. When `NULL`, the active path is
+#'   resolved by d2imr.
+#'
+#' @return A tibble containing the source and destination identifier columns,
+#'   `status`, and `n_matches`. With `identity = TRUE`, patient identifiers and
+#'   identity fields are appended without changing the direct-match metadata.
+#' @export
+edsan_ct <- function(ids, from, identity = FALSE,
+                     env = "edsan-ct", ks_path = NULL) {
+  ids <- .edsan_ct_validate_ids(ids, require_character = TRUE)
+  supported <- c("IPP", "IEP", "PATID", "EVTID")
+  if (!is.character(from) || length(from) != 1L || is.na(from) ||
+      !from %in% supported) {
+    stop(
+      "`from` must be one of: ", paste(supported, collapse = ", "), ".",
+      call. = FALSE
+    )
+  }
+  if (!is.logical(identity) || length(identity) != 1L || is.na(identity)) {
+    stop("`identity` must be TRUE or FALSE.", call. = FALSE)
+  }
+  result <- .edsan_ct_direct(ids, from, env = env, ks_path = ks_path)
+  if (!isTRUE(identity)) return(result)
+
+  .edsan_ct_enrich_identity(result, from, env = env, ks_path = ks_path)
+}
+
+.edsan_ct_legacy_pseudonymize <- function(ids, id_type = NULL,
+                                          env = "edsan-ct", ks_path = NULL) {
+  ids <- .edsan_ct_validate_ids(ids, require_character = TRUE, digits_only = TRUE)
+  input_types <- if (is.null(id_type)) {
+    .edsan_ct_detect_his_types(ids)
+  } else {
+    .edsan_ct_validate_explicit_his_type(ids, id_type)
+  }
+
+  out <- .edsan_ct_translate(ids, input_types, "his_to_edsan", env, ks_path)
+  dplyr::transmute(
+    out,
+    HIS_ID = input_id, HIS_TYPE = input_type,
+    EDSAN_ID = output_id, EDSAN_TYPE = output_type,
+    status = status, n_matches = n_matches
+  )
+}
+
+.edsan_ct_legacy_reidentify <- function(ids, id_type, identity = FALSE,
+                                        env = "edsan-ct", ks_path = NULL) {
+  id_type <- match.arg(id_type, c("PATID", "EVTID"))
+  result <- edsan_ct(
+    ids = ids,
+    from = id_type,
+    identity = identity,
+    env = env,
+    ks_path = ks_path
+  )
+  result[, setdiff(names(result), c("status", "n_matches")), drop = FALSE]
+}
+
 #' Translate real hospital identifiers to EDSaN identifiers
 #'
 #' Uses EDSaN CT to translate patient identifiers (`IPP`) to `PATID` and stay
@@ -317,23 +490,13 @@
 #'   multiple correspondences. `not-found` is only reported for a valid EDSaN
 #'   CT response with no correspondence; a backend failure or error response
 #'   raises an error instead.
+#' @details Deprecated in favor of [edsan_ct()]. The legacy wrapper retains
+#'   optional IPP/IEP inference and its generic output columns.
 #' @export
 edsan_pseudonymize <- function(ids, id_type = NULL,
                                env = "edsan-ct", ks_path = NULL) {
-  ids <- .edsan_ct_validate_ids(ids, require_character = TRUE, digits_only = TRUE)
-  input_types <- if (is.null(id_type)) {
-    .edsan_ct_detect_his_types(ids)
-  } else {
-    .edsan_ct_validate_explicit_his_type(ids, id_type)
-  }
-
-  out <- .edsan_ct_translate(ids, input_types, "his_to_edsan", env, ks_path)
-  dplyr::transmute(
-    out,
-    HIS_ID = input_id, HIS_TYPE = input_type,
-    EDSAN_ID = output_id, EDSAN_TYPE = output_type,
-    status = status, n_matches = n_matches
-  )
+  .redsan_deprecate("edsan_pseudonymize", "edsan_ct")
+  .edsan_ct_legacy_pseudonymize(ids, id_type, env, ks_path)
 }
 
 #' Reidentify EDSaN identifiers
@@ -354,39 +517,11 @@ edsan_pseudonymize <- function(ids, id_type = NULL,
 #'   returned by `getPatientReidentificationInformations/{patId}` are appended.
 #' @details This function deliberately exposes real hospital identifiers and,
 #'   when `identity = TRUE`, directly identifying patient information.
+#'
+#'   Deprecated in favor of [edsan_ct()].
 #' @export
 edsan_reidentify <- function(ids, id_type, identity = FALSE,
                              env = "edsan-ct", ks_path = NULL) {
-  ids <- .edsan_ct_validate_ids(ids, require_character = TRUE)
-  id_type <- match.arg(id_type, c("PATID", "EVTID"))
-  if (!is.logical(identity) || length(identity) != 1L || is.na(identity)) {
-    stop("`identity` must be TRUE or FALSE.", call. = FALSE)
-  }
-
-  type_spec <- .edsan_ct_specs$edsan_to_his$types[[id_type]]
-  out <- .edsan_ct_translate(
-    ids, rep.int(id_type, length(ids)), "edsan_to_his", env, ks_path
-  )
-
-  result <- tibble::tibble(out$input_id, out$output_id)
-  names(result) <- c(id_type, type_spec$output_type)
-
-  if (!isTRUE(identity)) return(result)
-
-  if (identical(id_type, "PATID")) {
-    patient <- .edsan_patient_rows(unique(result$PATID), ks_path = ks_path)
-    return(dplyr::left_join(result, patient, by = "PATID"))
-  }
-
-  evtid_patid <- .edsan_evtid_patid_map(unique(result$EVTID))
-  result <- dplyr::left_join(result, evtid_patid, by = "EVTID")
-
-  patid_ipp <- .edsan_patid_ipp_map(result$PATID, env = env, ks_path = ks_path)
-  result <- dplyr::left_join(result, patid_ipp, by = "PATID")
-
-  patient <- .edsan_patient_rows(
-    unique(result$PATID[!is.na(result$PATID) & nzchar(result$PATID)]),
-    ks_path = ks_path
-  )
-  dplyr::left_join(result, patient, by = "PATID")
+  .redsan_deprecate("edsan_reidentify", "edsan_ct")
+  .edsan_ct_legacy_reidentify(ids, id_type, identity, env, ks_path)
 }

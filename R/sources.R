@@ -25,7 +25,7 @@
       "DATEPRELEV"
     ),
     default_batch_key = c("RECDATE", "DATENT", "DATENT", "DATENT", "DATEXAM", "DATEPRELEV"),
-    normalizer = c("process_doceds", "process_pmsi", "process_pmsi", "process_pmsi", "process_biol", "process_viro"),
+    normalizer = c("doceds_normalize", "pmsi_normalize", "pmsi_normalize", "pmsi_normalize", "biol_normalize", "viro_normalize"),
     notes = c(
       "Clinical documents; RECTXT and RECTYPE are document payload fields.",
       paste(
@@ -200,12 +200,12 @@
 #' @return A tibble with one row per known source table.
 #'
 #' @examples
-#' edsan_sources()
-#' edsan_sources("pmsi")
-#' edsan_sources("pmsi", "diag")
+#' edsan_source_catalog()
+#' edsan_source_catalog("pmsi")
+#' edsan_source_catalog("pmsi", "diag")
 #'
 #' @export
-edsan_sources <- function(module = NULL, table = NULL) {
+edsan_source_catalog <- function(module = NULL, table = NULL) {
   out <- .edsan_source_registry()
 
   if (!is.null(module)) {
@@ -227,4 +227,14 @@ edsan_sources <- function(module = NULL, table = NULL) {
   }
 
   out
+}
+
+#' Deprecated source catalog name
+#'
+#' @inheritParams edsan_source_catalog
+#' @return The source catalog returned by [edsan_source_catalog()].
+#' @export
+edsan_sources <- function(module = NULL, table = NULL) {
+  .redsan_deprecate("edsan_sources", "edsan_source_catalog")
+  edsan_source_catalog(module = module, table = table)
 }

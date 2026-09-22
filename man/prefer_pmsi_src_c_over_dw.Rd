@@ -16,7 +16,7 @@ defined.}
 \code{SRC} is absent.
 }
 \description{
-Applies the PMSI source rule used by \code{\link[=process_pmsi]{process_pmsi()}} by default.
+Applies the PMSI source rule used by \code{\link[=pmsi_normalize]{pmsi_normalize()}} by default.
 Within each \code{PATID + EVTID + SEJUM + SEJUF} group, rows whose \code{SRC} is \code{"DW"}
 are removed only when at least one \code{"C"} row is present. \code{"DW"} remains the
 fallback for units without \code{"C"}; unknown and missing sources are always

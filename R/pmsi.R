@@ -153,7 +153,7 @@
 
 #' Prefer PMSI source C over DW within each unit
 #'
-#' Applies the PMSI source rule used by [process_pmsi()] by default.
+#' Applies the PMSI source rule used by [pmsi_normalize()] by default.
 #' Within each `PATID + EVTID + SEJUM + SEJUF` group, rows whose `SRC` is `"DW"`
 #' are removed only when at least one `"C"` row is present. `"DW"` remains the
 #' fallback for units without `"C"`; unknown and missing sources are always
@@ -506,13 +506,13 @@ prefer_pmsi_src_c_over_dw <- function(main) {
 #'     UFPRO1 = "01"
 #'   )
 #' )
-#' pmsi <- process_pmsi(example_data)
+#' pmsi <- pmsi_normalize(example_data)
 #' pmsi$main
 #' pmsi$actes
 #' pmsi$diag
 #'
 #' @export
-process_pmsi <- function(data, source_policy = c("c_over_dw", "all")) {
+pmsi_normalize <- function(data, source_policy = c("c_over_dw", "all")) {
   source_policy <- match.arg(source_policy)
   cleaned <- .pmsi_prepare(data)
   complete_main <- .pmsi_main(cleaned)
@@ -534,11 +534,21 @@ process_pmsi <- function(data, source_policy = c("c_over_dw", "all")) {
   )
 }
 
+#' Deprecated PMSI normalizer name
+#'
+#' @inheritParams pmsi_normalize
+#' @return The value returned by [pmsi_normalize()].
+#' @export
+process_pmsi <- function(data, source_policy = c("c_over_dw", "all")) {
+  .redsan_deprecate("process_pmsi", "pmsi_normalize")
+  pmsi_normalize(data, source_policy = source_policy)
+}
+
 #' Add reference labels to normalized PMSI tables
 #'
 #' Enriches normalized PMSI `actes` and `diag` tables with the reference labels
 #' distributed with `redsan`. It can be applied to older artifacts;
-#' [process_pmsi()] uses the same function for new outputs. The `main` table is
+#' [pmsi_normalize()] uses the same function for new outputs. The `main` table is
 #' returned unchanged.
 #'
 #' Acts are matched to the combined CCAM/CDAM reference by
@@ -551,7 +561,7 @@ process_pmsi <- function(data, source_policy = c("c_over_dw", "all")) {
 #' nomenclature and procedure labels.
 #'
 #' @param pmsi A list containing the `main`, `actes`, and `diag` data frames,
-#'   normally returned by [process_pmsi()].
+#'   normally returned by [pmsi_normalize()].
 #'
 #' @return The input PMSI list with `CODEACTE_LABEL` added to `actes` and
 #'   `CODE_LABEL` added to `diag`. All other tables, columns, and rows are
@@ -568,7 +578,7 @@ process_pmsi <- function(data, source_policy = c("c_over_dw", "all")) {
 #'   NOMENCLATURE1 = "CCAM",
 #'   DALL = "01:E46"
 #' ))
-#' normalized <- process_pmsi(raw)
+#' normalized <- pmsi_normalize(raw)
 #' labelled <- label_pmsi(normalized)
 #' labelled$actes[c("NOMENCLATURE", "CODEACTE", "CODEACTE_LABEL")]
 #' labelled$diag[c("diag", "CODE_LABEL")]

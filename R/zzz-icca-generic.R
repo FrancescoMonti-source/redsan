@@ -3,7 +3,7 @@
 # This definition intentionally supersedes the earlier narrow source dispatcher
 # in R/icca.R while preserving its tested encounter path and convenience aliases.
 
-get_icca <- function(evtids, source = "encounter", link = "auto",
+icca_get <- function(evtids, source = "encounter", link = "auto",
                      connection = NULL, instance = c("adult", "ped"),
                      env = "edsan-ct", ks_path = NULL) {
   instance <- match.arg(instance)
@@ -57,6 +57,26 @@ get_icca <- function(evtids, source = "encounter", link = "auto",
     source = source,
     link = link,
     connection = connection,
+    env = env,
+    ks_path = ks_path
+  )
+}
+
+#' Deprecated ICCA retrieval name
+#'
+#' @inheritParams icca_get
+#' @return The value returned by [icca_get()].
+#' @export
+get_icca <- function(evtids, source = "encounter", link = "auto",
+                     connection = NULL, instance = c("adult", "ped"),
+                     env = "edsan-ct", ks_path = NULL) {
+  .redsan_deprecate("get_icca", "icca_get")
+  icca_get(
+    evtids = evtids,
+    source = source,
+    link = link,
+    connection = connection,
+    instance = instance,
     env = env,
     ks_path = ks_path
   )

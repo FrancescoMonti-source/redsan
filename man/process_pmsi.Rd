@@ -2,7 +2,7 @@
 % Please edit documentation in R/pmsi.R
 \name{process_pmsi}
 \alias{process_pmsi}
-\title{Process PMSI stays into analysis-ready tables}
+\title{Deprecated PMSI normalizer name}
 \usage{
 process_pmsi(data, source_policy = c("c_over_dw", "all"))
 }
@@ -15,53 +15,8 @@ removes \code{DW} rows only where \code{C} exists for the same
 If \code{SRC} is absent, both policies return the same \code{main}.}
 }
 \value{
-A list with tibbles \code{main}, \code{actes}, and \code{diag}.
+The value returned by \code{\link[=pmsi_normalize]{pmsi_normalize()}}.
 }
 \description{
-Flattens PMSI stay payloads and returns three tables:
-\describe{
-\item{\code{main}}{the normalized PMSI main table after the selected source policy}
-\item{\code{actes}}{actes in long format (one row per acte), with the matching
-CCAM/CDAM \code{CODEACTE_LABEL} when available}
-\item{\code{diag}}{diagnoses derived from \code{DALL} (one row per token), with the
-matching CIM-10 \code{CODE_LABEL} when available}
-}
-}
-\details{
-\code{DATENT}, \code{DATSORT}, and acte-level \code{DATEACTE} are parsed to \code{POSIXct} and
-corresponding \verb{HEURE_*} columns are derived as \code{hms} times when the raw input
-included an explicit time component. \code{actes} and \code{diag} remain complete and
-receive event-level stay dates computed from the complete \code{main}: minimum
-\code{DATENT} and maximum \code{DATSORT} per \code{PATID + EVTID}. For legacy payloads that
-do not contain \code{PATID}, the event bounds fall back to \code{EVTID}. \code{PATAGE} is
-numeric in every returned table that carries it. By default, the returned
-\code{main} applies \code{\link[=prefer_pmsi_src_c_over_dw]{prefer_pmsi_src_c_over_dw()}} after those bounds have been
-derived. Use \code{source_policy = "all"} to retain every normalized \code{main} row.
-\code{actes} and \code{diag} are not source-filtered.
-}
-\examples{
-example_data <- list(
-  list(
-    PATID = "P1",
-    EVTID = "E1",
-    ELTID = "L1",
-    DATENT = "2020-01-01T08:30:00",
-    DATSORT = "2020-01-02T10:15:00",
-    PATBD = "1980-01-01",
-    PATAGE = "40",
-    PATSEX = "M",
-    SEJDUR = "2",
-    SEJUM = "2020-01-01",
-    SEJUF = "2020-01-02",
-    DALL = "01:AA 02:BB",
-    CODEACTE1 = "A123",
-    DATEACTE1 = "2020-01-01T09:00:00",
-    UFPRO1 = "01"
-  )
-)
-pmsi <- process_pmsi(example_data)
-pmsi$main
-pmsi$actes
-pmsi$diag
-
+Deprecated PMSI normalizer name
 }

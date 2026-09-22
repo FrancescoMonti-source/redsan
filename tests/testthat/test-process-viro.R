@@ -18,7 +18,7 @@ test_that("process_viro uses VIRO source identity and sampling time", {
     )
   )
 
-  out <- process_viro(raw)
+  out <- viro_normalize(raw)
 
   expect_identical(
     list(

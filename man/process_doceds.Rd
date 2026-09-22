@@ -2,7 +2,7 @@
 % Please edit documentation in R/doceds.R
 \name{process_doceds}
 \alias{process_doceds}
-\title{Process DOCEDS documents}
+\title{Deprecated DOCEDS normalizer name}
 \usage{
 process_doceds(data)
 }
@@ -10,20 +10,8 @@ process_doceds(data)
 \item{data}{A data frame returned by the DOCEDS data endpoint.}
 }
 \value{
-A tibble. When \code{RECDATE} is present, it is parsed to \code{POSIXct} and
-\code{HEURE_RECDATE} records an \code{hms} value only when the source string included
-an explicit time. When \code{PATAGE} is present, it is converted to numeric.
+The value returned by \code{\link[=doceds_normalize]{doceds_normalize()}}.
 }
 \description{
-Converts a flat DOCEDS payload to a tibble and normalizes its recorded time
-and patient age. Native identifiers and document payload columns are
-otherwise preserved.
-}
-\examples{
-process_doceds(data.frame(
-  ELTID = "L1",
-  RECDATE = "2024-01-01 08:30",
-  RECTYPE = "CR"
-))
-
+Deprecated DOCEDS normalizer name
 }

@@ -244,9 +244,9 @@ test_that("medication retrieval uses DAR and preserves ICCA long rows", {
   expect_false("encounterNumber" %in% names(out))
 })
 
-test_that("public get_icca accepts all validated sources on empty input", {
-  expect_s3_class(get_icca(character(), source = "encounter"), "tbl_df")
-  expect_s3_class(get_icca(character(), source = "assessment"), "tbl_df")
-  expect_s3_class(get_icca(character(), source = "medication"), "tbl_df")
-  expect_error(get_icca(character(), source = "other"))
+test_that("public icca_get accepts all validated sources on empty input", {
+  expect_s3_class(icca_get(character(), source = "encounter"), "tbl_df")
+  expect_s3_class(icca_get(character(), source = "assessment"), "tbl_df")
+  expect_s3_class(icca_get(character(), source = "medication"), "tbl_df")
+  expect_error(icca_get(character(), source = "other"))
 })
