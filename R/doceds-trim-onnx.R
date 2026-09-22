@@ -3,7 +3,8 @@
 #' Sends DOCEDS text to a compatible `edsan-doc-trimmer` runtime artifact and
 #' maps its results back to the original warehouse objects. Worker results must
 #' preserve request identity and provide intervals grounded exactly in the
-#' original text.
+#' original text. The returned trimmed text must contain the ordered interval
+#' content exactly, apart from worker-selected whitespace.
 #'
 #' @param data A character vector of texts, a data frame / tibble containing text,
 #'   a single `edsan_event_bundle`, or a list of event bundles.
@@ -20,7 +21,7 @@
 #'   \itemize{
 #'     \item **Character vector**: Returns a character vector of trimmed texts.
 #'     \item **Data frame / tibble**: Returns the input table augmented with `<text_col>_TRIMMED`
-#'       (defaults to `RECTXT_TRIMMED`), `TRIM_REDUCTION_PCT`, `TRIM_IS_BT`, and
+#'       (defaults to `RECTXT_TRIMMED`), `TRIM_REDUCTION_PCT`, and
 #'       `TRIM_PRESERVED_INTERVALS` (character JSON string adhering to warehouse list-column contracts).
 #'     \item **Single bundle (`edsan_event_bundle`)**: Returns the bundle with its `sources$doceds`
 #'       table augmented.
@@ -82,7 +83,6 @@ trim_doceds_onnx <- function(
 
     bundle_map <- vector("list", length(data))
     all_texts <- character()
-    all_rectypes <- character()
 
     for (i in seq_along(data)) {
       doc <- data[[i]]$sources$doceds
@@ -95,10 +95,6 @@ trim_doceds_onnx <- function(
           length(all_texts) + nrow(doc)
         )
         all_texts <- c(all_texts, as.character(doc[[col]]))
-        all_rectypes <- c(
-          all_rectypes,
-          ifelse(is.na(doc$RECTYPE), "", as.character(doc$RECTYPE))
-        )
       }
     }
 
@@ -110,7 +106,6 @@ trim_doceds_onnx <- function(
     flat_df <- data.frame(
       doc_id = paste0("doc_", seq_along(all_texts)),
       RECTXT = all_texts,
-      RECTYPE = all_rectypes,
       stringsAsFactors = FALSE
     )
 
@@ -138,7 +133,6 @@ trim_doceds_onnx <- function(
         ]]$sources$doceds$TRIM_REDUCTION_PCT <- trimmed_flat$TRIM_REDUCTION_PCT[
           indices
         ]
-        data[[i]]$sources$doceds$TRIM_IS_BT <- trimmed_flat$TRIM_IS_BT[indices]
         data[[
           i
         ]]$sources$doceds$TRIM_PRESERVED_INTERVALS <- trimmed_flat$TRIM_PRESERVED_INTERVALS[
@@ -217,11 +211,6 @@ trim_doceds_onnx <- function(
   payload <- data.frame(
     id = ids,
     text = ifelse(is.na(raw_texts), "", as.character(raw_texts)),
-    rectype = if ("RECTYPE" %in% names(df)) {
-      ifelse(is.na(df$RECTYPE), "", as.character(df$RECTYPE))
-    } else {
-      rep("", nrow(df))
-    },
     stringsAsFactors = FALSE
   )
 
@@ -293,7 +282,6 @@ trim_doceds_onnx <- function(
 
   trimmed_texts <- character(nrow(df))
   reduc_pcts <- numeric(nrow(df))
-  is_bts <- logical(nrow(df))
   intervals_list <- vector("list", nrow(df))
 
   for (i in seq_along(output_data)) {
@@ -301,7 +289,6 @@ trim_doceds_onnx <- function(
     .doceds_onnx_validate_result(item, ids[[i]], payload$text[[i]])
     trimmed_texts[i] <- item$trimmed_text
     reduc_pcts[i] <- as.numeric(item$reduction_pct)
-    is_bts[i] <- item$is_bt
 
     if (length(item$preserved_intervals) > 0) {
       intervals_list[[i]] <- as.character(jsonlite::toJSON(
@@ -314,6 +301,7 @@ trim_doceds_onnx <- function(
   }
 
   if (is_char_input) {
+    names(trimmed_texts) <- names(data)
     return(trimmed_texts)
   }
 
@@ -324,7 +312,6 @@ trim_doceds_onnx <- function(
   }
   data[[out_col]] <- trimmed_texts
   data$TRIM_REDUCTION_PCT <- reduc_pcts
-  data$TRIM_IS_BT <- is_bts
   data$TRIM_PRESERVED_INTERVALS <- as.character(intervals_list)
 
   data
@@ -339,9 +326,6 @@ trim_doceds_onnx <- function(
   }
   scalar_number <- function(x) {
     is.numeric(x) && length(x) == 1L && is.finite(x)
-  }
-  scalar_logical <- function(x) {
-    is.logical(x) && length(x) == 1L && !is.na(x)
   }
   valid_interval <- function(interval) {
     if (
@@ -360,7 +344,10 @@ trim_doceds_onnx <- function(
       start >= 1L &&
       end >= start &&
       end <= nchar(source_text) &&
-      identical(substr(source_text, start, end), interval$text)
+    identical(
+      enc2utf8(substr(source_text, start, end)),
+      enc2utf8(interval$text)
+    )
   }
   intervals <- item$preserved_intervals
   intervals_valid <- is.list(intervals) &&
@@ -370,12 +357,29 @@ trim_doceds_onnx <- function(
     ends <- vapply(intervals, function(interval) interval$end, numeric(1))
     intervals_valid <- all(starts[-1L] > ends[-length(ends)])
   }
+  interval_text <- if (intervals_valid && length(intervals) > 0L) {
+    paste(
+      vapply(intervals, function(interval) interval$text, character(1)),
+      collapse = ""
+    )
+  } else {
+    ""
+  }
+  without_whitespace <- function(text) {
+    gsub("[[:space:]]", "", enc2utf8(text))
+  }
+  trimmed_text_grounded <- scalar_character(item$trimmed_text) &&
+    identical(
+      without_whitespace(item$trimmed_text),
+      without_whitespace(interval_text)
+    )
+  legacy_fields_absent <- !"is_bt" %in% names(item)
   valid <- is.list(item) &&
+    legacy_fields_absent &&
     scalar_character(item$id) &&
     identical(item$id, document_id) &&
-    scalar_character(item$trimmed_text) &&
+    trimmed_text_grounded &&
     scalar_number(item$reduction_pct) &&
-    scalar_logical(item$is_bt) &&
     intervals_valid
   if (!valid) {
     stop(
@@ -419,7 +423,6 @@ trim_doceds_onnx <- function(
 .doceds_onnx_add_output_columns <- function(data, text_col) {
   data[[paste0(text_col, "_TRIMMED")]] <- character(0)
   data$TRIM_REDUCTION_PCT <- numeric(0)
-  data$TRIM_IS_BT <- logical(0)
   data$TRIM_PRESERVED_INTERVALS <- character(0)
   data
 }
@@ -590,7 +593,7 @@ edsan_install_trimmer <- function(
       stop("Could not preserve the existing trimmer installation.", call. = FALSE)
     }
   }
-  if (!file.rename(artifact_dir, dest_dir)) {
+  if (!.doceds_onnx_publish_artifact(artifact_dir, dest_dir)) {
     stop("Could not publish the validated trimmer artifact.", call. = FALSE)
   }
   published <- TRUE
@@ -619,6 +622,16 @@ edsan_install_trimmer <- function(
   )
 
   invisible(dest_dir)
+}
+
+#' Publish a validated artifact from staging
+#'
+#' Kept behind a package-local seam so rollback behavior can be tested without
+#' relying on platform-specific filesystem permissions.
+#'
+#' @noRd
+.doceds_onnx_publish_artifact <- function(artifact_dir, dest_dir) {
+  file.rename(artifact_dir, dest_dir)
 }
 
 #' Find the model root inside an extracted trimmer archive
@@ -672,13 +685,13 @@ edsan_install_trimmer <- function(
       length(version) != 1L ||
       !nzchar(version) ||
       is.null(parsed_version) ||
-      parsed_version < numeric_version("1.1.0") ||
-      !identical(worker_contract, "rectype-aware-v1")
+      parsed_version < numeric_version("1.2.0") ||
+      !identical(worker_contract, "model-only-v1")
   ) {
     stop(
       paste0(
-        "Invalid trimmer archive; redsan requires artifact_version >= 1.1.0 ",
-        "and worker_contract 'rectype-aware-v1'."
+        "Invalid trimmer archive; redsan requires artifact_version >= 1.2.0 ",
+        "and worker_contract 'model-only-v1'."
       ),
       call. = FALSE
     )
