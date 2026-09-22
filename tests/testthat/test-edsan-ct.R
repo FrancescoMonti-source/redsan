@@ -267,6 +267,14 @@ test_that("edsan_ct preserves identifiers beyond safe numeric precision", {
 
 test_that("edsan_ct exposes backend and response failures as errors", {
   failures <- list(
+    network = list(
+      call = function(...) stop("network unavailable"),
+      message = "network unavailable"
+    ),
+    authentication = list(
+      call = function(...) stop("authentication failed"),
+      message = "authentication failed"
+    ),
     null = list(call = function(...) NULL, message = "call failed"),
     http = list(
       call = function(...) list(status = 500, message = "Internal Server Error"),
@@ -289,19 +297,43 @@ test_that("edsan_ct exposes backend and response failures as errors", {
 
 test_that("edsan_ct results join directly by their source identifier", {
   fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
-    list("000123" = list(NIP = "PAT-1"))
+    output <- switch(
+      paste(api_fct, api_type),
+      "getHISToEDSaNCorrespondences NIP" = "PAT-1",
+      "getHISToEDSaNCorrespondences CPAGE" = "EVT-1",
+      "getEDSaNToHISCorrespondences NIP" = "IPP-1",
+      "getEDSaNToHISCorrespondences CPAGE" = "IEP-1"
+    )
+    stats::setNames(
+      list(stats::setNames(list(output), api_type)),
+      api_query
+    )
   }
   testthat::local_mocked_bindings(
     .edsan_ct_call = fake_call,
     .package = "redsan"
   )
 
-  source <- tibble::tibble(IPP = c("000123", "missing"), value = c(1, 2))
-  correspondence <- edsan_ct("000123", from = "IPP")
-  joined <- dplyr::left_join(source, correspondence, by = "IPP")
+  cases <- list(
+    IPP = c(id = "000123", destination = "PATID", value = "PAT-1"),
+    IEP = c(id = "98765", destination = "EVTID", value = "EVT-1"),
+    PATID = c(id = "123", destination = "IPP", value = "IPP-1"),
+    EVTID = c(id = "456", destination = "IEP", value = "IEP-1")
+  )
 
-  expect_identical(joined$PATID, c("PAT-1", NA_character_))
-  expect_identical(joined$IPP, source$IPP)
+  for (from in names(cases)) {
+    case <- cases[[from]]
+    source <- tibble::tibble(!!from := c(case[["id"]], "missing"), value = c(1, 2))
+    correspondence <- edsan_ct(case[["id"]], from = from)
+    joined <- dplyr::left_join(source, correspondence, by = from)
+
+    expect_identical(
+      joined[[case[["destination"]]]],
+      c(case[["value"]], NA_character_),
+      info = from
+    )
+    expect_identical(joined[[from]], source[[from]], info = from)
+  }
 })
 
 test_that("edsan_ct preserves missing, multiple, and duplicate inputs", {
