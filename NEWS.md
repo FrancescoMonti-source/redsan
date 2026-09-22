@@ -1,3 +1,32 @@
+# redsan 0.4.1
+
+- Add `trim_doceds_onnx()`, which orchestrates a compatible versioned
+  `edsan-doc-trimmer` runtime and maps its grounded results back to DOCEDS data.
+
+- Support multiple invocation shapes: character vectors, data frames / tibbles,
+  single `edsan_event_bundle` objects, and cohort lists of bundles (e.g. `denut`).
+
+- Cohort batching extracts texts across stays, loads the model once, and runs
+  the forward pass in a single job, delegating directly to the data frame trimmer
+  without mutating underlying table schemas, requiring `rbind()`, or creating
+  list-columns in normalized tables.
+
+- Worker results are matched by document identity and rejected when incomplete
+  or malformed; preserved intervals are checked against the original `RECTXT`
+  and stored as valid scalar JSON. Trimmed text must contain those ordered
+  interval contents, apart from worker-selected whitespace. Model-specific
+  inference policy remains owned by the runtime artifact.
+
+- Empty DOCEDS tables in data frames, single bundles, and mixed cohorts receive
+  the documented output columns without starting the worker. Add a release gate
+  that exercises the exact versioned runtime through `trim_doceds_onnx()`;
+  protocol-fixture unit tests do not claim production model coverage.
+
+- Add `edsan_install_trimmer()` and `edsan_trimmer_cache_dir()` for air-gapped
+  hospital data warehouse (HDW) environments without internet access. Installation
+  validates a complete versioned artifact in staging before replacing an existing
+  runtime.
+
 # redsan 0.4.0
 
 - Add `trim_doceds_text()`, which removes the administrative frame from one

@@ -254,6 +254,55 @@ against, and a family that fires on nothing is wrong rather than inapplicable.
 administrative boundary, with the measured baseline and the reasoning in
 `tools/README.md`. Read it before adding or widening a family.
 
+### Contextual ML Trimming with DrBERT (`trim_doceds_onnx`)
+
+For contextual document trimming, `redsan` provides `trim_doceds_onnx()`, backed
+by a compatible versioned runtime artifact from `edsan-doc-trimmer`.
+
+It can be applied at any level of granularity:
+
+```r
+# 1. On a simple data frame or tibble (adds RECTXT_TRIMMED, TRIM_REDUCTION_PCT,
+#    and TRIM_PRESERVED_INTERVALS)
+clean_table <- trim_doceds_onnx(bundle$sources$doceds)
+
+# 2. Directly on a character vector of texts
+clean_texts <- trim_doceds_onnx(bundle$sources$doceds$RECTXT)
+
+# 3. On a single event bundle
+clean_bundle <- trim_doceds_onnx(bundle)
+
+# 4. In batch across an entire cohort (e.g. 779 stays)
+clean_cohort <- trim_doceds_onnx(denut)
+```
+
+Cohort batching sends all non-empty texts in one worker request and maps results
+back by document identity. Original rows, source identifiers, unrelated columns,
+classes, names, and attributes are preserved. Empty DOCEDS tables receive the
+same four output columns without starting the worker.
+
+The versioned runtime artifact must contain the model, tokenizer, worker, and an
+`artifact.json` manifest declaring the compatible worker contract. `redsan`
+validates request/result identity and verifies that every reported preserved
+interval matches the original text exactly. `trimmed_text` must contain those
+ordered interval contents without introducing other text, while the worker owns
+their whitespace assembly. Model choice and inference rules remain owned by the
+runtime artifact.
+
+Before a release claims compatibility with a specific artifact, install the
+package candidate and run the acceptance gate against that exact unpacked
+artifact and Python environment:
+
+```sh
+Rscript tools/check_doceds_trimmer_artifact.R /path/to/python /path/to/versioned/artifact
+```
+
+This invokes the artifact through the public `trim_doceds_onnx()` interface and
+fails unless the versioned protocol, output schema, identity mapping, and exact
+source grounding are accepted. Protocol-fixture unit tests do not substitute for
+this gate. Model development and behavior are documented in the
+[`edsan-doc-trimmer`](https://github.com/FrancescoMonti-source/edsan-doc-trimmer) repository.
+
 ## Privacy
 
 Request only the fields needed for the task. Keep patient-derived exports,

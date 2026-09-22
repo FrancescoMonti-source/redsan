@@ -7,7 +7,7 @@
 edsan_install_trimmer(zip_path, dest_dir = edsan_trimmer_cache_dir())
 }
 \arguments{
-\item{zip_path}{Path to the \code{edsan-doc-trimmer-v1.0.0.zip} file.}
+\item{zip_path}{Path to a compatible versioned \code{edsan-doc-trimmer} archive.}
 
 \item{dest_dir}{Destination directory. Defaults to \code{edsan_trimmer_cache_dir()}.}
 }
@@ -15,6 +15,8 @@ edsan_install_trimmer(zip_path, dest_dir = edsan_trimmer_cache_dir())
 The path to the installed model directory (invisibly).
 }
 \description{
-Extracts and registers a downloaded \code{edsan-doc-trimmer-v1.0.0.zip} file into
-the persistent user cache directory.
+Extracts and registers a compatible versioned \code{edsan-doc-trimmer} archive into
+the persistent user cache directory or a custom destination directory. The
+archive is validated in staging and must include the model, tokenizer, worker,
+and an \code{artifact.json} manifest declaring \code{artifact_version}.
 }
