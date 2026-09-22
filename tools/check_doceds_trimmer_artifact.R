@@ -11,8 +11,8 @@ if (length(args) != 2L || any(!nzchar(args))) {
 
 python_exe <- args[[1L]]
 model_dir <- args[[2L]]
-expected_version <- "1.1.0"
-expected_contract <- "rectype-aware-v1"
+expected_version <- "1.2.0"
+expected_contract <- "model-only-v1"
 manifest <- jsonlite::fromJSON(file.path(model_dir, "artifact.json"))
 stopifnot(
   identical(manifest$artifact_version, expected_version),
@@ -61,22 +61,20 @@ missing_result <- redsan::trim_doceds_onnx(
 output_columns <- c(
   "RECTXT_TRIMMED",
   "TRIM_REDUCTION_PCT",
-  "TRIM_IS_BT",
   "TRIM_PRESERVED_INTERVALS"
 )
 voucher_rows <- match(c("bt", "ordon"), result$ELTID)
 preserved_rows <- match(c("unrelated", "blank"), result$ELTID)
 stopifnot(
   identical(result$ELTID, input$ELTID),
+  identical(result$RECTYPE, input$RECTYPE),
   identical(result$acceptance_order, input$acceptance_order),
   identical(missing_result$ELTID, missing_rectype$ELTID),
   identical(missing_result$acceptance_order, missing_rectype$acceptance_order),
   all(output_columns %in% names(result)),
   all(output_columns %in% names(missing_result)),
-  # Student v3 owns voucher classification. The worker has no deterministic
-  # transport shortcut, so this compatibility field remains false.
-  identical(result$TRIM_IS_BT, rep(FALSE, nrow(result))),
-  identical(missing_result$TRIM_IS_BT, FALSE),
+  !"TRIM_IS_BT" %in% names(result),
+  !"TRIM_IS_BT" %in% names(missing_result),
   all(result$RECTXT_TRIMMED[voucher_rows] == ""),
   all(result$TRIM_REDUCTION_PCT[voucher_rows] == 100),
   all(result$TRIM_PRESERVED_INTERVALS[voucher_rows] == "[]"),

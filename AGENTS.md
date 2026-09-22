@@ -34,7 +34,7 @@ Unit tests live in `tests/testthat/test-<kebab-case>.R`, matching their source m
 |---|---|---|
 | **Location** | `R/doceds-trim.R` | `R/doceds-trim-onnx.R` |
 | **Input** | Scalar character string (`text`) | Character vector, `data.frame`/`tibble`, single `edsan_event_bundle`, or list of bundles |
-| **Output** | List with `text` and `removed_intervals` | Character vector, or augmented table/bundle(s) with `RECTXT_TRIMMED`, `TRIM_REDUCTION_PCT`, `TRIM_IS_BT`, and `TRIM_PRESERVED_INTERVALS` (serialized JSON character) |
+| **Output** | List with `text` and `removed_intervals` | Character vector, or augmented table/bundle(s) with `RECTXT_TRIMMED`, `TRIM_REDUCTION_PCT`, and `TRIM_PRESERVED_INTERVALS` (serialized JSON character) |
 | **Strategy** | Deterministic removal of known CHU Rouen letterhead patterns | Contextual sequence classification using `DrBERT/DrBERT-7GB` |
 | **Grounding** | Negative: tracks removed character spans | Positive: tracks preserved clinical character intervals `[start, end]` |
 | **Runtime** | Pure R, zero external dependencies | Versioned background Python worker invoked with `processx` |

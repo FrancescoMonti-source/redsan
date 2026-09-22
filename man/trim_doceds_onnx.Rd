@@ -31,7 +31,7 @@ Depending on the input shape:
 \itemize{
 \item \strong{Character vector}: Returns a character vector of trimmed texts.
 \item \strong{Data frame / tibble}: Returns the input table augmented with \verb{<text_col>_TRIMMED}
-(defaults to \code{RECTXT_TRIMMED}), \code{TRIM_REDUCTION_PCT}, \code{TRIM_IS_BT}, and
+(defaults to \code{RECTXT_TRIMMED}), \code{TRIM_REDUCTION_PCT}, and
 \code{TRIM_PRESERVED_INTERVALS} (character JSON string adhering to warehouse list-column contracts).
 \item \strong{Single bundle (\code{edsan_event_bundle})}: Returns the bundle with its \code{sources$doceds}
 table augmented.

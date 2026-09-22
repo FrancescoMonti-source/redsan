@@ -4,7 +4,7 @@ trimmer_protocol_fixture <- function(result_mutation = character()) {
   writeLines("dummy model", file.path(model_dir, "model.onnx"))
   writeLines("{}", file.path(model_dir, "tokenizer.json"))
   writeLines(
-    '{"artifact_version":"1.1.0","worker_contract":"rectype-aware-v1"}',
+    '{"artifact_version":"1.2.0","worker_contract":"model-only-v1"}',
     file.path(model_dir, "artifact.json")
   )
 
@@ -13,8 +13,7 @@ trimmer_protocol_fixture <- function(result_mutation = character()) {
     "arg <- function(name) args[[match(name, args) + 1L]]",
     "documents <- jsonlite::fromJSON(arg('--input'), simplifyVector = FALSE)",
     "trim_one <- function(document) {",
-    "  rectype <- if (is.null(document$rectype)) '' else document$rectype",
-    "  is_bt <- identical(rectype, 'protocol-true')",
+    "  stopifnot(identical(sort(names(document)), c('id', 'text')))",
     "  intervals <- if (!nzchar(document$text)) list() else list(list(",
     "    start = 1L, end = nchar(document$text), family = 'fixture', text = document$text",
     "  ))",
@@ -22,7 +21,6 @@ trimmer_protocol_fixture <- function(result_mutation = character()) {
     "    id = document$id,",
     "    trimmed_text = document$text,",
     "    reduction_pct = 0,",
-    "    is_bt = is_bt,",
     "    preserved_intervals = intervals",
     "  )",
     "}",
@@ -43,7 +41,7 @@ trimmer_protocol_fixture <- function(result_mutation = character()) {
 
 trimmer_archive_fixture <- function(
   nested = FALSE,
-  manifest = '{"artifact_version":"1.1.0","worker_contract":"rectype-aware-v1"}'
+  manifest = '{"artifact_version":"1.2.0","worker_contract":"model-only-v1"}'
 ) {
   source_dir <- tempfile("trimmer_archive_")
   artifact_dir <- if (nested) {
@@ -72,7 +70,7 @@ trimmer_archive_fixture <- function(
   zip_file
 }
 
-test_that("RECTYPE is forwarded and worker results map back by identity", {
+test_that("RECTYPE stays in DOCEDS but is absent from the worker protocol", {
   fixture <- trimmer_protocol_fixture()
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
@@ -90,11 +88,27 @@ test_that("RECTYPE is forwarded and worker results map back by identity", {
   )
 
   expect_identical(result$ELTID, doceds$ELTID)
+  expect_identical(result$RECTYPE, doceds$RECTYPE)
   expect_identical(
     result$RECTXT_TRIMMED,
     doceds$RECTXT
   )
-  expect_identical(result$TRIM_IS_BT, c(FALSE, TRUE))
+  expect_false("TRIM_IS_BT" %in% names(result))
+})
+
+test_that("named character-vector inputs preserve names", {
+  fixture <- trimmer_protocol_fixture()
+  on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
+
+  input <- c(first = "Clinical narrative", second = "Other narrative")
+  result <- trim_doceds_onnx(
+    input,
+    python_exe = fixture$runner,
+    model_dir = fixture$model_dir
+  )
+
+  expect_identical(names(result), names(input))
+  expect_identical(unname(result), unname(input))
 })
 
 test_that("preserved intervals are always valid scalar JSON", {
@@ -167,7 +181,6 @@ test_that("grounding compares French text independently of native encoding", {
     id = "doc-1",
     trimmed_text = utf8_text,
     reduction_pct = 0,
-    is_bt = FALSE,
     preserved_intervals = list(list(
       start = 1,
       end = nchar(native_text),
@@ -263,7 +276,7 @@ test_that("short and duplicate worker responses are rejected", {
   }
 })
 
-test_that("missing and blank RECTYPE are forwarded as empty protocol values", {
+test_that("data frames without RECTYPE use the model-only protocol", {
   fixture <- trimmer_protocol_fixture()
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
@@ -278,7 +291,7 @@ test_that("missing and blank RECTYPE are forwarded as empty protocol values", {
   )
 
   expect_identical(result$RECTXT_TRIMMED, "Clinical narrative")
-  expect_identical(result$TRIM_IS_BT, FALSE)
+  expect_false("TRIM_IS_BT" %in% names(result))
 })
 
 test_that("cohort batching preserves bundle and DOCEDS structure", {
@@ -343,7 +356,7 @@ test_that("cohort batching preserves bundle and DOCEDS structure", {
   expect_identical(result[[1L]]$sources$doceds$keep, 11L)
   expect_identical(result[[2L]]$sources$doceds$keep, 22L)
   expect_identical(result[[1L]]$sources$doceds$RECTXT_TRIMMED, "First text")
-  expect_identical(result[[1L]]$sources$doceds$TRIM_IS_BT, TRUE)
+  expect_false("TRIM_IS_BT" %in% names(result[[1L]]$sources$doceds))
   expect_identical(
     result[[2L]]$sources$doceds$RECTXT_TRIMMED,
     "Clinical narrative"
@@ -361,7 +374,6 @@ test_that("cohort batching preserves bundle and DOCEDS structure", {
       names(empty_doceds),
       "RECTXT_TRIMMED",
       "TRIM_REDUCTION_PCT",
-      "TRIM_IS_BT",
       "TRIM_PRESERVED_INTERVALS"
     )
   )
@@ -413,7 +425,6 @@ test_that("single and empty bundles preserve the bundle contract", {
       names(empty$sources$doceds),
       "RECTXT_TRIMMED",
       "TRIM_REDUCTION_PCT",
-      "TRIM_IS_BT",
       "TRIM_PRESERVED_INTERVALS"
     )
   )
@@ -505,7 +516,7 @@ test_that("edsan_install_trimmer extracts and prints guidance", {
   writeLines("{}", fake_tokenizer)
   writeLines("dummy script", fake_script)
   writeLines(
-    '{"artifact_version":"1.1.0","worker_contract":"rectype-aware-v1"}',
+    '{"artifact_version":"1.2.0","worker_contract":"model-only-v1"}',
     fake_manifest
   )
 
@@ -568,7 +579,7 @@ test_that("edsan_install_trimmer rejects incompatible worker contracts", {
   writeLines("{}", file.path(tmp_zip_dir, "tokenizer.json"))
   writeLines("dummy script", file.path(tmp_zip_dir, "trim_batch_service.py"))
   writeLines(
-    '{"artifact_version":"1.0.0","worker_contract":"text-only-v1"}',
+    '{"artifact_version":"1.2.0","worker_contract":"rectype-aware-v1"}',
     file.path(tmp_zip_dir, "artifact.json")
   )
 
@@ -582,7 +593,7 @@ test_that("edsan_install_trimmer rejects incompatible worker contracts", {
 
   expect_error(
     edsan_install_trimmer(zip_file, dest_dir = tempfile("target_cache_")),
-    "requires artifact_version >= 1.1.0 and worker_contract 'rectype-aware-v1'"
+    "requires artifact_version >= 1.2.0 and worker_contract 'model-only-v1'"
   )
 })
 
@@ -592,7 +603,7 @@ test_that("edsan_install_trimmer rejects malformed manifests", {
 
   expect_error(
     edsan_install_trimmer(zip_file, dest_dir = tempfile("target_cache_")),
-    "requires artifact_version >= 1.1.0 and worker_contract 'rectype-aware-v1'"
+    "requires artifact_version >= 1.2.0 and worker_contract 'model-only-v1'"
   )
 })
 
@@ -713,7 +724,7 @@ test_that("trim_doceds_onnx handles empty inputs gracefully without spawning pro
   expect_equal(nrow(res_df), 0L)
   expect_true("RECTXT_TRIMMED" %in% names(res_df))
   expect_true("TRIM_REDUCTION_PCT" %in% names(res_df))
-  expect_true("TRIM_IS_BT" %in% names(res_df))
+  expect_false("TRIM_IS_BT" %in% names(res_df))
   expect_true("TRIM_PRESERVED_INTERVALS" %in% names(res_df))
   expect_s3_class(res_df, "custom_doceds")
   expect_identical(attr(res_df, "source_note"), "preserve me")
@@ -738,7 +749,7 @@ test_that("trim_doceds_onnx handles empty inputs gracefully without spawning pro
     names(res_cohort[[1L]]$sources$doceds),
     c(
       "ELTID", "RECTYPE", "RECTXT", "RECTXT_TRIMMED",
-      "TRIM_REDUCTION_PCT", "TRIM_IS_BT", "TRIM_PRESERVED_INTERVALS"
+      "TRIM_REDUCTION_PCT", "TRIM_PRESERVED_INTERVALS"
     )
   )
 })

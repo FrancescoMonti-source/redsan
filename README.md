@@ -262,7 +262,8 @@ by a compatible versioned runtime artifact from `edsan-doc-trimmer`.
 It can be applied at any level of granularity:
 
 ```r
-# 1. On a simple data frame or tibble (adds RECTXT_TRIMMED, TRIM_REDUCTION_PCT, TRIM_IS_BT)
+# 1. On a simple data frame or tibble (adds RECTXT_TRIMMED, TRIM_REDUCTION_PCT,
+#    and TRIM_PRESERVED_INTERVALS)
 clean_table <- trim_doceds_onnx(bundle$sources$doceds)
 
 # 2. Directly on a character vector of texts
