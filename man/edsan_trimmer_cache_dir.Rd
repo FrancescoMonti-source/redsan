@@ -2,13 +2,50 @@
 % Please edit documentation in R/doceds-trim-onnx.R
 \name{edsan_trimmer_cache_dir}
 \alias{edsan_trimmer_cache_dir}
-\title{Standard user cache directory for edsan-doc-trimmer}
+\title{Locate the edsan-doc-trimmer cache}
 \usage{
 edsan_trimmer_cache_dir()
 }
 \value{
-Path string to the cache folder.
+A character scalar containing the default cache path. The path ends
+in \code{edsan_doc_trimmer/v1} (with platform-specific separators).
 }
 \description{
-Standard user cache directory for edsan-doc-trimmer
+Returns the single user-cache directory where \code{\link[=edsan_install_trimmer]{edsan_install_trimmer()}}
+installs a trimmer artifact by default. This function reports the path; it
+does not create the directory or inspect the installed artifact.
+}
+\details{
+When \code{model_dir} is not supplied to \code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}} or
+\code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}}, \code{redsan} uses the first directory containing
+\code{model.onnx} in this order:
+\enumerate{
+\item The directory named by \code{EDSAN_TRIMMER_PATH} (or a direct path to its
+\code{model.onnx}). The legacy \code{REDSAN_TRIMMER_PATH} variable is used only when
+\code{EDSAN_TRIMMER_PATH} is unset.
+\item The local cache returned by \code{edsan_trimmer_cache_dir()}.
+\item Known development paths inside a local \code{edsan-doc-trimmer} checkout.
+}
+
+There is no automatic download. The first matching directory wins; discovery
+does not compare artifact versions. Use \code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}} to inspect the
+selected artifact, set \code{EDSAN_TRIMMER_PATH} to select an extracted artifact
+explicitly, or call \code{\link[=edsan_install_trimmer]{edsan_install_trimmer()}} to replace the cached artifact.
+
+The cache contains one installation slot named \code{v1}. Here \code{v1} is the cache
+layout, not the model's artifact version, so versions such as 1.1.0 and 1.2.0
+cannot coexist in the default cache. Installing another compatible archive
+replaces the slot.
+
+The parent cache location is platform-specific and comes from
+\code{tools::R_user_dir("edsan_doc_trimmer", "cache")}. For example, on Windows it
+is normally below the user's local R cache directory.
+}
+\examples{
+edsan_trimmer_cache_dir()
+
+}
+\seealso{
+\code{\link[=edsan_install_trimmer]{edsan_install_trimmer()}}, \code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}},
+\code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}}
 }

@@ -2,21 +2,62 @@
 % Please edit documentation in R/doceds-trim-onnx.R
 \name{edsan_install_trimmer}
 \alias{edsan_install_trimmer}
-\title{Install edsan-doc-trimmer Model for Air-Gapped HDW Environments}
+\title{Install an edsan-doc-trimmer artifact}
 \usage{
 edsan_install_trimmer(zip_path, dest_dir = edsan_trimmer_cache_dir())
 }
 \arguments{
 \item{zip_path}{Path to a compatible versioned \code{edsan-doc-trimmer} archive.}
 
-\item{dest_dir}{Destination directory. Defaults to \code{edsan_trimmer_cache_dir()}.}
+\item{dest_dir}{Installation directory. Defaults to the single local cache
+slot returned by \code{\link[=edsan_trimmer_cache_dir]{edsan_trimmer_cache_dir()}}. Existing contents are
+replaced only after the archive passes validation.}
 }
 \value{
 The path to the installed model directory (invisibly).
 }
 \description{
-Extracts and registers a compatible versioned \code{edsan-doc-trimmer} archive into
-the persistent user cache directory or a custom destination directory. The
-archive is validated in staging and must include the model, tokenizer, worker,
-and an \code{artifact.json} manifest declaring \code{artifact_version}.
+Extracts a compatible versioned \code{edsan-doc-trimmer} archive into the local
+trimmer cache, or into a custom destination. The archive is validated before
+the current installation is changed. It must contain \code{model.onnx},
+\code{tokenizer.json}, \code{trim_batch_service.py}, and an \code{artifact.json} manifest
+accepted by this version of \code{redsan}. The current contract requires
+\verb{artifact_version >= 1.2.0} and \code{worker_contract = "model-only-v1"}.
+}
+\details{
+The default cache has one installation slot, returned by
+\code{\link[=edsan_trimmer_cache_dir]{edsan_trimmer_cache_dir()}}. Its directory name (\code{v1}) identifies the cache
+layout, not the installed artifact version. Installing a new archive into the
+default destination replaces the artifact already in that slot; artifact
+versions do not coexist there. Keep the original archives if you want to
+switch back: reinstalling an older compatible archive replaces the current
+artifact with that version.
+
+Extraction and validation happen in a staging directory. If the archive is
+invalid, the existing installation is left unchanged. If publishing the
+validated artifact fails, \code{redsan} attempts to restore the previous
+installation.
+
+Installing into the default cache makes the artifact the second choice in
+the lookup order described in \code{\link[=edsan_trimmer_cache_dir]{edsan_trimmer_cache_dir()}}. An artifact named
+by \code{EDSAN_TRIMMER_PATH} still takes precedence. A custom \code{dest_dir} is not
+added to discovery automatically; select it with \code{EDSAN_TRIMMER_PATH} or the
+\code{model_dir} argument of \code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}}.
+}
+\examples{
+\dontrun{
+redsan::edsan_install_trimmer(
+  "C:/path/to/edsan-doc-trimmer-v1.2.0.zip"
+)
+
+# Reinstall another compatible archive to switch versions.
+redsan::edsan_install_trimmer(
+  "C:/path/to/edsan-doc-trimmer-v1.2.1.zip"
+)
+}
+
+}
+\seealso{
+\code{\link[=edsan_trimmer_cache_dir]{edsan_trimmer_cache_dir()}}, \code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}},
+\code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}}
 }

@@ -477,17 +477,56 @@ trim_doceds_onnx <- function(
   )
 }
 
-#' Install edsan-doc-trimmer Model for Air-Gapped HDW Environments
+#' Install an edsan-doc-trimmer artifact
 #'
-#' Extracts and registers a compatible versioned `edsan-doc-trimmer` archive into
-#' the persistent user cache directory or a custom destination directory. The
-#' archive is validated in staging and must include the model, tokenizer, worker,
-#' and an `artifact.json` manifest declaring `artifact_version`.
+#' Extracts a compatible versioned `edsan-doc-trimmer` archive into the local
+#' trimmer cache, or into a custom destination. The archive is validated before
+#' the current installation is changed. It must contain `model.onnx`,
+#' `tokenizer.json`, `trim_batch_service.py`, and an `artifact.json` manifest
+#' accepted by this version of `redsan`. The current contract requires
+#' `artifact_version >= 1.2.0` and `worker_contract = "model-only-v1"`.
+#'
+#' @details
+#' The default cache has one installation slot, returned by
+#' [edsan_trimmer_cache_dir()]. Its directory name (`v1`) identifies the cache
+#' layout, not the installed artifact version. Installing a new archive into the
+#' default destination replaces the artifact already in that slot; artifact
+#' versions do not coexist there. Keep the original archives if you want to
+#' switch back: reinstalling an older compatible archive replaces the current
+#' artifact with that version.
+#'
+#' Extraction and validation happen in a staging directory. If the archive is
+#' invalid, the existing installation is left unchanged. If publishing the
+#' validated artifact fails, `redsan` attempts to restore the previous
+#' installation.
+#'
+#' Installing into the default cache makes the artifact the second choice in
+#' the lookup order described in [edsan_trimmer_cache_dir()]. An artifact named
+#' by `EDSAN_TRIMMER_PATH` still takes precedence. A custom `dest_dir` is not
+#' added to discovery automatically; select it with `EDSAN_TRIMMER_PATH` or the
+#' `model_dir` argument of [trim_doceds_onnx()].
 #'
 #' @param zip_path Path to a compatible versioned `edsan-doc-trimmer` archive.
-#' @param dest_dir Destination directory. Defaults to `edsan_trimmer_cache_dir()`.
+#' @param dest_dir Installation directory. Defaults to the single local cache
+#'   slot returned by [edsan_trimmer_cache_dir()]. Existing contents are
+#'   replaced only after the archive passes validation.
 #'
 #' @return The path to the installed model directory (invisibly).
+#'
+#' @examples
+#' \dontrun{
+#' redsan::edsan_install_trimmer(
+#'   "C:/path/to/edsan-doc-trimmer-v1.2.0.zip"
+#' )
+#'
+#' # Reinstall another compatible archive to switch versions.
+#' redsan::edsan_install_trimmer(
+#'   "C:/path/to/edsan-doc-trimmer-v1.2.1.zip"
+#' )
+#' }
+#'
+#' @seealso [edsan_trimmer_cache_dir()], [trim_doceds_onnx()],
+#'   [doceds_onnx_spec()]
 #' @export
 edsan_install_trimmer <- function(
   zip_path,
@@ -799,9 +838,45 @@ doceds_onnx_spec <- function(model_dir = NULL) {
   )
 }
 
-#' Standard user cache directory for edsan-doc-trimmer
+#' Locate the edsan-doc-trimmer cache
 #'
-#' @return Path string to the cache folder.
+#' Returns the single user-cache directory where [edsan_install_trimmer()]
+#' installs a trimmer artifact by default. This function reports the path; it
+#' does not create the directory or inspect the installed artifact.
+#'
+#' @details
+#' When `model_dir` is not supplied to [trim_doceds_onnx()] or
+#' [doceds_onnx_spec()], `redsan` uses the first directory containing
+#' `model.onnx` in this order:
+#'
+#' 1. The directory named by `EDSAN_TRIMMER_PATH` (or a direct path to its
+#'    `model.onnx`). The legacy `REDSAN_TRIMMER_PATH` variable is used only when
+#'    `EDSAN_TRIMMER_PATH` is unset.
+#' 2. The local cache returned by `edsan_trimmer_cache_dir()`.
+#' 3. Known development paths inside a local `edsan-doc-trimmer` checkout.
+#'
+#' There is no automatic download. The first matching directory wins; discovery
+#' does not compare artifact versions. Use [doceds_onnx_spec()] to inspect the
+#' selected artifact, set `EDSAN_TRIMMER_PATH` to select an extracted artifact
+#' explicitly, or call [edsan_install_trimmer()] to replace the cached artifact.
+#'
+#' The cache contains one installation slot named `v1`. Here `v1` is the cache
+#' layout, not the model's artifact version, so versions such as 1.1.0 and 1.2.0
+#' cannot coexist in the default cache. Installing another compatible archive
+#' replaces the slot.
+#'
+#' The parent cache location is platform-specific and comes from
+#' `tools::R_user_dir("edsan_doc_trimmer", "cache")`. For example, on Windows it
+#' is normally below the user's local R cache directory.
+#'
+#' @return A character scalar containing the default cache path. The path ends
+#'   in `edsan_doc_trimmer/v1` (with platform-specific separators).
+#'
+#' @examples
+#' edsan_trimmer_cache_dir()
+#'
+#' @seealso [edsan_install_trimmer()], [trim_doceds_onnx()],
+#'   [doceds_onnx_spec()]
 #' @export
 edsan_trimmer_cache_dir <- function() {
   file.path(tools::R_user_dir("edsan_doc_trimmer", "cache"), "v1")
@@ -867,7 +942,7 @@ edsan_trimmer_cache_dir <- function() {
 #' 1. `Sys.getenv("EDSAN_TRIMMER_PATH")` or `Sys.getenv("REDSAN_TRIMMER_PATH")`
 #' 2. Local user cache directory (`edsan_trimmer_cache_dir()`)
 #' 3. Common repository / development relative paths
-#' 4. Automatic download from GitHub Releases (when online)
+#' 4. Stop with local installation instructions
 #'
 #' @noRd
 .edsan_get_trimmer_dir <- function() {
