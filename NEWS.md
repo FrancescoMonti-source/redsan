@@ -1,4 +1,4 @@
-# redsan (development)
+# redsan 1.0.0
 
 - Normalize the public API around a consistent vocabulary: `edsan_*()` for
   discovery, retrieval, identifier correspondence, and event bundles;
