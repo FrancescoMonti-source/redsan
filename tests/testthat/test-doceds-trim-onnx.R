@@ -778,8 +778,8 @@ test_that("the artifact spec identifies what produced a trimmed text", {
   expect_match(spec$digest, "^[0-9a-f]{64}$")
   expect_identical(spec$digest_algorithm, "sha256")
   expect_identical(spec$digest_schema, "doceds-onnx-artifact-v1")
-  expect_identical(spec$artifact_version, "1.1.0")
-  expect_identical(spec$worker_contract, "rectype-aware-v1")
+  expect_identical(spec$artifact_version, "1.2.0")
+  expect_identical(spec$worker_contract, "model-only-v1")
 
   # A manifest that names nothing still produces a spec, because the digest is
   # the field that answers the question. Absent prose reads as absent.
@@ -796,10 +796,10 @@ test_that("the digest follows the artifact and not the manifest", {
   expect_identical(doceds_onnx_spec(model_dir)$digest, before)
 
   # The weights moved and nobody edited `artifact_version`. This is the case the
-  # spec exists for: the version still reads 1.1.0 and the digest does not.
+  # spec exists for: the version still reads 1.2.0 and the digest does not.
   writeLines("different weights", file.path(model_dir, "model.onnx"))
   after <- doceds_onnx_spec(model_dir)
-  expect_identical(after$artifact_version, "1.1.0")
+  expect_identical(after$artifact_version, "1.2.0")
   expect_false(identical(after$digest, before))
 
   # The worker script decides which documents are deleted whole, so it is part
