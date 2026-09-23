@@ -29,10 +29,12 @@ automatically resolved via \code{.edsan_get_trimmer_dir()}.}
 \value{
 Depending on the input shape:
 \itemize{
-\item \strong{Character vector}: Returns a character vector of trimmed texts.
-\item \strong{Data frame / tibble}: Returns the input table augmented with \verb{<text_col>_TRIMMED}
-(defaults to \code{RECTXT_TRIMMED}), \code{TRIM_REDUCTION_PCT}, and
-\code{TRIM_PRESERVED_INTERVALS} (character JSON string adhering to warehouse list-column contracts).
+\item \strong{Character vector}: Returns trimmed texts with a
+\code{TRIM_EXECUTION_PROVIDER} attribute when the worker reports its provider.
+\item \strong{Data frame / tibble}: Returns the input table augmented with
+\verb{<text_col>_TRIMMED}, \code{TRIM_REDUCTION_PCT},
+\code{TRIM_PRESERVED_INTERVALS} (character JSON string), and
+\code{TRIM_EXECUTION_PROVIDER}.
 \item \strong{Single bundle (\code{edsan_event_bundle})}: Returns the bundle with its \code{sources$doceds}
 table augmented.
 \item \strong{List of bundles}: Evaluates all document texts in a single batch
@@ -42,7 +44,12 @@ schema structures and attributes intact.
 
 The runtime artifact owns model selection and inference policy. \code{redsan}
 validates the artifact and response protocol, but does not reproduce those
-policies in R.
+policies in R. The worker reads \code{EDSAN_TRIMMER_DEVICE}, which defaults to
+\code{auto} and accepts \code{cpu}, \code{cuda}, \code{openvino}, \code{dml}, or
+\code{migraphx}. It records the selected ONNX Runtime provider in
+\code{TRIM_EXECUTION_PROVIDER} on tables or as the same-named attribute on
+character-vector results. Older compatible artifacts that omit the provider
+yield \code{NA}.
 }
 \description{
 Sends DOCEDS text to a compatible \code{edsan-doc-trimmer} runtime artifact and

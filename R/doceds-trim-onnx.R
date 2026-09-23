@@ -19,10 +19,12 @@
 #'
 #' @return Depending on the input shape:
 #'   \itemize{
-#'     \item **Character vector**: Returns a character vector of trimmed texts.
-#'     \item **Data frame / tibble**: Returns the input table augmented with `<text_col>_TRIMMED`
-#'       (defaults to `RECTXT_TRIMMED`), `TRIM_REDUCTION_PCT`, and
-#'       `TRIM_PRESERVED_INTERVALS` (character JSON string adhering to warehouse list-column contracts).
+#'     \item **Character vector**: Returns trimmed texts with a
+#'       `TRIM_EXECUTION_PROVIDER` attribute when the worker reports its provider.
+#'     \item **Data frame / tibble**: Returns the input table augmented with
+#'       `<text_col>_TRIMMED`, `TRIM_REDUCTION_PCT`,
+#'       `TRIM_PRESERVED_INTERVALS` (character JSON string), and
+#'       `TRIM_EXECUTION_PROVIDER`.
 #'     \item **Single bundle (`edsan_event_bundle`)**: Returns the bundle with its `sources$doceds`
 #'       table augmented.
 #'     \item **List of bundles**: Evaluates all document texts in a single batch
@@ -32,7 +34,12 @@
 #'
 #' The runtime artifact owns model selection and inference policy. `redsan`
 #' validates the artifact and response protocol, but does not reproduce those
-#' policies in R.
+#' policies in R. The worker reads `EDSAN_TRIMMER_DEVICE`, which defaults to
+#' `auto` and accepts `cpu`, `cuda`, `openvino`, `dml`, or
+#' `migraphx`. It records the selected ONNX Runtime provider in
+#' `TRIM_EXECUTION_PROVIDER` on tables or as the same-named attribute on
+#' character-vector results. Older compatible artifacts that omit the provider
+#' yield `NA`.
 #'
 #' @examples
 #' \dontrun{
@@ -138,6 +145,11 @@ trim_doceds_onnx <- function(
         ]]$sources$doceds$TRIM_PRESERVED_INTERVALS <- trimmed_flat$TRIM_PRESERVED_INTERVALS[
           indices
         ]
+        data[[
+          i
+        ]]$sources$doceds$TRIM_EXECUTION_PROVIDER <- trimmed_flat$TRIM_EXECUTION_PROVIDER[
+          indices
+        ]
       }
     }
     return(data)
@@ -225,7 +237,7 @@ trim_doceds_onnx <- function(
   )
 
   # Execute Python ONNX inference worker
-  tryCatch(
+  worker_result <- tryCatch(
     .doceds_onnx_run_worker(
       python_exe = python_exe,
       service_script = service_script,
@@ -260,6 +272,7 @@ trim_doceds_onnx <- function(
       )
     }
   )
+  .doceds_onnx_emit_worker_notices(worker_result$stderr)
 
   output_data <- jsonlite::fromJSON(tmp_out, simplifyVector = FALSE)
   output_ids <- vapply(
@@ -283,12 +296,16 @@ trim_doceds_onnx <- function(
   trimmed_texts <- character(nrow(df))
   reduc_pcts <- numeric(nrow(df))
   intervals_list <- vector("list", nrow(df))
+  execution_providers <- rep(NA_character_, nrow(df))
 
   for (i in seq_along(output_data)) {
     item <- output_data[[i]]
     .doceds_onnx_validate_result(item, ids[[i]], payload$text[[i]])
     trimmed_texts[i] <- item$trimmed_text
     reduc_pcts[i] <- as.numeric(item$reduction_pct)
+    if (!is.null(item$execution_provider)) {
+      execution_providers[i] <- item$execution_provider
+    }
 
     if (length(item$preserved_intervals) > 0) {
       intervals_list[[i]] <- as.character(jsonlite::toJSON(
@@ -300,8 +317,27 @@ trim_doceds_onnx <- function(
     }
   }
 
+  known_providers <- unique(execution_providers[!is.na(execution_providers)])
+  if (
+    length(known_providers) > 1L ||
+      (any(!is.na(execution_providers)) && anyNA(execution_providers))
+  ) {
+    stop(
+      "Trimmer worker returned inconsistent execution provider provenance.",
+      call. = FALSE
+    )
+  }
+  execution_provider <- if (length(known_providers) == 1L) {
+    known_providers[[1L]]
+  } else {
+    NA_character_
+  }
+
   if (is_char_input) {
     names(trimmed_texts) <- names(data)
+    if (!is.na(execution_provider)) {
+      attr(trimmed_texts, "TRIM_EXECUTION_PROVIDER") <- execution_provider
+    }
     return(trimmed_texts)
   }
 
@@ -313,6 +349,7 @@ trim_doceds_onnx <- function(
   data[[out_col]] <- trimmed_texts
   data$TRIM_REDUCTION_PCT <- reduc_pcts
   data$TRIM_PRESERVED_INTERVALS <- as.character(intervals_list)
+  data$TRIM_EXECUTION_PROVIDER <- rep(execution_provider, nrow(data))
 
   data
 }
@@ -374,8 +411,11 @@ trim_doceds_onnx <- function(
       without_whitespace(interval_text)
     )
   legacy_fields_absent <- !"is_bt" %in% names(item)
+  execution_provider_valid <- is.null(item$execution_provider) ||
+    (scalar_character(item$execution_provider) && nzchar(item$execution_provider))
   valid <- is.list(item) &&
     legacy_fields_absent &&
+    execution_provider_valid &&
     scalar_character(item$id) &&
     identical(item$id, document_id) &&
     trimmed_text_grounded &&
@@ -424,6 +464,7 @@ trim_doceds_onnx <- function(
   data[[paste0(text_col, "_TRIMMED")]] <- character(0)
   data$TRIM_REDUCTION_PCT <- numeric(0)
   data$TRIM_PRESERVED_INTERVALS <- character(0)
+  data$TRIM_EXECUTION_PROVIDER <- character(0)
   data
 }
 
@@ -449,6 +490,30 @@ trim_doceds_onnx <- function(
     )
   }
   invisible(bundle)
+}
+
+#' Surface only worker diagnostics using the documented runtime marker
+#'
+#' @noRd
+.doceds_onnx_emit_worker_notices <- function(stderr) {
+  if (is.null(stderr) || !nzchar(stderr)) {
+    return(invisible(NULL))
+  }
+  lines <- strsplit(stderr, "\\r?\\n", perl = TRUE)[[1L]]
+  pattern <- "^EDSAN_TRIMMER_NOTICE:(INFO|WARNING):(.*)$"
+  for (line in lines) {
+    match <- regmatches(line, regexec(pattern, line, perl = TRUE))[[1L]]
+    if (length(match) == 0L || !nzchar(match[[3L]])) {
+      next
+    }
+    notice <- paste0("[edsan-doc-trimmer] ", match[[3L]])
+    if (identical(match[[2L]], "WARNING")) {
+      warning(notice, call. = FALSE)
+    } else {
+      message(notice)
+    }
+  }
+  invisible(NULL)
 }
 
 #' Run the external edsan-doc-trimmer worker
