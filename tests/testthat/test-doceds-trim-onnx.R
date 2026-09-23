@@ -554,6 +554,9 @@ test_that("edsan_install_trimmer extracts and prints guidance", {
   expect_true(file.exists(file.path(target_cache, "model.onnx")))
   expect_true(any(grepl("edsan-doc-trimmer model successfully installed", msg)))
   expect_true(any(grepl("How to verify it works", msg)))
+  expect_true(any(grepl("Quick smoke test", msg, fixed = TRUE)))
+  expect_true(any(grepl("pierre.dupont@gmail.com", msg, fixed = TRUE)))
+  expect_true(any(grepl("# Expected:", msg, fixed = TRUE)))
 })
 
 test_that("edsan_install_trimmer preserves an existing install on invalid input", {
