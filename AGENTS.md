@@ -37,7 +37,8 @@ Unit tests live in `tests/testthat/test-<kebab-case>.R`, matching their source m
 `trim_doceds_onnx()` is the sole document trimmer. It delegates inference to a
 versioned `edsan-doc-trimmer` artifact and accepts character vectors, tables,
 event bundles, and lists of bundles. Tables retain original text and receive
-`RECTXT_TRIMMED`, `TRIM_REDUCTION_PCT`, and `TRIM_PRESERVED_INTERVALS`.
+`RECTXT_TRIMMED`, `TRIM_REDUCTION_PCT`, `TRIM_PRESERVED_INTERVALS`, and
+`TRIM_EXECUTION_PROVIDER`.
 Preserved intervals refer to exact source coordinates and are stored as JSON.
 
 `doceds_onnx_spec()` identifies the runtime artifact by hashing `model.onnx`,

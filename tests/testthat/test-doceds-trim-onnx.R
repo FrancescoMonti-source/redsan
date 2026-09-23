@@ -19,6 +19,7 @@ trimmer_protocol_fixture <- function(result_mutation = character()) {
     "  ))",
     "  list(",
     "    id = document$id,",
+    "    execution_provider = 'CPUExecutionProvider',",
     "    trimmed_text = document$text,",
     "    reduction_pct = 0,",
     "    preserved_intervals = intervals",
@@ -108,7 +109,11 @@ test_that("named character-vector inputs preserve names", {
   )
 
   expect_identical(names(result), names(input))
-  expect_identical(unname(result), unname(input))
+  expect_identical(unname(as.vector(result)), unname(as.vector(input)))
+  expect_identical(
+    attr(result, "TRIM_EXECUTION_PROVIDER"),
+    "CPUExecutionProvider"
+  )
 })
 
 test_that("preserved intervals are always valid scalar JSON", {
@@ -220,13 +225,15 @@ test_that("trimmed text assembly may choose whitespace between grounded interval
   )
   on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
 
+  result <- trim_doceds_onnx(
+    "First Second",
+    python_exe = fixture$runner,
+    model_dir = fixture$model_dir
+  )
+  expect_identical(unname(as.vector(result)), "First\n\nSecond")
   expect_identical(
-    trim_doceds_onnx(
-      "First Second",
-      python_exe = fixture$runner,
-      model_dir = fixture$model_dir
-    ),
-    "First\n\nSecond"
+    attr(result, "TRIM_EXECUTION_PROVIDER"),
+    "CPUExecutionProvider"
   )
 })
 
@@ -370,6 +377,10 @@ test_that("cohort batching preserves bundle and DOCEDS structure", {
   expect_identical(result[[1L]]$sources$doceds$keep, 11L)
   expect_identical(result[[2L]]$sources$doceds$keep, 22L)
   expect_identical(result[[1L]]$sources$doceds$RECTXT_TRIMMED, "First text")
+  expect_identical(
+    result[[1L]]$sources$doceds$TRIM_EXECUTION_PROVIDER,
+    "CPUExecutionProvider"
+  )
   expect_false("TRIM_IS_BT" %in% names(result[[1L]]$sources$doceds))
   expect_identical(
     result[[2L]]$sources$doceds$RECTXT_TRIMMED,
@@ -388,7 +399,8 @@ test_that("cohort batching preserves bundle and DOCEDS structure", {
       names(empty_doceds),
       "RECTXT_TRIMMED",
       "TRIM_REDUCTION_PCT",
-      "TRIM_PRESERVED_INTERVALS"
+      "TRIM_PRESERVED_INTERVALS",
+      "TRIM_EXECUTION_PROVIDER"
     )
   )
 })
@@ -439,7 +451,8 @@ test_that("single and empty bundles preserve the bundle contract", {
       names(empty$sources$doceds),
       "RECTXT_TRIMMED",
       "TRIM_REDUCTION_PCT",
-      "TRIM_PRESERVED_INTERVALS"
+      "TRIM_PRESERVED_INTERVALS",
+      "TRIM_EXECUTION_PROVIDER"
     )
   )
   expect_identical(empty_result$sources$doceds$RECTXT_TRIMMED, character())
@@ -766,7 +779,8 @@ test_that("trim_doceds_onnx handles empty inputs gracefully without spawning pro
     names(res_cohort[[1L]]$sources$doceds),
     c(
       "ELTID", "RECTYPE", "RECTXT", "RECTXT_TRIMMED",
-      "TRIM_REDUCTION_PCT", "TRIM_PRESERVED_INTERVALS"
+      "TRIM_REDUCTION_PCT", "TRIM_PRESERVED_INTERVALS",
+      "TRIM_EXECUTION_PROVIDER"
     )
   )
 })
@@ -818,4 +832,68 @@ test_that("an invalid artifact has no spec rather than an unverifiable one", {
   file.remove(file.path(model_dir, "artifact.json"))
 
   expect_error(doceds_onnx_spec(model_dir), "missing required files")
+})
+
+
+test_that("selected execution provider is recorded in table output", {
+  fixture <- trimmer_protocol_fixture(
+    "results[[1L]]$execution_provider <- 'CUDAExecutionProvider'"
+  )
+  on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
+
+  result <- trim_doceds_onnx(
+    data.frame(RECTXT = "Clinical narrative", stringsAsFactors = FALSE),
+    python_exe = fixture$runner,
+    model_dir = fixture$model_dir
+  )
+
+  expect_identical(result$TRIM_EXECUTION_PROVIDER, "CUDAExecutionProvider")
+})
+
+test_that("marked runtime notices are surfaced from successful worker runs", {
+  fixture <- trimmer_protocol_fixture(c(
+    "writeLines('EDSAN_TRIMMER_NOTICE:WARNING:CUDA_PROVIDER_MISSING:Install onnxruntime-gpu', stderr())",
+    "writeLines('unmarked worker diagnostic', stderr())"
+  ))
+  on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
+
+  expect_warning(
+    trim_doceds_onnx(
+      data.frame(RECTXT = "Clinical narrative", stringsAsFactors = FALSE),
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir
+    ),
+    "Install onnxruntime-gpu"
+  )
+})
+
+
+test_that("older compatible workers without provider metadata yield NA", {
+  fixture <- trimmer_protocol_fixture(
+    "results[[1L]]$execution_provider <- NULL"
+  )
+  on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
+
+  result <- trim_doceds_onnx(
+    data.frame(RECTXT = "Clinical narrative", stringsAsFactors = FALSE),
+    python_exe = fixture$runner,
+    model_dir = fixture$model_dir
+  )
+
+  expect_true(is.na(result$TRIM_EXECUTION_PROVIDER))
+})
+
+test_that("unmarked successful-worker stderr remains hidden", {
+  fixture <- trimmer_protocol_fixture(
+    "writeLines('unmarked worker diagnostic', stderr())"
+  )
+  on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
+
+  expect_silent(
+    trim_doceds_onnx(
+      data.frame(RECTXT = "Clinical narrative", stringsAsFactors = FALSE),
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir
+    )
+  )
 })
