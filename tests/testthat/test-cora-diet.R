@@ -11,6 +11,44 @@ test_that("CORA IEP validation is strict", {
   expect_error(redsan:::.cora_validate_ieps("IEP-1"), "digits only")
 })
 
+
+test_that("CORA Diet document queries batch large IEP lists", {
+  ieps <- as.character(seq_len(1001L))
+  seen <- new.env(parent = emptyenv())
+  seen$calls <- list()
+
+  fake_query <- function(connection, sql) {
+    quoted_ieps <- regmatches(
+      sql,
+      gregexpr("'[0-9]+'", sql, perl = TRUE)
+    )[[1L]]
+    batch_ieps <- gsub("'", "", quoted_ieps, fixed = TRUE)
+    seen$calls[[length(seen$calls) + 1L]] <- batch_ieps
+
+    tibble::tibble(
+      IEP = batch_ieps,
+      DTDOC = as.Date("2025-01-01")
+    )
+  }
+
+  out <- redsan:::.cora_query_diet_documents(
+    connection = structure(list(), class = "fake_connection"),
+    ieps = c(ieps, ieps[[1L]]),
+    query_fn = fake_query
+  )
+
+  expect_identical(
+    vapply(seen$calls, length, integer(1)),
+    c(900L, 101L)
+  )
+  expect_identical(
+    sort(unname(unlist(seen$calls))),
+    sort(ieps)
+  )
+  expect_identical(nrow(out), length(ieps))
+  expect_setequal(out$IEP, ieps)
+})
+
 test_that("CORA stay identifier validation supports IEP and EVTID", {
   expect_identical(
     redsan:::.cora_validate_stay_ids(c(" 745068610 ", "745068610"), "IEP"),
