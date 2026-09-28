@@ -34,6 +34,7 @@ test_that("CORA Diet document queries batch large IEP lists", {
   out <- redsan:::.cora_query_diet_documents(
     connection = structure(list(), class = "fake_connection"),
     ieps = c(ieps, ieps[[1L]]),
+    event_type = "H",
     query_fn = fake_query
   )
 
