@@ -399,6 +399,10 @@
 #'   `NOSOUSVOLET = 443`. `T_DOCUMENT.NOEVT` is a CORA-internal event key and is
 #'   returned as `CORA_NOEVT` to avoid confusion with the EDSaN `EVTID`.
 #'
+#'   Large lookups are split into batches of 900 IEPs to stay below Oracle's
+#'   1,000-expression limit for an `IN` list. `chunk_size` independently
+#'   controls the number of BLOB bytes read per request.
+#'
 #'   EVTID input is reidentified to IEP through EDSaN CT before the indexed CORA
 #'   lookup. IEP input is pseudonymized through EDSaN CT so the corresponding
 #'   EVTID can be returned. A valid IEP with no EDSaN correspondence can still
