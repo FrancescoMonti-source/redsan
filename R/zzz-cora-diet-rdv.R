@@ -72,12 +72,39 @@
   )
 }
 
+
 .cora_query_diet_documents <- function(connection, ieps,
-                                       event_type = c("H", "R")) {
-  DBI::dbGetQuery(
-    connection,
-    .cora_diet_documents_sql(ieps, event_type = event_type)
-  )
+                                       event_type = c("H", "R"),
+                                       query_fn = DBI::dbGetQuery) {
+  ieps <- .cora_validate_ieps(ieps)
+  event_type <- .cora_validate_diet_event_type(event_type)
+  if (!length(ieps)) return(tibble::tibble())
+
+  # Oracle allows at most 1,000 expressions in an IN list. Keep each request
+  # below that limit so large CORA lookups work without caller-side batching.
+  batch_size <- 900L
+  batch_index <- (seq_along(ieps) - 1L) %/% batch_size
+  batches <- split(ieps, batch_index)
+
+  results <- lapply(batches, function(batch_ieps) {
+    query_fn(
+      connection,
+      .cora_diet_documents_sql(batch_ieps, event_type = event_type)
+    )
+  })
+  documents <- dplyr::bind_rows(results)
+
+  # Each SQL query sorts its own batch. Reapply the same keys after binding so
+  # rows from different batches retain the original global query order.
+  if (nrow(documents)) {
+    documents <- documents[
+      order(documents$IEP, documents$DTDOC, na.last = TRUE),
+      ,
+      drop = FALSE
+    ]
+  }
+
+  documents
 }
 
 # Override the original H-only public implementation after all helpers above
