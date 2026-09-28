@@ -225,7 +225,7 @@
   )
 }
 
-.cora_query_diet_documents_one <- function(connection, ieps, query_fn = DBI::dbGetQuery) {
+.cora_query_diet_documents <- function(connection, ieps) {
   ieps <- .cora_validate_ieps(ieps)
   quoted <- paste0("'", ieps, "'", collapse = ", ")
 
@@ -250,41 +250,9 @@
     "ORDER BY m.NOSEJ, d.DTDOC"
   )
 
-  query_fn(connection, sql)
+  DBI::dbGetQuery(connection, sql)
 }
 
-.cora_query_diet_documents <- function(connection, ieps,
-                                       query_fn = DBI::dbGetQuery) {
-  ieps <- .cora_validate_ieps(ieps)
-  if (!length(ieps)) return(tibble::tibble())
-
-  # Oracle allows at most 1,000 expressions in an IN list. Keep each request
-  # below that limit so large CORA lookups work without caller-side batching.
-  batch_size <- 900L
-  batch_index <- (seq_along(ieps) - 1L) %/% batch_size
-  batches <- split(ieps, batch_index)
-
-  results <- lapply(batches, function(batch_ieps) {
-    .cora_query_diet_documents_one(
-      connection,
-      batch_ieps,
-      query_fn = query_fn
-    )
-  })
-  documents <- dplyr::bind_rows(results)
-
-  # Each SQL query sorts its own batch. Reapply the same keys after binding so
-  # rows from different batches retain the original global query order.
-  if (nrow(documents)) {
-    documents <- documents[
-      order(documents$IEP, documents$DTDOC, na.last = TRUE),
-      ,
-      drop = FALSE
-    ]
-  }
-
-  documents
-}
 .cora_blob_length <- function(connection, nodocument, typedoc) {
   key <- .cora_validate_document_key(nodocument, typedoc)
   sql <- paste0(
