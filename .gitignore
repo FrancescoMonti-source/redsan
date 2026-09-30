@@ -12,3 +12,4 @@ R/moza_price_history_append.csv
 # Claude Code local state (not shared project config)
 .claude/settings.local.json
 .claude/data/
+.claude/worktrees/
