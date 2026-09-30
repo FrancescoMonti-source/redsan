@@ -1095,6 +1095,81 @@ test_that("a chunk that fails validation is not checkpointed and names its docum
   expect_identical(runs$n, 2L)
 })
 
+test_that("a cohort validation error names the stay and ELTID", {
+  fixture <- trimmer_protocol_fixture(c(
+    "results <- lapply(results, function(r) {",
+    "  if (identical(r$id, 'two/z2')) r$reduction_pct <- 'bad'",
+    "  r",
+    "})"
+  ))
+  on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
+  cohort <- list(
+    one = chunk_bundle(chunk_texts[1:2], "x"),
+    chunk_bundle(chunk_texts[3], "y"),
+    two = chunk_bundle(chunk_texts[4:5], "z")
+  )
+
+  expect_error(
+    trim_doceds_onnx(
+      cohort,
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir,
+      progress = FALSE
+    ),
+    "invalid result for document two/z2",
+    fixed = TRUE
+  )
+  expect_identical(
+    redsan:::.doceds_onnx_cohort_ids(cohort[[2L]]$sources$doceds, "", 2L),
+    "#2/y1"
+  )
+  no_eltid <- data.frame(RECTXT = c("a", "b"), stringsAsFactors = FALSE)
+  expect_identical(
+    redsan:::.doceds_onnx_cohort_ids(no_eltid, NULL, 4L),
+    c("#4/row 1", "#4/row 2")
+  )
+})
+
+test_that("changing EDSAN_TRIMMER_DEVICE recomputes instead of mixing providers", {
+  fixture <- trimmer_protocol_fixture(c(
+    "results <- lapply(results, function(r) {",
+    "  if (Sys.getenv('FAKE_PROVIDER') == 'cuda') r$execution_provider <- 'CUDAExecutionProvider'",
+    "  r",
+    "})"
+  ))
+  checkpoints <- tempfile("trim_checkpoints_")
+  on.exit(unlink(c(fixture$model_dir, checkpoints), recursive = TRUE), add = TRUE)
+  runs <- count_worker_runs()
+  trim <- function() {
+    trim_doceds_onnx(
+      chunk_texts,
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir,
+      chunk_size = 2,
+      checkpoint_dir = checkpoints,
+      progress = FALSE
+    )
+  }
+
+  withr::with_envvar(c(EDSAN_TRIMMER_DEVICE = "cpu", FAKE_PROVIDER = "cpu"), trim())
+  runs$n <- 0L
+  result <- withr::with_envvar(
+    c(EDSAN_TRIMMER_DEVICE = "cuda", FAKE_PROVIDER = "cuda"),
+    trim()
+  )
+  expect_identical(runs$n, 3L)
+  expect_identical(attr(result, "TRIM_EXECUTION_PROVIDER"), "CUDAExecutionProvider")
+
+  # Under `auto` the key cannot see a provider change; the error names the cause.
+  unlink(checkpoints, recursive = TRUE)
+  withr::with_envvar(c(EDSAN_TRIMMER_DEVICE = NA, FAKE_PROVIDER = "cpu"), trim())
+  file.remove(list.files(checkpoints, full.names = TRUE)[[1L]])
+  expect_error(
+    withr::with_envvar(c(EDSAN_TRIMMER_DEVICE = NA, FAKE_PROVIDER = "cuda"), trim()),
+    "reloaded from checkpoints"
+  )
+})
+
 test_that("execution provider must match the first chunk", {
   fixture <- trimmer_protocol_fixture(c(
     "results <- lapply(results, function(r) {",

@@ -26,11 +26,13 @@
 #'   saved, or `NULL` (the default) to save nothing. The directory is created
 #'   if needed. Rerunning the identical call after an interruption reloads the
 #'   finished chunks instead of recomputing them. A checkpoint is keyed on the
-#'   artifact digest of [doceds_onnx_spec()] together with the chunk's document
-#'   identifiers and texts, so a different artifact or different input never
-#'   reuses stale results. A checkpoint that cannot be read back is recomputed.
-#'   Nothing is saved for a chunk whose results fail validation. Checkpoints
-#'   are not deleted; remove the directory when the cohort is done.
+#'   artifact digest of [doceds_onnx_spec()], the `EDSAN_TRIMMER_DEVICE`
+#'   setting, and the chunk's document identifiers and texts, so a different
+#'   artifact, device or input never reuses stale results. A checkpoint that
+#'   cannot be read back is recomputed. Nothing is saved for a chunk whose
+#'   results fail validation. Checkpoints are not deleted. **They contain
+#'   patient text and document identifiers**: place `checkpoint_dir` where the
+#'   source data may be stored, and delete it when the cohort is done.
 #' @param progress Whether to print one line per chunk (documents done and
 #'   total, percent, elapsed time and estimated time remaining). Defaults to
 #'   `interactive()`. Lines are emitted with [message()].
@@ -125,6 +127,8 @@ trim_doceds_onnx <- function(
 
     bundle_map <- vector("list", length(data))
     all_texts <- character()
+    all_ids <- character()
+    bundle_names <- names(data)
 
     for (i in seq_along(data)) {
       doc <- data[[i]]$sources$doceds
@@ -137,6 +141,7 @@ trim_doceds_onnx <- function(
           length(all_texts) + nrow(doc)
         )
         all_texts <- c(all_texts, as.character(doc[[col]]))
+        all_ids <- c(all_ids, .doceds_onnx_cohort_ids(doc, bundle_names[i], i))
       }
     }
 
@@ -144,9 +149,11 @@ trim_doceds_onnx <- function(
       return(data)
     }
 
-    # Delegate the batched texts to trim_doceds_onnx on a simple standard dataframe
+    # Delegate the batched texts to trim_doceds_onnx on a simple standard
+    # dataframe. Identifiers name the stay and ELTID so that a validation error
+    # points at a document the user can find.
     flat_df <- data.frame(
-      doc_id = paste0("doc_", seq_along(all_texts)),
+      doc_id = make.unique(all_ids, sep = " #"),
       RECTXT = all_texts,
       stringsAsFactors = FALSE
     )
@@ -269,6 +276,7 @@ trim_doceds_onnx <- function(
   n_chunks <- length(chunks)
 
   artifact_digest <- NULL
+  device <- Sys.getenv("EDSAN_TRIMMER_DEVICE", "auto")
   if (!is.null(checkpoint_dir)) {
     dir.create(checkpoint_dir, recursive = TRUE, showWarnings = FALSE)
     if (!dir.exists(checkpoint_dir)) {
@@ -300,11 +308,14 @@ trim_doceds_onnx <- function(
     if (!is.null(checkpoint_dir)) {
       checkpoint_path <- file.path(
         checkpoint_dir,
-        paste0("trim-", .doceds_onnx_chunk_key(artifact_digest, body), ".rds")
+        paste0("trim-", .doceds_onnx_chunk_key(artifact_digest, device, body), ".rds")
       )
       chunk <- .doceds_onnx_read_checkpoint(checkpoint_path, chunk_payload$id)
     }
     resumed <- !is.null(chunk)
+    if (k == 1L) {
+      first_resumed <- resumed
+    }
 
     if (!resumed) {
       chunk_started <- Sys.time()
@@ -328,8 +339,31 @@ trim_doceds_onnx <- function(
     if (k == 1L) {
       execution_provider <- chunk$execution_provider
     } else if (!identical(chunk$execution_provider, execution_provider)) {
+      # Checkpoints are keyed on EDSAN_TRIMMER_DEVICE, but `auto` can still
+      # select another provider on another machine, so name that cause.
+      hint <- if (first_resumed || resumed) {
+        sprintf(
+          paste0(
+            "\nSome chunks were reloaded from checkpoints in '%s' that were ",
+            "computed on another provider. Delete those checkpoints, or set ",
+            "EDSAN_TRIMMER_DEVICE to match them, and rerun."
+          ),
+          checkpoint_dir
+        )
+      } else {
+        ""
+      }
       stop(
-        "Trimmer worker returned inconsistent execution provider provenance.",
+        sprintf(
+          paste0(
+            "Trimmer worker returned inconsistent execution provider provenance: ",
+            "chunk 1 used %s but chunk %d used %s.%s"
+          ),
+          .doceds_onnx_provider_label(execution_provider),
+          k,
+          .doceds_onnx_provider_label(chunk$execution_provider),
+          hint
+        ),
         call. = FALSE
       )
     }
@@ -539,17 +573,19 @@ trim_doceds_onnx <- function(
   )
 }
 
-# A checkpoint is valid for exactly one (artifact, chunk ids, chunk texts). The
-# key hashes the artifact digest together with the JSON the worker would
-# receive, so any change to the model, an identifier or a text finds no file.
-.DOCEDS_ONNX_CHECKPOINT_SCHEMA <- "doceds-onnx-trim-chunk-v1"
+# A checkpoint is valid for exactly one (artifact, device setting, chunk ids,
+# chunk texts). The key hashes the artifact digest and EDSAN_TRIMMER_DEVICE
+# together with the JSON the worker would receive, so any change to the model,
+# the requested device, an identifier or a text finds no file.
+.DOCEDS_ONNX_CHECKPOINT_SCHEMA <- "doceds-onnx-trim-chunk-v2"
 
 #' @noRd
-.doceds_onnx_chunk_key <- function(artifact_digest, body) {
+.doceds_onnx_chunk_key <- function(artifact_digest, device, body) {
   digest::digest(
     charToRaw(enc2utf8(paste(
       .DOCEDS_ONNX_CHECKPOINT_SCHEMA,
       artifact_digest,
+      device,
       body,
       sep = "\n"
     ))),
@@ -558,11 +594,40 @@ trim_doceds_onnx <- function(
   )
 }
 
+#' @noRd
+.doceds_onnx_provider_label <- function(provider) {
+  if (is.na(provider)) "an unreported provider" else provider
+}
+
+#' Identify the documents of one stay in a cohort call
+#'
+#' `<stay>/<ELTID>`, where the stay is the list element's name or `#<index>`
+#' and a missing ELTID falls back to `row <n>`.
+#'
+#' @noRd
+.doceds_onnx_cohort_ids <- function(doc, bundle_name, index) {
+  stay <- if (!is.null(bundle_name) && !is.na(bundle_name) && nzchar(bundle_name)) {
+    bundle_name
+  } else {
+    paste0("#", index)
+  }
+  eltid <- if ("ELTID" %in% names(doc)) as.character(doc$ELTID) else rep(NA_character_, nrow(doc))
+  row <- ifelse(is.na(eltid) | !nzchar(eltid), paste0("row ", seq_len(nrow(doc))), eltid)
+  paste0(stay, "/", row)
+}
+
 #' Save a validated chunk atomically so a crash never leaves a partial file
+#'
+#' The staging file is unique per call, so two sessions sharing a checkpoint
+#' directory never write into each other's staging file.
 #'
 #' @noRd
 .doceds_onnx_write_checkpoint <- function(chunk, path) {
-  staging <- paste0(path, ".partial")
+  staging <- tempfile(
+    pattern = paste0(basename(path), "-"),
+    tmpdir = dirname(path),
+    fileext = ".partial"
+  )
   saveRDS(chunk, staging)
   if (!file.rename(staging, path)) {
     unlink(staging)

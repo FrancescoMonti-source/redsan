@@ -40,11 +40,13 @@ result.}
 saved, or \code{NULL} (the default) to save nothing. The directory is created
 if needed. Rerunning the identical call after an interruption reloads the
 finished chunks instead of recomputing them. A checkpoint is keyed on the
-artifact digest of \code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}} together with the chunk's document
-identifiers and texts, so a different artifact or different input never
-reuses stale results. A checkpoint that cannot be read back is recomputed.
-Nothing is saved for a chunk whose results fail validation. Checkpoints
-are not deleted; remove the directory when the cohort is done.}
+artifact digest of \code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}}, the \code{EDSAN_TRIMMER_DEVICE}
+setting, and the chunk's document identifiers and texts, so a different
+artifact, device or input never reuses stale results. A checkpoint that
+cannot be read back is recomputed. Nothing is saved for a chunk whose
+results fail validation. Checkpoints are not deleted. \strong{They contain
+patient text and document identifiers}: place \code{checkpoint_dir} where the
+source data may be stored, and delete it when the cohort is done.}
 
 \item{progress}{Whether to print one line per chunk (documents done and
 total, percent, elapsed time and estimated time remaining). Defaults to
