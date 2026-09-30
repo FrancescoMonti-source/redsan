@@ -42,9 +42,24 @@ event bundles, and lists of bundles. Tables retain original text and receive
 Preserved intervals refer to exact source coordinates and are stored as JSON.
 
 `doceds_onnx_spec()` identifies the runtime artifact by hashing `model.onnx`,
-`tokenizer.json`, `trim_batch_service.py`, and `artifact.json`.
+`tokenizer.json`, `trim_batch_service.py`, and `artifact.json`, and reports the
+artifact's `path`.
 The regex trimmer and its audit workflows have been retired; do not restore
 parallel heuristic trimming or its provenance API.
+
+**Versioned trimmer cache.** Installs live in `<cache root>/<artifact_version>`
+(`edsan_trimmer_cache_dir()` is the root, no `v1`), and versions coexist. A
+folder counts only if its name is a dotted numeric version, it validates, and
+its manifest version equals its name. Discovery order: `EDSAN_TRIMMER_PATH`
+(legacy `REDSAN_TRIMMER_PATH`) -> `EDSAN_TRIMMER_VERSION` pin -> highest valid
+installed version -> legacy `<root>/v1` (with a reinstall message) -> error.
+There is no development-checkout fallback; do not reintroduce one. The
+installer is `edsan_install_trimmer(zip_path, overwrite = FALSE)`: same digest
+is a no-op, same version with another digest needs `overwrite = TRUE`.
+`edsan_trimmer_versions()` lists installs, and each top-level
+`trim_doceds_onnx()` call prints `edsan-doc-trimmer <version> (<path>)` once.
+The layout is a contract shared with `edsan-doc-trimmer`'s Python resolver; see
+[`docs/adr/0002-versioned-trimmer-cache.md`](docs/adr/0002-versioned-trimmer-cache.md).
 
 **Why the ONNX digest is cached.** `model.onnx` is 442 MB, and a caller that
 builds one catalog per stay would hash it once per stay - about 13 minutes over
@@ -61,7 +76,7 @@ an artifact whose four files are still exactly as they were when that digest
 was computed.
 
 ### Boundary with `edsan-doc-trimmer`
-`edsan-doc-trimmer` (Python repo) owns model training, active learning, DrBERT tokenization, dataset curation, the batch worker, hardware selection, and model-specific inference rules. `redsan` owns the R integration: data structures (`data.frame`, `edsan_event_bundle`), warehouse table contracts (no list-columns), environment discovery (`REDSAN_PYTHON_PATH`), artifact validation, and identity-safe cohort mapping. Do not duplicate training or model-specific documentation inside `redsan`. See [`docs/adr/0001-decouple-drbert-trimmer-from-redsan.md`](docs/adr/0001-decouple-drbert-trimmer-from-redsan.md).
+`edsan-doc-trimmer` (Python repo) owns model training, active learning, DrBERT tokenization, dataset curation, the batch worker, hardware selection, and model-specific inference rules. `redsan` owns the R integration: data structures (`data.frame`, `edsan_event_bundle`), warehouse table contracts (no list-columns), environment discovery (`REDSAN_PYTHON_PATH`), artifact validation, and identity-safe cohort mapping. Do not duplicate training or model-specific documentation inside `redsan`. See [`docs/adr/0001-decouple-drbert-trimmer-from-redsan.md`](docs/adr/0001-decouple-drbert-trimmer-from-redsan.md) and, for the installed-artifact layout, [`docs/adr/0002-versioned-trimmer-cache.md`](docs/adr/0002-versioned-trimmer-cache.md).
 
 ---
 

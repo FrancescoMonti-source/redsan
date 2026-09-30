@@ -333,13 +333,31 @@ ordered interval contents without introducing other text, while the worker owns
 their whitespace assembly. Model choice and inference rules remain owned by the
 runtime artifact.
 
+Install a release archive once; each version gets its own folder in the user
+cache, so versions coexist and the highest installed one runs:
+
+```r
+edsan_install_trimmer("path/to/edsan-doc-trimmer-1.3.0.zip")
+edsan_trimmer_versions()                    # version, path, selected
+Sys.setenv(EDSAN_TRIMMER_VERSION = "1.2.0") # pin an installed version
+```
+
+`EDSAN_TRIMMER_PATH` names an extracted artifact anywhere and takes precedence
+over the cache. Every `trim_doceds_onnx()` call prints
+`edsan-doc-trimmer <version> (<path>)` for the artifact it used. The cache
+layout and discovery order are specified in
+[ADR 0002](docs/adr/0002-versioned-trimmer-cache.md).
+
 Before a release claims compatibility with a specific artifact, install the
 package candidate and run the acceptance gate against that exact unpacked
 artifact and Python environment:
 
 ```sh
-Rscript tools/check_doceds_trimmer_artifact.R /path/to/python /path/to/versioned/artifact
+Rscript tools/check_doceds_trimmer_artifact.R /path/to/python /path/to/versioned/artifact X.Y.Z
 ```
+
+`X.Y.Z` is the `artifact_version` the release claims; the gate fails if the
+manifest names another version.
 
 This invokes the artifact through the public `trim_doceds_onnx()` interface and
 fails unless the versioned protocol, output schema, identity mapping, and exact

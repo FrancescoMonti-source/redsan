@@ -1,14 +1,47 @@
-# redsan (development version)
+
+
+- Version the trimmer cache. `edsan_install_trimmer()` now installs each
+  artifact in `<cache root>/<artifact_version>`, so versions coexist, and
+  `edsan_trimmer_cache_dir()` returns the cache root instead of the `v1` slot.
+  Reinstalling an archive with the same digest is a no-op; the same version with
+  a different digest is an error unless `overwrite = TRUE`.
+  **Breaking:** `dest_dir` is removed, and the cache root path changes. A valid
+  legacy `<root>/v1` install is still used, with a message asking you to
+  reinstall.
+
+- Make trimmer discovery explicit: `EDSAN_TRIMMER_PATH` (legacy
+  `REDSAN_TRIMMER_PATH`), then an `EDSAN_TRIMMER_VERSION` pin, then the highest
+  valid installed version, then the legacy `v1` slot. The implicit
+  development-checkout fallback is removed; name a checkout with
+  `EDSAN_TRIMMER_PATH`.
+  **Breaking:** an `EDSAN_TRIMMER_PATH` (or `REDSAN_TRIMMER_PATH`) that does
+  not contain `model.onnx` is now an error instead of a warning followed by the
+  cache, because falling through silently ran a different artifact. Remove a
+  stale value from `~/.Renviron`. `edsan_install_trimmer()` reports the cause
+  when discovery fails.
+
+- `tools/check_doceds_trimmer_artifact.R` accepts any artifact the package
+  validator accepts; pass the expected `artifact_version` as a third argument
+  to gate a specific release.
+
+- Add `edsan_trimmer_versions()`, which lists installed versions, their paths,
+  and the selected one.
+
+- Report the artifact that ran. Each top-level `trim_doceds_onnx()` call prints
+  `edsan-doc-trimmer <version> (<path>)`, and `doceds_onnx_spec()` gains a
+  `path` field. See ADR 0002 for the cache contract.
 
 - `trim_doceds_onnx()` now processes documents in chunks (`chunk_size`,
   default 500; one worker run per chunk, worker protocol unchanged), prints one
   progress line per chunk (`progress`, default `interactive()`), and can save
   each chunk's validated results to `checkpoint_dir`. Rerunning the identical
   call after an interruption reloads finished chunks instead of recomputing
-  them. Checkpoints are keyed on the artifact digest plus the chunk's
-  identifiers and texts, so a different model or input never reuses stale
-  results. A failing chunk no longer costs the whole cohort: invalid output is
-  reported after the first bad chunk, and every chunk must report the same
+  them. Checkpoints are keyed on the artifact digest, `EDSAN_TRIMMER_DEVICE`,
+  and the chunk's identifiers and texts, so a different model, device or input
+  never reuses stale results. Checkpoints hold patient text; delete them when
+  the cohort is done. A failing chunk no longer costs the whole cohort: invalid
+  output is reported after the first bad chunk, naming the document as
+  `<stay>/<ELTID>` for a list of bundles, and every chunk must report the same
   execution provider as the first. Repeated worker notices are shown once per
   call.
 

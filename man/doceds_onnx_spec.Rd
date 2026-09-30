@@ -8,10 +8,11 @@ doceds_onnx_spec(model_dir = NULL)
 }
 \arguments{
 \item{model_dir}{Path to an installed runtime artifact. Defaults to the
-artifact \code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}} would use.}
+artifact \code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}} would use (see \code{\link[=edsan_trimmer_cache_dir]{edsan_trimmer_cache_dir()}}).}
 }
 \value{
-A list describing the artifact: \code{package}, \code{version}, \code{digest},
+A list describing the artifact: \code{package}, \code{version}, \code{path} (the
+normalized artifact directory that was inspected), \code{digest},
 \code{digest_algorithm}, \code{digest_schema}, and the manifest's \code{artifact_name},
 \code{artifact_version}, \code{worker_contract} and \code{model_type}.
 }

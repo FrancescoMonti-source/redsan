@@ -15,7 +15,7 @@
 #'   Defaults to auto-detecting the `edsan-doc-trimmer` virtual environment or `REDSAN_PYTHON_PATH`.
 #' @param model_dir Path to the versioned runtime artifact containing `model.onnx`,
 #'   `tokenizer.json`, `trim_batch_service.py`, and `artifact.json`. If `NULL`,
-#'   automatically resolved via `.edsan_get_trimmer_dir()`.
+#'   the artifact is discovered as described in [edsan_trimmer_cache_dir()].
 #' @param chunk_size Number of documents sent to one worker run. Defaults to
 #'   `500`. The documents of a call (across all stays, for a list of bundles)
 #'   are processed in consecutive chunks, each validated as soon as its worker
@@ -51,6 +51,12 @@
 #'       and returns the list of bundles with each `sources$doceds` augmented, leaving all original
 #'       schema structures and attributes intact.
 #'   }
+#'
+#' Each top-level call that runs the worker prints one line,
+#' `edsan-doc-trimmer <version> (<path>)`, naming the artifact that ran. The line
+#' is printed once per call, not per chunk or per bundle, and not at all when the
+#' input is empty and no worker is started. [doceds_onnx_spec()] returns the same
+#' identification programmatically.
 #'
 #' The runtime artifact owns model selection and inference policy. `redsan`
 #' validates the artifact and response protocol, but does not reproduce those
@@ -228,7 +234,8 @@ trim_doceds_onnx <- function(
   if (is.null(model_dir)) {
     model_dir <- .edsan_get_trimmer_dir()
   }
-  .doceds_onnx_validate_artifact(model_dir)
+  artifact_version <- .doceds_onnx_validate_artifact(model_dir)
+  .doceds_onnx_announce_artifact(artifact_version, model_dir)
 
   service_script <- file.path(model_dir, "trim_batch_service.py")
 
@@ -898,59 +905,63 @@ trim_doceds_onnx <- function(
 
 #' Install an edsan-doc-trimmer artifact
 #'
-#' Extracts a compatible versioned `edsan-doc-trimmer` archive into the local
-#' trimmer cache, or into a custom destination. The archive is validated before
-#' the current installation is changed. It must contain `model.onnx`,
-#' `tokenizer.json`, `trim_batch_service.py`, and an `artifact.json` manifest
-#' accepted by this version of `redsan`. The current contract requires
-#' `artifact_version >= 1.2.0` and `worker_contract = "model-only-v1"`.
+#' Extracts a compatible versioned `edsan-doc-trimmer` archive into the trimmer
+#' cache. The archive is validated before anything in the cache is changed. It
+#' must contain `model.onnx`, `tokenizer.json`, `trim_batch_service.py`, and an
+#' `artifact.json` manifest accepted by this version of `redsan`. The current
+#' contract requires `artifact_version >= 1.2.0` and
+#' `worker_contract = "model-only-v1"`.
 #'
 #' @details
-#' The default cache has one installation slot, returned by
-#' [edsan_trimmer_cache_dir()]. Its directory name (`v1`) identifies the cache
-#' layout, not the installed artifact version. Installing a new archive into the
-#' default destination replaces the artifact already in that slot; artifact
-#' versions do not coexist there. Keep the original archives if you want to
-#' switch back: reinstalling an older compatible archive replaces the current
-#' artifact with that version.
+#' The artifact is installed in `<cache root>/<artifact_version>`, where the
+#' cache root is returned by [edsan_trimmer_cache_dir()] and `<artifact_version>`
+#' is the manifest's `artifact_version`, verbatim (for example `1.3.0`). Versions
+#' coexist: installing 1.3.0 leaves 1.2.0 in place. The destination is not
+#' configurable; the folder name is how discovery recognizes an installation.
 #'
-#' Extraction and validation happen in a staging directory. If the archive is
-#' invalid, the existing installation is left unchanged. If publishing the
-#' validated artifact fails, `redsan` attempts to restore the previous
-#' installation.
+#' Installing a release makes it the one that runs, provided it is the highest
+#' installed version and neither `EDSAN_TRIMMER_PATH` nor `EDSAN_TRIMMER_VERSION`
+#' selects something else (see [edsan_trimmer_cache_dir()] for the discovery
+#' order). The success message states the version, the path, and whether the
+#' installed artifact is now the selected one. [edsan_trimmer_versions()] lists
+#' what is installed.
 #'
-#' Installing into the default cache makes the artifact the second choice in
-#' the lookup order described in [edsan_trimmer_cache_dir()]. An artifact named
-#' by `EDSAN_TRIMMER_PATH` still takes precedence. A custom `dest_dir` is not
-#' added to discovery automatically; select it with `EDSAN_TRIMMER_PATH` or the
-#' `model_dir` argument of [trim_doceds_onnx()].
+#' Reinstalling an archive whose content digest (see [doceds_onnx_spec()])
+#' matches the installed version is a no-op that only reports the situation.
+#' An archive with the same version but a different digest is an error unless
+#' `overwrite = TRUE`, which replaces that version's folder.
+#'
+#' Extraction and validation happen in a staging directory inside the cache
+#' root. If the archive is invalid, the cache is left unchanged. If publishing
+#' an overwriting install fails, `redsan` attempts to restore the previous
+#' installation of that version.
 #'
 #' @param zip_path Path to a compatible versioned `edsan-doc-trimmer` archive.
-#' @param dest_dir Installation directory. Defaults to the single local cache
-#'   slot returned by [edsan_trimmer_cache_dir()]. Existing contents are
-#'   replaced only after the archive passes validation.
+#' @param overwrite Logical. Replace an installed artifact of the same version
+#'   whose content differs. Defaults to `FALSE`.
 #'
-#' @return The path to the installed model directory (invisibly).
+#' @return The path to the installed artifact directory (invisibly).
 #'
 #' @examples
 #' \dontrun{
 #' redsan::edsan_install_trimmer(
-#'   "C:/path/to/edsan-doc-trimmer-v1.2.0.zip"
+#'   "C:/path/to/edsan-doc-trimmer-v1.3.0.zip"
 #' )
 #'
-#' # Reinstall another compatible archive to switch versions.
+#' # Versions coexist; list them and see which one is selected.
+#' redsan::edsan_trimmer_versions()
+#'
+#' # Replace an installed version whose archive was rebuilt.
 #' redsan::edsan_install_trimmer(
-#'   "C:/path/to/edsan-doc-trimmer-v1.2.1.zip"
+#'   "C:/path/to/edsan-doc-trimmer-v1.3.0.zip",
+#'   overwrite = TRUE
 #' )
 #' }
 #'
-#' @seealso [edsan_trimmer_cache_dir()], [trim_doceds_onnx()],
-#'   [doceds_onnx_spec()]
+#' @seealso [edsan_trimmer_cache_dir()], [edsan_trimmer_versions()],
+#'   [trim_doceds_onnx()], [doceds_onnx_spec()]
 #' @export
-edsan_install_trimmer <- function(
-  zip_path,
-  dest_dir = edsan_trimmer_cache_dir()
-) {
+edsan_install_trimmer <- function(zip_path, overwrite = FALSE) {
   if (missing(zip_path) || !is.character(zip_path) || !nzchar(zip_path)) {
     stop(
       paste0(
@@ -967,6 +978,9 @@ edsan_install_trimmer <- function(
       ),
       call. = FALSE
     )
+  }
+  if (!isTRUE(overwrite) && !isFALSE(overwrite)) {
+    stop("`overwrite` must be TRUE or FALSE.", call. = FALSE)
   }
 
   if (dir.exists(zip_path)) {
@@ -1008,13 +1022,12 @@ edsan_install_trimmer <- function(
     )
   }
 
-  if (file.exists(dest_dir) && !dir.exists(dest_dir)) {
-    stop("Trimmer destination exists and is not a directory.", call. = FALSE)
+  cache_root <- normalizePath(edsan_trimmer_cache_dir(), mustWork = FALSE)
+  if (file.exists(cache_root) && !dir.exists(cache_root)) {
+    stop("Trimmer cache root exists and is not a directory.", call. = FALSE)
   }
-  dest_dir <- normalizePath(dest_dir, mustWork = FALSE)
-  parent_dir <- dirname(dest_dir)
-  dir.create(parent_dir, recursive = TRUE, showWarnings = FALSE)
-  staging_dir <- tempfile("trimmer-stage-", tmpdir = parent_dir)
+  dir.create(cache_root, recursive = TRUE, showWarnings = FALSE)
+  staging_dir <- tempfile("trimmer-stage-", tmpdir = cache_root)
   dir.create(staging_dir)
   on.exit(unlink(staging_dir, recursive = TRUE), add = TRUE)
 
@@ -1032,7 +1045,67 @@ edsan_install_trimmer <- function(
       call. = FALSE
     )
   }
-  .doceds_onnx_validate_artifact(artifact_dir)
+  version <- .doceds_onnx_validate_artifact(artifact_dir)
+  # Only installs need a folder-safe version: the name is how discovery finds
+  # them. Artifacts named by model_dir or EDSAN_TRIMMER_PATH never need one.
+  if (!grepl(.DOCEDS_ONNX_VERSION_PATTERN, version)) {
+    stop(
+      sprintf(
+        paste0(
+          "Invalid trimmer archive; artifact_version '%s' must be dotted ",
+          "numbers such as 1.3.0, because it names the install folder."
+        ),
+        version
+      ),
+      call. = FALSE
+    )
+  }
+  dest_dir <- file.path(cache_root, version)
+  if (file.exists(dest_dir) && !dir.exists(dest_dir)) {
+    stop("Trimmer destination exists and is not a directory.", call. = FALSE)
+  }
+
+  # A folder that fails validation is not an installation (discovery skips
+  # it), so replacing it needs no overwrite and is reported as a repair.
+  existing_valid <- dir.exists(dest_dir) && !is.null(tryCatch(
+    .doceds_onnx_validate_artifact(dest_dir),
+    error = function(e) NULL
+  ))
+  if (dir.exists(dest_dir) && !existing_valid) {
+    message(
+      sprintf(
+        "[redsan] %s exists but is not a valid installation; replacing it.",
+        normalizePath(dest_dir, mustWork = FALSE)
+      )
+    )
+  }
+
+  if (existing_valid) {
+    if (.doceds_onnx_same_artifact(artifact_dir, dest_dir)) {
+      message(
+        sprintf(
+          "[redsan] edsan-doc-trimmer %s is already installed with identical content; nothing changed.\n",
+          version
+        ),
+        sprintf("Location: %s\n", normalizePath(dest_dir, mustWork = FALSE)),
+        .doceds_onnx_selection_note(dest_dir)
+      )
+      return(invisible(dest_dir))
+    }
+    if (!isTRUE(overwrite)) {
+      stop(
+        sprintf(
+          paste0(
+            "edsan-doc-trimmer %s is already installed at %s with different content.\n",
+            "Use `overwrite = TRUE` to replace it, or install an archive with a new artifact_version."
+          ),
+          version,
+          normalizePath(dest_dir, mustWork = FALSE)
+        ),
+        call. = FALSE
+      )
+    }
+  }
 
   backup_dir <- NULL
   published <- FALSE
@@ -1046,7 +1119,7 @@ edsan_install_trimmer <- function(
   }, add = TRUE)
 
   if (dir.exists(dest_dir)) {
-    backup_dir <- tempfile("trimmer-backup-", tmpdir = parent_dir)
+    backup_dir <- tempfile("trimmer-backup-", tmpdir = cache_root)
     if (!file.rename(dest_dir, backup_dir)) {
       stop("Could not preserve the existing trimmer installation.", call. = FALSE)
     }
@@ -1066,7 +1139,10 @@ edsan_install_trimmer <- function(
       "\n================================================================================\n",
       "[redsan] edsan-doc-trimmer model successfully installed!\n",
       "================================================================================\n",
-      sprintf("Location: %s\n\n", installed_norm),
+      sprintf("Version:  %s\n", version),
+      sprintf("Location: %s\n", installed_norm),
+      .doceds_onnx_selection_note(dest_dir),
+      "\n",
       "How to verify it works:\n",
       "  library(redsan)\n",
       "  # Quick smoke test:\n",
@@ -1084,6 +1160,57 @@ edsan_install_trimmer <- function(
   )
 
   invisible(dest_dir)
+}
+
+#' Say whether an installed artifact is the one discovery selects
+#'
+#' @noRd
+.doceds_onnx_selection_note <- function(installed_dir) {
+  selected <- tryCatch(
+    suppressWarnings(.edsan_resolve_trimmer(quiet = TRUE)),
+    error = function(e) e
+  )
+  installed <- normalizePath(installed_dir, mustWork = FALSE)
+  if (inherits(selected, "error")) {
+    # Name the cause, e.g. a stale EDSAN_TRIMMER_PATH or an unknown pin.
+    reason <- strsplit(conditionMessage(selected), "\n", fixed = TRUE)[[1L]][[1L]]
+    return(sprintf("Selected:  no, discovery fails: %s\n", reason))
+  }
+  if (identical(selected$path, installed)) {
+    return("Selected:  yes, this is the artifact trim_doceds_onnx() will use.\n")
+  }
+  sprintf(
+    "Selected:  no, %s is selected instead (%s).\n",
+    if (is.na(selected$version)) selected$path else selected$version,
+    selected$source
+  )
+}
+
+#' TRUE when two artifact directories carry identical content digests
+#'
+#' @noRd
+.doceds_onnx_same_artifact <- function(new_dir, installed_dir) {
+  required <- file.path(installed_dir, .DOCEDS_ONNX_ARTIFACT_FILES)
+  if (!all(file.exists(required))) {
+    return(FALSE)
+  }
+  identical(
+    .doceds_onnx_artifact_digest(new_dir),
+    .doceds_onnx_artifact_digest(installed_dir)
+  )
+}
+
+#' Print which artifact is about to run
+#'
+#' @noRd
+.doceds_onnx_announce_artifact <- function(version, model_dir) {
+  message(
+    sprintf(
+      "edsan-doc-trimmer %s (%s)",
+      version,
+      normalizePath(model_dir, mustWork = FALSE)
+    )
+  )
 }
 
 #' Publish a validated artifact from staging
@@ -1109,6 +1236,8 @@ edsan_install_trimmer <- function(
 }
 
 #' Validate a versioned edsan-doc-trimmer runtime artifact
+#'
+#' Returns the manifest's `artifact_version` invisibly.
 #'
 #' @noRd
 .doceds_onnx_validate_artifact <- function(artifact_dir) {
@@ -1225,9 +1354,10 @@ edsan_install_trimmer <- function(
 #' because they are what a human reads, not because they can be trusted to move.
 #'
 #' @param model_dir Path to an installed runtime artifact. Defaults to the
-#'   artifact [trim_doceds_onnx()] would use.
+#'   artifact [trim_doceds_onnx()] would use (see [edsan_trimmer_cache_dir()]).
 #'
-#' @return A list describing the artifact: `package`, `version`, `digest`,
+#' @return A list describing the artifact: `package`, `version`, `path` (the
+#'   normalized artifact directory that was inspected), `digest`,
 #'   `digest_algorithm`, `digest_schema`, and the manifest's `artifact_name`,
 #'   `artifact_version`, `worker_contract` and `model_type`.
 #' @seealso [trim_doceds_onnx()]
@@ -1249,6 +1379,7 @@ doceds_onnx_spec <- function(model_dir = NULL) {
   list(
     package = "redsan",
     version = as.character(utils::packageVersion("redsan")),
+    path = normalizePath(model_dir, mustWork = FALSE),
     digest = .doceds_onnx_artifact_digest(model_dir),
     digest_algorithm = "sha256",
     digest_schema = "doceds-onnx-artifact-v1",
@@ -1261,48 +1392,136 @@ doceds_onnx_spec <- function(model_dir = NULL) {
 
 #' Locate the edsan-doc-trimmer cache
 #'
-#' Returns the single user-cache directory where [edsan_install_trimmer()]
-#' installs a trimmer artifact by default. This function reports the path; it
-#' does not create the directory or inspect the installed artifact.
+#' Returns the root of the user-cache directory where [edsan_install_trimmer()]
+#' installs trimmer artifacts. This function reports the path; it does not
+#' create the directory or inspect what is installed. Use
+#' [edsan_trimmer_versions()] to list installations.
 #'
-#' @details
+#' @section Cache layout:
+#' The root is `tools::R_user_dir("edsan_doc_trimmer", "cache")`, which honors
+#' `R_USER_CACHE_DIR` on every platform (for example, the root is
+#' `<R_USER_CACHE_DIR>/R/edsan_doc_trimmer`). Each installation is a direct
+#' child folder named exactly after the `artifact_version` of the
+#' `artifact.json` manifest it contains:
+#'
+#' ```
+#' <root>/
+#'   1.2.0/   model.onnx  tokenizer.json  trim_batch_service.py  artifact.json
+#'   1.3.0/   model.onnx  tokenizer.json  trim_batch_service.py  artifact.json
+#' ```
+#'
+#' Versions coexist. A folder is an installation only if its name is a dotted
+#' numeric version (`1.3.0`), it passes artifact validation, and its manifest's
+#' `artifact_version` equals its name. Anything else (for example `v1.3`, or a
+#' folder whose manifest disagrees with its name) is ignored. Staging folders
+#' used during installation are also ignored.
+#'
+#' @section Discovery order:
 #' When `model_dir` is not supplied to [trim_doceds_onnx()] or
-#' [doceds_onnx_spec()], `redsan` uses the first directory containing
-#' `model.onnx` in this order:
+#' [doceds_onnx_spec()], `redsan` selects one artifact, in this order:
 #'
 #' 1. The directory named by `EDSAN_TRIMMER_PATH` (or a direct path to its
 #'    `model.onnx`). The legacy `REDSAN_TRIMMER_PATH` variable is used only when
-#'    `EDSAN_TRIMMER_PATH` is unset.
-#' 2. The local cache returned by `edsan_trimmer_cache_dir()`.
-#' 3. Known development paths inside a local `edsan-doc-trimmer` checkout.
+#'    `EDSAN_TRIMMER_PATH` is unset. This is the only way to select an artifact
+#'    outside the cache, such as a development checkout's export. A path that
+#'    does not contain `model.onnx` is an error; it never falls through.
+#' 2. The installed version named by `EDSAN_TRIMMER_VERSION`. An unknown
+#'    version is an error that lists the installed versions.
+#' 3. The highest valid installed version (compared as a numeric version).
+#' 4. The legacy single-slot install `<root>/v1`, used with a message asking you
+#'    to reinstall into the versioned layout.
+#' 5. Otherwise an error with installation instructions.
 #'
-#' There is no automatic download. The first matching directory wins; discovery
-#' does not compare artifact versions. Use [doceds_onnx_spec()] to inspect the
-#' selected artifact, set `EDSAN_TRIMMER_PATH` to select an extracted artifact
-#' explicitly, or call [edsan_install_trimmer()] to replace the cached artifact.
+#' There is no automatic download and no implicit fallback to a development
+#' checkout. Every [trim_doceds_onnx()] call that runs the worker prints the
+#' version and path it used, and [doceds_onnx_spec()] reports them.
 #'
-#' The cache contains one installation slot named `v1`. Here `v1` is the cache
-#' layout, not the model's artifact version, so versions such as 1.1.0 and 1.2.0
-#' cannot coexist in the default cache. Installing another compatible archive
-#' replaces the slot.
-#'
-#' The parent cache location is platform-specific and comes from
-#' `tools::R_user_dir("edsan_doc_trimmer", "cache")`. For example, on Windows it
-#' is normally below the user's local R cache directory.
-#'
-#' @return A character scalar containing the default cache path. The path ends
-#'   in `edsan_doc_trimmer/v1` (with platform-specific separators).
+#' @return A character scalar containing the cache root path (with
+#'   platform-specific separators).
 #'
 #' @examples
 #' edsan_trimmer_cache_dir()
 #'
-#' @seealso [edsan_install_trimmer()], [trim_doceds_onnx()],
-#'   [doceds_onnx_spec()]
+#' @seealso [edsan_install_trimmer()], [edsan_trimmer_versions()],
+#'   [trim_doceds_onnx()], [doceds_onnx_spec()]
 #' @export
 edsan_trimmer_cache_dir <- function() {
-  file.path(tools::R_user_dir("edsan_doc_trimmer", "cache"), "v1")
+  tools::R_user_dir("edsan_doc_trimmer", "cache")
 }
 
+#' List installed edsan-doc-trimmer versions
+#'
+#' Lists the valid artifacts installed in the trimmer cache (see
+#' [edsan_trimmer_cache_dir()] for what counts as an installation) and marks the
+#' one that [trim_doceds_onnx()] would use.
+#'
+#' `selected` follows the full discovery order, including
+#' `EDSAN_TRIMMER_PATH` and `EDSAN_TRIMMER_VERSION`. When discovery selects an
+#' artifact outside the cache, or falls back to the legacy `v1` slot, no row is
+#' selected. An unresolvable selection never raises an error here.
+#'
+#' @return A data frame with one row per installed version, highest first, and
+#'   columns `version` (character), `path` (character), and `selected`
+#'   (logical). It has zero rows when nothing is installed.
+#'
+#' @examples
+#' edsan_trimmer_versions()
+#'
+#' @seealso [edsan_install_trimmer()], [edsan_trimmer_cache_dir()],
+#'   [doceds_onnx_spec()]
+#' @export
+edsan_trimmer_versions <- function() {
+  installed <- .doceds_onnx_installed_versions()
+  selected <- tryCatch(
+    suppressWarnings(.edsan_resolve_trimmer(quiet = TRUE)$path),
+    error = function(e) NA_character_
+  )
+  installed$selected <- installed$path %in% selected
+  installed
+}
+
+# An installation folder is named after a dotted numeric artifact version.
+.DOCEDS_ONNX_VERSION_PATTERN <- "^[0-9]+(\\.[0-9]+)*$"
+
+#' Valid installations in the versioned cache, highest version first
+#'
+#' A folder counts only if its name is a dotted numeric version, it passes
+#' artifact validation, and its manifest version equals its name.
+#'
+#' @noRd
+.doceds_onnx_installed_versions <- function(root = edsan_trimmer_cache_dir()) {
+  found <- if (dir.exists(root)) {
+    list.dirs(root, recursive = FALSE, full.names = FALSE)
+  } else {
+    character()
+  }
+  found <- found[grepl(.DOCEDS_ONNX_VERSION_PATTERN, found)]
+  valid <- vapply(
+    found,
+    function(name) {
+      version <- tryCatch(
+        .doceds_onnx_validate_artifact(file.path(root, name)),
+        error = function(e) NA_character_
+      )
+      identical(version, name)
+    },
+    logical(1),
+    USE.NAMES = FALSE
+  )
+  versions <- found[valid]
+  versions <- versions[order(numeric_version(versions), decreasing = TRUE)]
+  data.frame(
+    version = versions,
+    path = vapply(
+      file.path(root, versions),
+      normalizePath,
+      character(1),
+      mustWork = FALSE,
+      USE.NAMES = FALSE
+    ),
+    stringsAsFactors = FALSE
+  )
+}
 
 #' Resolve edsan-doc-trimmer Python Executable
 #'
@@ -1359,80 +1578,137 @@ edsan_trimmer_cache_dir <- function() {
 
 #' Resolve edsan-doc-trimmer Model Directory
 #'
-#' Locates the trimmer model through:
-#' 1. `Sys.getenv("EDSAN_TRIMMER_PATH")` or `Sys.getenv("REDSAN_TRIMMER_PATH")`
-#' 2. Local user cache directory (`edsan_trimmer_cache_dir()`)
-#' 3. Common repository / development relative paths
-#' 4. Stop with local installation instructions
+#' Applies the discovery order documented in [edsan_trimmer_cache_dir()] and
+#' returns the selected artifact's path only.
 #'
 #' @noRd
 .edsan_get_trimmer_dir <- function() {
+  .edsan_resolve_trimmer()$path
+}
+
+#' Select a trimmer artifact
+#'
+#' Order: `EDSAN_TRIMMER_PATH` (legacy `REDSAN_TRIMMER_PATH`), the
+#' `EDSAN_TRIMMER_VERSION` pin, the highest valid installed version, the legacy
+#' `<root>/v1` slot, then an error. Returns the normalized `path`, the manifest
+#' `version` (`NA` when the manifest cannot be read), and a human-readable
+#' `source`. `quiet` suppresses the legacy-slot message for callers that only
+#' inspect the selection.
+#'
+#' @noRd
+.edsan_resolve_trimmer <- function(quiet = FALSE) {
+  manifest_version <- function(path) {
+    version <- tryCatch(
+      jsonlite::fromJSON(file.path(path, "artifact.json"))$artifact_version,
+      error = function(e) NULL
+    )
+    if (is.character(version) && length(version) == 1L) version else NA_character_
+  }
+
   # 1. Environment variable override
-  env_path <- Sys.getenv("EDSAN_TRIMMER_PATH", "")
+  env_name <- "EDSAN_TRIMMER_PATH"
+  env_path <- Sys.getenv(env_name, "")
   if (!nzchar(env_path)) {
-    env_path <- Sys.getenv("REDSAN_TRIMMER_PATH", "")
+    env_name <- "REDSAN_TRIMMER_PATH"
+    env_path <- Sys.getenv(env_name, "")
   }
   if (nzchar(env_path)) {
     # If pointed directly to model.onnx file, take parent folder
     if (file.exists(env_path) && !dir.exists(env_path) && tolower(basename(env_path)) == "model.onnx") {
       env_path <- dirname(env_path)
     }
-    if (file.exists(file.path(env_path, "model.onnx"))) {
-      return(normalizePath(env_path))
-    } else {
-      warning(
+    # An explicit override that points nowhere is an error: falling through
+    # would silently run a different artifact than the one the user named.
+    if (!file.exists(file.path(env_path, "model.onnx"))) {
+      stop(
         sprintf(
-          "EDSAN_TRIMMER_PATH is set to '%s', but 'model.onnx' was not found in that folder.",
-          env_path
+          paste0(
+            "%s is set to '%s', but 'model.onnx' was not found in that folder.\n",
+            "Fix the path, or unset %s to use the installed trimmer versions."
+          ),
+          env_name,
+          env_path,
+          env_name
         ),
         call. = FALSE
       )
     }
+    path <- normalizePath(env_path)
+    return(list(
+      path = path,
+      version = manifest_version(path),
+      source = env_name
+    ))
   }
 
-
-  # 2. Check local user cache directory
   cache_dir <- edsan_trimmer_cache_dir()
-  if (file.exists(file.path(cache_dir, "model.onnx"))) {
-    return(normalizePath(cache_dir))
-  }
+  installed <- .doceds_onnx_installed_versions(cache_dir)
 
-  # 3. Check common development / repo paths
-  repo_candidates <- c(
-    file.path("..", "edsan-doc-trimmer", "artifacts", "active_learning", "onnx_export"),
-    file.path(".", "artifacts", "active_learning", "onnx_export"),
-    file.path(
-      Sys.getenv("USERPROFILE"),
-      "Documents",
-      "Git",
-      "edsan-doc-trimmer",
-      "artifacts",
-      "active_learning",
-      "onnx_export"
-    ),
-    file.path(
-      Sys.getenv("HOME"),
-      "Documents",
-      "Git",
-      "edsan-doc-trimmer",
-      "artifacts",
-      "active_learning",
-      "onnx_export"
-    )
-  )
-  for (cand in repo_candidates) {
-    if (nzchar(cand) && file.exists(file.path(cand, "model.onnx"))) {
-      return(normalizePath(cand))
+  # 2. Explicit version pin
+  pin <- trimws(Sys.getenv("EDSAN_TRIMMER_VERSION", ""))
+  if (nzchar(pin)) {
+    row <- match(pin, installed$version)
+    if (is.na(row)) {
+      stop(
+        sprintf(
+          paste0(
+            "EDSAN_TRIMMER_VERSION is '%s', but that version is not installed in %s.\n",
+            "Installed versions: %s.\n",
+            "Install it with edsan_install_trimmer(), or unset EDSAN_TRIMMER_VERSION."
+          ),
+          pin,
+          cache_dir,
+          if (nrow(installed) > 0L) paste(installed$version, collapse = ", ") else "none"
+        ),
+        call. = FALSE
+      )
     }
+    return(list(
+      path = installed$path[[row]],
+      version = installed$version[[row]],
+      source = "EDSAN_TRIMMER_VERSION"
+    ))
   }
 
-  # 4. Local-only fallback for air-gapped HDW environments
+  # 3. Highest valid installed version
+  if (nrow(installed) > 0L) {
+    return(list(
+      path = installed$path[[1L]],
+      version = installed$version[[1L]],
+      source = "highest installed version"
+    ))
+  }
+
+  # 4. Legacy single-slot install
+  legacy <- file.path(cache_dir, "v1")
+  legacy_version <- tryCatch(
+    .doceds_onnx_validate_artifact(legacy),
+    error = function(e) NULL
+  )
+  if (!is.null(legacy_version)) {
+    path <- normalizePath(legacy)
+    if (!isTRUE(quiet)) {
+      message(
+        sprintf(
+          paste0(
+            "[redsan] Using the legacy trimmer install at %s (artifact_version %s).\n",
+            "Reinstall the archive with edsan_install_trimmer() to move it into the versioned cache."
+          ),
+          path,
+          legacy_version
+        )
+      )
+    }
+    return(list(path = path, version = legacy_version, source = "legacy v1 slot"))
+  }
+
+  # 5. Nothing usable: local-only instructions for air-gapped HDW environments
   stop(
     paste0(
       "\n================================================================================\n",
       "[redsan] edsan-doc-trimmer model not found!\n",
       "================================================================================\n",
-      "The DrBERT ONNX model files were not found in the cache or environment path.\n\n",
+      "No valid installed artifact was found in the cache or named by an environment variable.\n\n",
       "HOW TO FIX:\n\n",
       "Option 1: Install model via zip file (Recommended for individual users)\n",
       "  1. Obtain a compatible versioned edsan-doc-trimmer archive from:\n",
