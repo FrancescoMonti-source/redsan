@@ -18,7 +18,7 @@
 #' module normalizer:
 #'
 #' * [doceds_normalize()] for documents;
-#' * [pmsi_normalize()] for PMSI stays, actes, and diagnoses;
+#' * [pmsi_normalize()] for PMSI movement-level main rows, acts, and diagnoses;
 #' * [biol_normalize()] for biology results;
 #' * [viro_normalize()] for virology results.
 #'

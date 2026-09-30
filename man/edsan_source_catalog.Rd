@@ -23,12 +23,15 @@ query date keys, default batching keys, and point/interval time semantics.
 Clinical concepts and study-specific measurement rules belong downstream.
 }
 \details{
-Across EDSAN modules, each \code{ELTID} belongs to exactly one \code{EVTID}, and each
-\code{EVTID} belongs to exactly one \code{PATID}. These relationships describe document
-provenance; additional source-row coordinates may still be required for row
-uniqueness within normalized tables. Public module normalizers return every
-identifier declared by this registry as character. Character input is
-preserved exactly; numeric input is rendered without scientific notation.
+\code{ELTID} is the EDSAN element identifier exposed by normalized tables; its
+values are not guaranteed to be globally unique across modules or sufficient
+for normalized-row uniqueness. \code{EVTID} usually identifies a hospital stay,
+but a provisional patient identity can be superseded while already-produced
+records retain the old \code{PATID}. Therefore an \code{EVTID} can appear under more
+than one \code{PATID}; do not assume a strict one-to-one mapping. Public module
+normalizers return every identifier declared by this registry as character.
+Character input is preserved exactly; numeric input is rendered without
+scientific notation.
 }
 \examples{
 edsan_source_catalog()

@@ -45,19 +45,22 @@ edsan_source_catalog("pmsi", "diag")
 ```
 
 The registry records each module's normalized table, row grain, identifiers,
-query date keys, default batching key, and source time kind.
-Across modules, each `ELTID` belongs to exactly one `EVTID`, and each `EVTID`
-belongs to exactly one `PATID`. This provenance relationship does not imply
-that `ELTID` alone is always sufficient for normalized row uniqueness.
-All normalized modules expose that source-element coordinate as `ELTID`.
-`BIOL_ID` and `VIRO_ID` are accepted only when reading older biology and
-virology artifacts and are converted to `ELTID` at normalization or bundling.
+query date keys, default batching key, and source time kind. `ELTID` is the
+warehouse element ID exposed by normalized tables, but its values are not
+guaranteed to be globally unique across modules or sufficient for normalized
+row uniqueness. A provisional `PATID` can be superseded while records already
+produced retain the old value, so an `EVTID` can appear under more than one
+`PATID`. The stale `PATID` usually has very few records overall; treat that as
+a diagnostic and consult the authoritative identity mapping when both IDs have
+substantial records. `BIOL_ID` and `VIRO_ID` are accepted only when reading older
+biology and virology artifacts and are converted to `ELTID` at normalization or
+bundling.
 
 Current modules:
 
 - `doceds`: clinical documents, point time through `RECDATE`
-- `pmsi`: stays, acts, and diagnoses, with stay intervals through `DATENT` and
-  `DATSORT`
+- `pmsi`: movement-level main rows, acts, and diagnoses, with PMSI entry/exit
+  bounds through `DATENT` and `DATSORT`
 - `biol`: biology results, point time through `DATEXAM`
 - `viro`: virology results, point time through `DATEPRELEV`
 

@@ -27,7 +27,7 @@ time and native identifiers when needed. By default, it also applies the
 module normalizer:
 \itemize{
 \item \code{\link[=doceds_normalize]{doceds_normalize()}} for documents;
-\item \code{\link[=pmsi_normalize]{pmsi_normalize()}} for PMSI stays, actes, and diagnoses;
+\item \code{\link[=pmsi_normalize]{pmsi_normalize()}} for PMSI movement-level main rows, acts, and diagnoses;
 \item \code{\link[=biol_normalize]{biol_normalize()}} for biology results;
 \item \code{\link[=viro_normalize]{viro_normalize()}} for virology results.
 }

@@ -456,11 +456,11 @@ prefer_pmsi_src_c_over_dw <- function(main) {
 }
 
 
-#' Process PMSI stays into analysis-ready tables
+#' Normalize PMSI movement, procedure, and diagnosis records
 #'
 #' Flattens PMSI stay payloads and returns three tables:
 #' \describe{
-#'   \item{`main`}{the normalized PMSI main table after the selected source policy}
+#'   \item{`main`}{movement-level PMSI rows after the selected source policy}
 #'   \item{`actes`}{actes in long format (one row per acte), with the matching
 #'   CCAM/CDAM `CODEACTE_LABEL` when available}
 #'   \item{`diag`}{diagnoses derived from `DALL` (one row per token), with the

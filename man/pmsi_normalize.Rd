@@ -2,7 +2,7 @@
 % Please edit documentation in R/pmsi.R
 \name{pmsi_normalize}
 \alias{pmsi_normalize}
-\title{Process PMSI stays into analysis-ready tables}
+\title{Normalize PMSI movement, procedure, and diagnosis records}
 \usage{
 pmsi_normalize(data, source_policy = c("c_over_dw", "all"))
 }
@@ -20,7 +20,7 @@ A list with tibbles \code{main}, \code{actes}, and \code{diag}.
 \description{
 Flattens PMSI stay payloads and returns three tables:
 \describe{
-\item{\code{main}}{the normalized PMSI main table after the selected source policy}
+\item{\code{main}}{movement-level PMSI rows after the selected source policy}
 \item{\code{actes}}{actes in long format (one row per acte), with the matching
 CCAM/CDAM \code{CODEACTE_LABEL} when available}
 \item{\code{diag}}{diagnoses derived from \code{DALL} (one row per token), with the

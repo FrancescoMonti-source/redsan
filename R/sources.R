@@ -4,7 +4,7 @@
   tibble::tibble(
     module = c("doceds", "pmsi", "pmsi", "pmsi", "biol", "viro"),
     table = c("documents", "main", "actes", "diag", "results", "results"),
-    grain = c("document", "stay", "acte", "diagnosis", "biology_result", "virology_result"),
+    grain = c("document", "movement", "acte", "diagnosis", "biology_result", "virology_result"),
     identifiers = list(
       c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID"),
@@ -29,7 +29,7 @@
     notes = c(
       "Clinical documents; RECTXT and RECTYPE are document payload fields.",
       paste(
-        "PMSI main table; DATENT/DATSORT define source intervals.",
+        "PMSI main contains movement-level rows; DATENT/DATSORT define source intervals.",
         "Default processing applies C over DW within each patient-event unit;",
         "use source_policy = 'all' to retain every normalized main row."
       ),
@@ -185,12 +185,15 @@
 #' Clinical concepts and study-specific measurement rules belong downstream.
 #'
 #' @details
-#' Across EDSAN modules, each `ELTID` belongs to exactly one `EVTID`, and each
-#' `EVTID` belongs to exactly one `PATID`. These relationships describe document
-#' provenance; additional source-row coordinates may still be required for row
-#' uniqueness within normalized tables. Public module normalizers return every
-#' identifier declared by this registry as character. Character input is
-#' preserved exactly; numeric input is rendered without scientific notation.
+#' `ELTID` is the EDSAN element identifier exposed by normalized tables; its
+#' values are not guaranteed to be globally unique across modules or sufficient
+#' for normalized-row uniqueness. `EVTID` usually identifies a hospital stay,
+#' but a provisional patient identity can be superseded while already-produced
+#' records retain the old `PATID`. Therefore an `EVTID` can appear under more
+#' than one `PATID`; do not assume a strict one-to-one mapping. Public module
+#' normalizers return every identifier declared by this registry as character.
+#' Character input is preserved exactly; numeric input is rendered without
+#' scientific notation.
 #'
 #' @param module Optional module filter. Supported values are `"doceds"`,
 #'   `"pmsi"`, `"biol"`, and `"viro"`.
