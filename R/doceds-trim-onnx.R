@@ -293,6 +293,12 @@ trim_doceds_onnx <- function(
       )
     }
     artifact_digest <- .doceds_onnx_artifact_digest(model_dir)
+  } else if (isTRUE(progress) && n_chunks > 1L) {
+    message(
+      "[redsan] No checkpoint_dir set: stopping this run discards all trimmed ",
+      "documents. Set checkpoint_dir to make it resumable (checkpoints contain ",
+      "patient text)."
+    )
   }
 
   trimmed_texts <- character(n_docs)

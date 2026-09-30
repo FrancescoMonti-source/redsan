@@ -1659,3 +1659,25 @@ test_that("empty inputs never spawn a worker, even with checkpoints and progress
   )
   expect_false(dir.exists(checkpoints))
 })
+
+test_that("a multi-chunk run without checkpoint_dir reminds that it is not resumable", {
+  fixture <- trimmer_protocol_fixture()
+  checkpoints <- tempfile("trim_checkpoints_")
+  on.exit(unlink(c(fixture$model_dir, checkpoints), recursive = TRUE), add = TRUE)
+  trim <- function(..., chunk_size = 2, progress = TRUE) {
+    trim_doceds_onnx(
+      chunk_texts,
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir,
+      chunk_size = chunk_size,
+      progress = progress,
+      ...
+    )
+  }
+
+  reminder <- "No checkpoint_dir set"
+  expect_match(capture_messages(trim()), reminder, all = FALSE)
+  expect_no_match(capture_messages(trim(checkpoint_dir = checkpoints)), reminder)
+  expect_no_match(capture_messages(trim(chunk_size = 500)), reminder)
+  expect_no_match(capture_messages(trim(progress = FALSE)), reminder)
+})
