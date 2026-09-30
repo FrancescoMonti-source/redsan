@@ -897,3 +897,313 @@ test_that("unmarked successful-worker stderr remains hidden", {
     )
   )
 })
+
+
+# --- chunking, checkpoints and progress ------------------------------------
+
+# Wrap the real worker so tests can count how many worker runs a call made.
+count_worker_runs <- function(env = parent.frame()) {
+  counter <- new.env()
+  counter$n <- 0L
+  original <- .doceds_onnx_run_worker
+  testthat::local_mocked_bindings(
+    .doceds_onnx_run_worker = function(...) {
+      counter$n <- counter$n + 1L
+      original(...)
+    },
+    .env = env
+  )
+  counter
+}
+
+chunk_texts <- c("alpha note", "beta note", "gamma note", "delta note", "epsilon note")
+
+chunk_bundle <- function(texts, prefix) {
+  structure(
+    list(sources = list(doceds = data.frame(
+      ELTID = sprintf("%s%d", rep(prefix, length(texts)), seq_along(texts)),
+      RECTYPE = rep("CRH2AB", length(texts)),
+      RECTXT = texts,
+      stringsAsFactors = FALSE
+    ))),
+    class = "edsan_event_bundle"
+  )
+}
+
+test_that("chunking calls the worker once per chunk and does not change results", {
+  fixture <- trimmer_protocol_fixture()
+  on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
+  runs <- count_worker_runs()
+
+  trim <- function(data, ...) {
+    trim_doceds_onnx(
+      data,
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir,
+      progress = FALSE,
+      ...
+    )
+  }
+  inputs <- list(
+    character = setNames(chunk_texts, letters[1:5]),
+    table = data.frame(ELTID = paste0("e", 1:5), RECTXT = chunk_texts, stringsAsFactors = FALSE),
+    bundle = chunk_bundle(chunk_texts, "b"),
+    cohort = list(
+      one = chunk_bundle(chunk_texts[1:2], "x"),
+      empty = chunk_bundle(character(), "y"),
+      two = chunk_bundle(chunk_texts[3:5], "z")
+    )
+  )
+
+  for (name in names(inputs)) {
+    runs$n <- 0L
+    single <- trim(inputs[[name]], chunk_size = 500)
+    expect_identical(runs$n, 1L, label = paste(name, "single-chunk runs"))
+
+    runs$n <- 0L
+    chunked <- trim(inputs[[name]], chunk_size = 2)
+    expect_identical(runs$n, 3L, label = paste(name, "chunked runs"))
+    expect_identical(chunked, single, label = paste(name, "result"))
+  }
+})
+
+test_that("chunk_size, checkpoint_dir and progress are validated", {
+  expect_error(trim_doceds_onnx("x", chunk_size = 0), "chunk_size")
+  expect_error(trim_doceds_onnx("x", chunk_size = 1.5), "chunk_size")
+  expect_error(trim_doceds_onnx("x", chunk_size = c(1, 2)), "chunk_size")
+  expect_error(trim_doceds_onnx("x", chunk_size = NA_real_), "chunk_size")
+  expect_error(trim_doceds_onnx("x", checkpoint_dir = c("a", "b")), "checkpoint_dir")
+  expect_error(trim_doceds_onnx("x", checkpoint_dir = ""), "checkpoint_dir")
+  expect_error(trim_doceds_onnx("x", progress = NA), "progress")
+  expect_identical(formals(trim_doceds_onnx)$chunk_size, 500L)
+  expect_null(formals(trim_doceds_onnx)$checkpoint_dir)
+  expect_identical(formals(trim_doceds_onnx)$progress, quote(interactive()))
+})
+
+test_that("rerunning with the same checkpoint_dir reloads finished chunks", {
+  fixture <- trimmer_protocol_fixture()
+  checkpoints <- tempfile("trim_checkpoints_")
+  on.exit(unlink(c(fixture$model_dir, checkpoints), recursive = TRUE), add = TRUE)
+  runs <- count_worker_runs()
+  trim <- function(texts = chunk_texts) {
+    trim_doceds_onnx(
+      texts,
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir,
+      chunk_size = 2,
+      checkpoint_dir = checkpoints,
+      progress = FALSE
+    )
+  }
+
+  first <- trim()
+  expect_identical(runs$n, 3L)
+  files <- list.files(checkpoints, full.names = TRUE)
+  expect_length(files, 3L)
+
+  runs$n <- 0L
+  expect_identical(trim(), first)
+  expect_identical(runs$n, 0L)
+
+  runs$n <- 0L
+  file.remove(files[[2L]])
+  expect_identical(trim(), first)
+  expect_identical(runs$n, 1L)
+  expect_length(list.files(checkpoints), 3L)
+
+  # A changed text invalidates only the chunk that holds it.
+  runs$n <- 0L
+  changed <- chunk_texts
+  changed[[5L]] <- "epsilon note, revised"
+  trim(changed)
+  expect_identical(runs$n, 1L)
+})
+
+test_that("a changed artifact digest invalidates every checkpoint", {
+  fixture <- trimmer_protocol_fixture()
+  checkpoints <- tempfile("trim_checkpoints_")
+  on.exit(unlink(c(fixture$model_dir, checkpoints), recursive = TRUE), add = TRUE)
+  runs <- count_worker_runs()
+  trim <- function() {
+    trim_doceds_onnx(
+      chunk_texts,
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir,
+      chunk_size = 2,
+      checkpoint_dir = checkpoints,
+      progress = FALSE
+    )
+  }
+
+  trim()
+  writeLines("different weights", file.path(fixture$model_dir, "model.onnx"))
+  runs$n <- 0L
+  trim()
+  expect_identical(runs$n, 3L)
+})
+
+test_that("an unreadable checkpoint is recomputed and replaced", {
+  fixture <- trimmer_protocol_fixture()
+  checkpoints <- tempfile("trim_checkpoints_")
+  on.exit(unlink(c(fixture$model_dir, checkpoints), recursive = TRUE), add = TRUE)
+  runs <- count_worker_runs()
+  trim <- function() {
+    trim_doceds_onnx(
+      chunk_texts,
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir,
+      chunk_size = 5,
+      checkpoint_dir = checkpoints,
+      progress = FALSE
+    )
+  }
+
+  first <- trim()
+  writeLines("not an rds file", list.files(checkpoints, full.names = TRUE))
+  runs$n <- 0L
+  expect_identical(trim(), first)
+  expect_identical(runs$n, 1L)
+  runs$n <- 0L
+  trim()
+  expect_identical(runs$n, 0L)
+})
+
+test_that("a chunk that fails validation is not checkpointed and names its document", {
+  fixture <- trimmer_protocol_fixture(c(
+    "results <- lapply(results, function(r) {",
+    "  if (identical(r$id, 'doc_3')) r$reduction_pct <- 'bad'",
+    "  r",
+    "})"
+  ))
+  checkpoints <- tempfile("trim_checkpoints_")
+  on.exit(unlink(c(fixture$model_dir, checkpoints), recursive = TRUE), add = TRUE)
+  runs <- count_worker_runs()
+
+  expect_error(
+    trim_doceds_onnx(
+      chunk_texts,
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir,
+      chunk_size = 2,
+      checkpoint_dir = checkpoints,
+      progress = FALSE
+    ),
+    "invalid result for document doc_3"
+  )
+  # Chunk 1 was good and kept; chunk 2 failed and stopped the run.
+  expect_length(list.files(checkpoints), 1L)
+  expect_identical(runs$n, 2L)
+})
+
+test_that("execution provider must match the first chunk", {
+  fixture <- trimmer_protocol_fixture(c(
+    "results <- lapply(results, function(r) {",
+    "  if (r$id %in% c('doc_3', 'doc_4')) r$execution_provider <- 'CUDAExecutionProvider'",
+    "  r",
+    "})"
+  ))
+  checkpoints <- tempfile("trim_checkpoints_")
+  on.exit(unlink(c(fixture$model_dir, checkpoints), recursive = TRUE), add = TRUE)
+
+  expect_error(
+    trim_doceds_onnx(
+      chunk_texts,
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir,
+      chunk_size = 2,
+      checkpoint_dir = checkpoints,
+      progress = FALSE
+    ),
+    "inconsistent execution provider"
+  )
+  expect_length(list.files(checkpoints), 1L)
+})
+
+test_that("progress prints one line per chunk only when asked", {
+  fixture <- trimmer_protocol_fixture()
+  checkpoints <- tempfile("trim_checkpoints_")
+  on.exit(unlink(c(fixture$model_dir, checkpoints), recursive = TRUE), add = TRUE)
+  trim <- function(...) {
+    trim_doceds_onnx(
+      chunk_texts,
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir,
+      chunk_size = 2,
+      ...
+    )
+  }
+  collect_messages <- function(expr) {
+    lines <- character()
+    withCallingHandlers(
+      expr,
+      message = function(m) {
+        lines <<- c(lines, conditionMessage(m))
+        invokeRestart("muffleMessage")
+      }
+    )
+    lines
+  }
+
+  lines <- collect_messages(trim(progress = TRUE, checkpoint_dir = checkpoints))
+  expect_length(lines, 3L)
+  expect_match(
+    lines[[1L]],
+    "chunk 1/3: 2/5 documents \\(40%\\), elapsed [0-9:]+, ETA [0-9:]+"
+  )
+  expect_match(
+    lines[[3L]],
+    "chunk 3/3: 5/5 documents \\(100%\\), elapsed [0-9:]+, ETA 0:00:00"
+  )
+  expect_false(any(grepl("checkpoint", lines)))
+
+  lines <- collect_messages(trim(progress = TRUE, checkpoint_dir = checkpoints))
+  expect_length(lines, 3L)
+  expect_true(all(grepl("[checkpoint]", lines, fixed = TRUE)))
+
+  expect_silent(trim(progress = FALSE))
+  # Non-interactive test sessions: the default is off.
+  expect_false(interactive())
+  expect_silent(trim())
+})
+
+test_that("worker notices are surfaced once per call, not once per chunk", {
+  fixture <- trimmer_protocol_fixture(
+    "writeLines('EDSAN_TRIMMER_NOTICE:WARNING:CUDA_PROVIDER_MISSING:Install onnxruntime-gpu', stderr())"
+  )
+  on.exit(unlink(fixture$model_dir, recursive = TRUE), add = TRUE)
+
+  warnings <- character()
+  withCallingHandlers(
+    trim_doceds_onnx(
+      chunk_texts,
+      python_exe = fixture$runner,
+      model_dir = fixture$model_dir,
+      chunk_size = 2,
+      progress = FALSE
+    ),
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_length(warnings, 1L)
+})
+
+test_that("empty inputs never spawn a worker, even with checkpoints and progress", {
+  checkpoints <- tempfile("trim_checkpoints_")
+  testthat::local_mocked_bindings(
+    .doceds_onnx_run_worker = function(...) stop("worker must not run")
+  )
+
+  expect_silent(trim_doceds_onnx(
+    character(0),
+    checkpoint_dir = checkpoints,
+    progress = TRUE
+  ))
+  empty <- data.frame(RECTXT = character(), stringsAsFactors = FALSE)
+  expect_equal(
+    nrow(trim_doceds_onnx(empty, checkpoint_dir = checkpoints, progress = TRUE)),
+    0L
+  )
+  expect_false(dir.exists(checkpoints))
+})

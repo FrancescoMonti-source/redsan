@@ -1,3 +1,17 @@
+# redsan (development version)
+
+- `trim_doceds_onnx()` now processes documents in chunks (`chunk_size`,
+  default 500; one worker run per chunk, worker protocol unchanged), prints one
+  progress line per chunk (`progress`, default `interactive()`), and can save
+  each chunk's validated results to `checkpoint_dir`. Rerunning the identical
+  call after an interruption reloads finished chunks instead of recomputing
+  them. Checkpoints are keyed on the artifact digest plus the chunk's
+  identifiers and texts, so a different model or input never reuses stale
+  results. A failing chunk no longer costs the whole cohort: invalid output is
+  reported after the first bad chunk, and every chunk must report the same
+  execution provider as the first. Repeated worker notices are shown once per
+  call.
+
 # redsan 1.0.0
 
 - Normalize the public API around a consistent vocabulary: `edsan_*()` for

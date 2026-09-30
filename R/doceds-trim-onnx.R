@@ -16,6 +16,24 @@
 #' @param model_dir Path to the versioned runtime artifact containing `model.onnx`,
 #'   `tokenizer.json`, `trim_batch_service.py`, and `artifact.json`. If `NULL`,
 #'   automatically resolved via `.edsan_get_trimmer_dir()`.
+#' @param chunk_size Number of documents sent to one worker run. Defaults to
+#'   `500`. The documents of a call (across all stays, for a list of bundles)
+#'   are processed in consecutive chunks, each validated as soon as its worker
+#'   run finishes, so a worker or provider failure costs one chunk and invalid
+#'   output is reported after the first bad chunk. Chunking does not change the
+#'   result.
+#' @param checkpoint_dir Directory in which each chunk's validated results are
+#'   saved, or `NULL` (the default) to save nothing. The directory is created
+#'   if needed. Rerunning the identical call after an interruption reloads the
+#'   finished chunks instead of recomputing them. A checkpoint is keyed on the
+#'   artifact digest of [doceds_onnx_spec()] together with the chunk's document
+#'   identifiers and texts, so a different artifact or different input never
+#'   reuses stale results. A checkpoint that cannot be read back is recomputed.
+#'   Nothing is saved for a chunk whose results fail validation. Checkpoints
+#'   are not deleted; remove the directory when the cohort is done.
+#' @param progress Whether to print one line per chunk (documents done and
+#'   total, percent, elapsed time and estimated time remaining). Defaults to
+#'   `interactive()`. Lines are emitted with [message()].
 #'
 #' @return Depending on the input shape:
 #'   \itemize{
@@ -34,7 +52,8 @@
 #'
 #' The runtime artifact owns model selection and inference policy. `redsan`
 #' validates the artifact and response protocol, but does not reproduce those
-#' policies in R. The worker reads `EDSAN_TRIMMER_DEVICE`, which defaults to
+#' policies in R. All chunks of a call must report the same execution provider
+#' as the first chunk. The worker reads `EDSAN_TRIMMER_DEVICE`, which defaults to
 #' `auto` and accepts `cpu`, `cuda`, `openvino`, `dml`, or
 #' `migraphx`. It records the selected ONNX Runtime provider in
 #' `TRIM_EXECUTION_PROVIDER` on tables or as the same-named attribute on
@@ -54,6 +73,14 @@
 #'
 #' # On a list of event bundles (e.g. denut cohort)
 #' clean_bundles <- trim_doceds_onnx(denut)
+#'
+#' # A long cohort run that can resume after an interruption
+#' clean_bundles <- trim_doceds_onnx(
+#'   denut,
+#'   chunk_size = 500,
+#'   checkpoint_dir = "trim-checkpoints",
+#'   progress = TRUE
+#' )
 #' }
 #'
 #' @export
@@ -61,8 +88,13 @@ trim_doceds_onnx <- function(
   data,
   text_col = NULL,
   python_exe = .edsan_get_python_exe(),
-  model_dir = NULL
+  model_dir = NULL,
+  chunk_size = 500L,
+  checkpoint_dir = NULL,
+  progress = interactive()
 ) {
+  .doceds_onnx_validate_chunk_args(chunk_size, checkpoint_dir, progress)
+
   # 1. Single bundle support
   if (inherits(data, "edsan_event_bundle")) {
     .doceds_onnx_validate_bundle(data, text_col = text_col)
@@ -70,7 +102,10 @@ trim_doceds_onnx <- function(
       data = data$sources$doceds,
       text_col = text_col,
       python_exe = python_exe,
-      model_dir = model_dir
+      model_dir = model_dir,
+      chunk_size = chunk_size,
+      checkpoint_dir = checkpoint_dir,
+      progress = progress
     )
     return(data)
   }
@@ -120,7 +155,10 @@ trim_doceds_onnx <- function(
       data = flat_df,
       text_col = "RECTXT",
       python_exe = python_exe,
-      model_dir = model_dir
+      model_dir = model_dir,
+      chunk_size = chunk_size,
+      checkpoint_dir = checkpoint_dir,
+      progress = progress
     )
 
     # Directly assign results back to each bundle without altering any other columns or attributes
@@ -226,15 +264,174 @@ trim_doceds_onnx <- function(
     stringsAsFactors = FALSE
   )
 
+  n_docs <- nrow(payload)
+  chunks <- split(seq_len(n_docs), ceiling(seq_len(n_docs) / chunk_size))
+  n_chunks <- length(chunks)
+
+  artifact_digest <- NULL
+  if (!is.null(checkpoint_dir)) {
+    dir.create(checkpoint_dir, recursive = TRUE, showWarnings = FALSE)
+    if (!dir.exists(checkpoint_dir)) {
+      stop(
+        sprintf("Cannot create checkpoint_dir '%s'.", checkpoint_dir),
+        call. = FALSE
+      )
+    }
+    artifact_digest <- .doceds_onnx_artifact_digest(model_dir)
+  }
+
+  trimmed_texts <- character(n_docs)
+  reduc_pcts <- numeric(n_docs)
+  intervals_json <- character(n_docs)
+  execution_provider <- NA_character_
+  seen_notices <- new.env(parent = emptyenv())
+  started <- Sys.time()
+  computed_docs <- 0L
+  compute_secs <- 0
+
+  for (k in seq_len(n_chunks)) {
+    idx <- chunks[[k]]
+    chunk_payload <- payload[idx, , drop = FALSE]
+    rownames(chunk_payload) <- NULL
+
+    body <- as.character(jsonlite::toJSON(chunk_payload, auto_unbox = TRUE))
+    checkpoint_path <- NULL
+    chunk <- NULL
+    if (!is.null(checkpoint_dir)) {
+      checkpoint_path <- file.path(
+        checkpoint_dir,
+        paste0("trim-", .doceds_onnx_chunk_key(artifact_digest, body), ".rds")
+      )
+      chunk <- .doceds_onnx_read_checkpoint(checkpoint_path, chunk_payload$id)
+    }
+    resumed <- !is.null(chunk)
+
+    if (!resumed) {
+      chunk_started <- Sys.time()
+      chunk <- .doceds_onnx_trim_chunk(
+        body = body,
+        payload = chunk_payload,
+        python_exe = python_exe,
+        service_script = service_script,
+        model_dir = model_dir,
+        seen_notices = seen_notices,
+        chunk_label = if (n_chunks > 1L) {
+          sprintf("chunk %d of %d", k, n_chunks)
+        } else {
+          NULL
+        }
+      )
+    }
+
+    # Every chunk must report the provider of the first one. This runs before
+    # the chunk is checkpointed, so an inconsistent chunk is never saved.
+    if (k == 1L) {
+      execution_provider <- chunk$execution_provider
+    } else if (!identical(chunk$execution_provider, execution_provider)) {
+      stop(
+        "Trimmer worker returned inconsistent execution provider provenance.",
+        call. = FALSE
+      )
+    }
+
+    if (!resumed) {
+      if (!is.null(checkpoint_path)) {
+        .doceds_onnx_write_checkpoint(chunk, checkpoint_path)
+      }
+      computed_docs <- computed_docs + length(idx)
+      compute_secs <- compute_secs +
+        as.numeric(difftime(Sys.time(), chunk_started, units = "secs"))
+    }
+
+    trimmed_texts[idx] <- chunk$trimmed_text
+    reduc_pcts[idx] <- chunk$reduction_pct
+    intervals_json[idx] <- chunk$preserved_intervals
+
+    if (isTRUE(progress)) {
+      message(.doceds_onnx_progress_line(
+        chunk = k,
+        n_chunks = n_chunks,
+        done = max(idx),
+        total = n_docs,
+        elapsed = as.numeric(difftime(Sys.time(), started, units = "secs")),
+        computed_docs = computed_docs,
+        compute_secs = compute_secs,
+        resumed = resumed
+      ))
+    }
+  }
+
+  if (is_char_input) {
+    names(trimmed_texts) <- names(data)
+    if (!is.na(execution_provider)) {
+      attr(trimmed_texts, "TRIM_EXECUTION_PROVIDER") <- execution_provider
+    }
+    return(trimmed_texts)
+  }
+
+  out_col <- if (col_to_use == "RECTXT") {
+    "RECTXT_TRIMMED"
+  } else {
+    paste0(col_to_use, "_TRIMMED")
+  }
+  data[[out_col]] <- trimmed_texts
+  data$TRIM_REDUCTION_PCT <- reduc_pcts
+  data$TRIM_PRESERVED_INTERVALS <- intervals_json
+  data$TRIM_EXECUTION_PROVIDER <- rep(execution_provider, nrow(data))
+
+  data
+}
+
+#' Validate the chunking, checkpoint and progress arguments
+#'
+#' @noRd
+.doceds_onnx_validate_chunk_args <- function(chunk_size, checkpoint_dir, progress) {
+  if (
+    !is.numeric(chunk_size) ||
+      length(chunk_size) != 1L ||
+      !is.finite(chunk_size) ||
+      chunk_size < 1 ||
+      chunk_size != floor(chunk_size)
+  ) {
+    stop("`chunk_size` must be a single positive whole number.", call. = FALSE)
+  }
+  if (
+    !is.null(checkpoint_dir) &&
+      !(is.character(checkpoint_dir) &&
+        length(checkpoint_dir) == 1L &&
+        !is.na(checkpoint_dir) &&
+        nzchar(checkpoint_dir))
+  ) {
+    stop("`checkpoint_dir` must be NULL or a single directory path.", call. = FALSE)
+  }
+  if (!is.logical(progress) || length(progress) != 1L || is.na(progress)) {
+    stop("`progress` must be TRUE or FALSE.", call. = FALSE)
+  }
+  invisible(NULL)
+}
+
+#' Run one chunk through the worker and validate its results
+#'
+#' `payload` is the chunk's `id`/`text` table and `body` its JSON encoding.
+#' Returns the chunk's results in request order; stops on the first invalid
+#' result, naming the document.
+#'
+#' @noRd
+.doceds_onnx_trim_chunk <- function(
+  body,
+  payload,
+  python_exe,
+  service_script,
+  model_dir,
+  seen_notices,
+  chunk_label = NULL
+) {
+  ids <- payload$id
   tmp_in <- tempfile(fileext = ".json")
   tmp_out <- tempfile(fileext = ".json")
   on.exit(unlink(c(tmp_in, tmp_out)), add = TRUE)
 
-  writeLines(
-    jsonlite::toJSON(payload, auto_unbox = TRUE),
-    tmp_in,
-    useBytes = TRUE
-  )
+  writeLines(body, tmp_in, useBytes = TRUE)
 
   # Execute Python ONNX inference worker
   worker_result <- tryCatch(
@@ -259,6 +456,9 @@ trim_doceds_onnx <- function(
           "  pip install onnxruntime tokenizers numpy\n"
         )
       }
+      if (!is.null(chunk_label)) {
+        err_msg <- paste0("(", chunk_label, ")\n", err_msg)
+      }
       stop(
         paste0(
           "\n================================================================================\n",
@@ -272,7 +472,7 @@ trim_doceds_onnx <- function(
       )
     }
   )
-  .doceds_onnx_emit_worker_notices(worker_result$stderr)
+  .doceds_onnx_emit_worker_notices(worker_result$stderr, seen_notices)
 
   output_data <- jsonlite::fromJSON(tmp_out, simplifyVector = FALSE)
   output_ids <- vapply(
@@ -293,10 +493,11 @@ trim_doceds_onnx <- function(
   }
   output_data <- output_data[match(ids, output_ids)]
 
-  trimmed_texts <- character(nrow(df))
-  reduc_pcts <- numeric(nrow(df))
-  intervals_list <- vector("list", nrow(df))
-  execution_providers <- rep(NA_character_, nrow(df))
+  n <- length(ids)
+  trimmed_texts <- character(n)
+  reduc_pcts <- numeric(n)
+  intervals_json <- character(n)
+  execution_providers <- rep(NA_character_, n)
 
   for (i in seq_along(output_data)) {
     item <- output_data[[i]]
@@ -307,13 +508,10 @@ trim_doceds_onnx <- function(
       execution_providers[i] <- item$execution_provider
     }
 
-    if (length(item$preserved_intervals) > 0) {
-      intervals_list[[i]] <- as.character(jsonlite::toJSON(
-        item$preserved_intervals,
-        auto_unbox = TRUE
-      ))
+    intervals_json[i] <- if (length(item$preserved_intervals) > 0) {
+      as.character(jsonlite::toJSON(item$preserved_intervals, auto_unbox = TRUE))
     } else {
-      intervals_list[[i]] <- "[]"
+      "[]"
     }
   }
 
@@ -327,31 +525,116 @@ trim_doceds_onnx <- function(
       call. = FALSE
     )
   }
-  execution_provider <- if (length(known_providers) == 1L) {
-    known_providers[[1L]]
-  } else {
-    NA_character_
-  }
 
-  if (is_char_input) {
-    names(trimmed_texts) <- names(data)
-    if (!is.na(execution_provider)) {
-      attr(trimmed_texts, "TRIM_EXECUTION_PROVIDER") <- execution_provider
+  list(
+    id = ids,
+    trimmed_text = trimmed_texts,
+    reduction_pct = reduc_pcts,
+    preserved_intervals = intervals_json,
+    execution_provider = if (length(known_providers) == 1L) {
+      known_providers[[1L]]
+    } else {
+      NA_character_
     }
-    return(trimmed_texts)
-  }
+  )
+}
 
-  out_col <- if (col_to_use == "RECTXT") {
-    "RECTXT_TRIMMED"
+# A checkpoint is valid for exactly one (artifact, chunk ids, chunk texts). The
+# key hashes the artifact digest together with the JSON the worker would
+# receive, so any change to the model, an identifier or a text finds no file.
+.DOCEDS_ONNX_CHECKPOINT_SCHEMA <- "doceds-onnx-trim-chunk-v1"
+
+#' @noRd
+.doceds_onnx_chunk_key <- function(artifact_digest, body) {
+  digest::digest(
+    charToRaw(enc2utf8(paste(
+      .DOCEDS_ONNX_CHECKPOINT_SCHEMA,
+      artifact_digest,
+      body,
+      sep = "\n"
+    ))),
+    algo = "sha256",
+    serialize = FALSE
+  )
+}
+
+#' Save a validated chunk atomically so a crash never leaves a partial file
+#'
+#' @noRd
+.doceds_onnx_write_checkpoint <- function(chunk, path) {
+  staging <- paste0(path, ".partial")
+  saveRDS(chunk, staging)
+  if (!file.rename(staging, path)) {
+    unlink(staging)
+    stop(sprintf("Cannot write checkpoint '%s'.", path), call. = FALSE)
+  }
+  invisible(path)
+}
+
+#' Load a chunk checkpoint, or NULL when absent or unusable
+#'
+#' An unreadable or malformed file is treated as missing so the chunk is
+#' recomputed and its checkpoint replaced.
+#'
+#' @noRd
+.doceds_onnx_read_checkpoint <- function(path, ids) {
+  if (!file.exists(path)) {
+    return(NULL)
+  }
+  chunk <- tryCatch(readRDS(path), error = function(e) NULL)
+  n <- length(ids)
+  valid <- is.list(chunk) &&
+    identical(chunk$id, ids) &&
+    is.character(chunk$trimmed_text) && length(chunk$trimmed_text) == n &&
+    is.numeric(chunk$reduction_pct) && length(chunk$reduction_pct) == n &&
+    is.character(chunk$preserved_intervals) &&
+    length(chunk$preserved_intervals) == n &&
+    is.character(chunk$execution_provider) &&
+    length(chunk$execution_provider) == 1L
+  if (!valid) {
+    return(NULL)
+  }
+  chunk
+}
+
+#' Format one progress line: done/total, percent, elapsed, ETA
+#'
+#' The ETA extrapolates from chunks that were actually computed; chunks reloaded
+#' from checkpoints say nothing about worker speed.
+#'
+#' @noRd
+.doceds_onnx_progress_line <- function(
+  chunk,
+  n_chunks,
+  done,
+  total,
+  elapsed,
+  computed_docs,
+  compute_secs,
+  resumed
+) {
+  format_secs <- function(secs) {
+    secs <- round(secs)
+    sprintf("%d:%02d:%02d", secs %/% 3600, (secs %% 3600) %/% 60, secs %% 60)
+  }
+  eta <- if (done >= total) {
+    format_secs(0)
+  } else if (computed_docs > 0L) {
+    format_secs(compute_secs / computed_docs * (total - done))
   } else {
-    paste0(col_to_use, "_TRIMMED")
+    "--:--:--"
   }
-  data[[out_col]] <- trimmed_texts
-  data$TRIM_REDUCTION_PCT <- reduc_pcts
-  data$TRIM_PRESERVED_INTERVALS <- as.character(intervals_list)
-  data$TRIM_EXECUTION_PROVIDER <- rep(execution_provider, nrow(data))
-
-  data
+  sprintf(
+    "[redsan] trim chunk %d/%d: %d/%d documents (%d%%), elapsed %s, ETA %s%s",
+    chunk,
+    n_chunks,
+    done,
+    total,
+    as.integer(floor(100 * done / total)),
+    format_secs(elapsed),
+    eta,
+    if (resumed) " [checkpoint]" else ""
+  )
 }
 
 #' Validate one result returned by the external trimmer worker
@@ -495,7 +778,7 @@ trim_doceds_onnx <- function(
 #' Surface only worker diagnostics using the documented runtime marker
 #'
 #' @noRd
-.doceds_onnx_emit_worker_notices <- function(stderr) {
+.doceds_onnx_emit_worker_notices <- function(stderr, seen = new.env(parent = emptyenv())) {
   if (is.null(stderr) || !nzchar(stderr)) {
     return(invisible(NULL))
   }
@@ -506,6 +789,12 @@ trim_doceds_onnx <- function(
     if (length(match) == 0L || !nzchar(match[[3L]])) {
       next
     }
+    # Each chunk is a worker run that repeats the same provider notices; say
+    # each one once per call.
+    if (exists(line, envir = seen, inherits = FALSE)) {
+      next
+    }
+    assign(line, TRUE, envir = seen)
     notice <- paste0("[edsan-doc-trimmer] ", match[[3L]])
     if (identical(match[[2L]], "WARNING")) {
       warning(notice, call. = FALSE)

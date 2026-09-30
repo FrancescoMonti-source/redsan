@@ -8,7 +8,10 @@ trim_doceds_onnx(
   data,
   text_col = NULL,
   python_exe = .edsan_get_python_exe(),
-  model_dir = NULL
+  model_dir = NULL,
+  chunk_size = 500L,
+  checkpoint_dir = NULL,
+  progress = interactive()
 )
 }
 \arguments{
@@ -25,6 +28,27 @@ Defaults to auto-detecting the \code{edsan-doc-trimmer} virtual environment or \
 \item{model_dir}{Path to the versioned runtime artifact containing \code{model.onnx},
 \code{tokenizer.json}, \code{trim_batch_service.py}, and \code{artifact.json}. If \code{NULL},
 automatically resolved via \code{.edsan_get_trimmer_dir()}.}
+
+\item{chunk_size}{Number of documents sent to one worker run. Defaults to
+\code{500}. The documents of a call (across all stays, for a list of bundles)
+are processed in consecutive chunks, each validated as soon as its worker
+run finishes, so a worker or provider failure costs one chunk and invalid
+output is reported after the first bad chunk. Chunking does not change the
+result.}
+
+\item{checkpoint_dir}{Directory in which each chunk's validated results are
+saved, or \code{NULL} (the default) to save nothing. The directory is created
+if needed. Rerunning the identical call after an interruption reloads the
+finished chunks instead of recomputing them. A checkpoint is keyed on the
+artifact digest of \code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}} together with the chunk's document
+identifiers and texts, so a different artifact or different input never
+reuses stale results. A checkpoint that cannot be read back is recomputed.
+Nothing is saved for a chunk whose results fail validation. Checkpoints
+are not deleted; remove the directory when the cohort is done.}
+
+\item{progress}{Whether to print one line per chunk (documents done and
+total, percent, elapsed time and estimated time remaining). Defaults to
+\code{interactive()}. Lines are emitted with \code{\link[=message]{message()}}.}
 }
 \value{
 Depending on the input shape:
@@ -44,7 +68,8 @@ schema structures and attributes intact.
 
 The runtime artifact owns model selection and inference policy. \code{redsan}
 validates the artifact and response protocol, but does not reproduce those
-policies in R. The worker reads \code{EDSAN_TRIMMER_DEVICE}, which defaults to
+policies in R. All chunks of a call must report the same execution provider
+as the first chunk. The worker reads \code{EDSAN_TRIMMER_DEVICE}, which defaults to
 \code{auto} and accepts \code{cpu}, \code{cuda}, \code{openvino}, \code{dml}, or
 \code{migraphx}. It records the selected ONNX Runtime provider in
 \code{TRIM_EXECUTION_PROVIDER} on tables or as the same-named attribute on
@@ -71,6 +96,14 @@ clean_bundle <- trim_doceds_onnx(bundle)
 
 # On a list of event bundles (e.g. denut cohort)
 clean_bundles <- trim_doceds_onnx(denut)
+
+# A long cohort run that can resume after an interruption
+clean_bundles <- trim_doceds_onnx(
+  denut,
+  chunk_size = 500,
+  checkpoint_dir = "trim-checkpoints",
+  progress = TRUE
+)
 }
 
 }
