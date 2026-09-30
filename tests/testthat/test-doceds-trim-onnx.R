@@ -959,6 +959,14 @@ test_that("an EDSAN_TRIMMER_PATH without model.onnx is an error, not a fallback"
   expect_identical(edsan_trimmer_versions()$selected, FALSE)
 })
 
+test_that("a whitespace-only EDSAN_TRIMMER_PATH counts as unset", {
+  local_trimmer_cache()
+  install_trimmer_versions("1.3.0")
+  withr::local_envvar(EDSAN_TRIMMER_PATH = "   ")
+
+  expect_match(redsan:::.edsan_get_trimmer_dir(), "1\\.3\\.0$")
+})
+
 test_that("the legacy REDSAN_TRIMMER_PATH is used only when EDSAN_TRIMMER_PATH is unset", {
   local_trimmer_cache()
   legacy <- trimmer_protocol_fixture()$model_dir

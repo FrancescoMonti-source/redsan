@@ -1607,10 +1607,12 @@ edsan_trimmer_versions <- function() {
 
   # 1. Environment variable override
   env_name <- "EDSAN_TRIMMER_PATH"
-  env_path <- Sys.getenv(env_name, "")
+  # Trimmed like the version pin, so a whitespace-only value counts as unset
+  # here and in the Python resolver alike.
+  env_path <- trimws(Sys.getenv(env_name, ""))
   if (!nzchar(env_path)) {
     env_name <- "REDSAN_TRIMMER_PATH"
-    env_path <- Sys.getenv(env_name, "")
+    env_path <- trimws(Sys.getenv(env_name, ""))
   }
   if (nzchar(env_path)) {
     # If pointed directly to model.onnx file, take parent folder
