@@ -1,9 +1,9 @@
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 2L || any(!nzchar(args))) {
+if (!length(args) %in% c(2L, 3L) || any(!nzchar(args))) {
   stop(
     paste(
       "Usage: Rscript tools/check_doceds_trimmer_artifact.R",
-      "/path/to/python /path/to/versioned/artifact"
+      "/path/to/python /path/to/versioned/artifact [expected_version]"
     ),
     call. = FALSE
   )
@@ -11,13 +11,20 @@ if (length(args) != 2L || any(!nzchar(args))) {
 
 python_exe <- args[[1L]]
 model_dir <- args[[2L]]
-expected_version <- "1.2.0"
-expected_contract <- "model-only-v1"
+# The version floor and worker contract live in the package validator, so this
+# script accepts every release redsan accepts. Pass a version to pin one.
+artifact_version <- redsan:::.doceds_onnx_validate_artifact(model_dir)
+if (length(args) == 3L && !identical(artifact_version, args[[3L]])) {
+  stop(
+    sprintf(
+      "Artifact version is '%s', but '%s' was expected.",
+      artifact_version,
+      args[[3L]]
+    ),
+    call. = FALSE
+  )
+}
 manifest <- jsonlite::fromJSON(file.path(model_dir, "artifact.json"))
-stopifnot(
-  identical(manifest$artifact_version, expected_version),
-  identical(manifest$worker_contract, expected_contract)
-)
 
 input <- data.frame(
   ELTID = c("bt", "ordon", "unrelated", "blank"),

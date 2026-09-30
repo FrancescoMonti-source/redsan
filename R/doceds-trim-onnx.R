@@ -1055,7 +1055,8 @@ doceds_onnx_spec <- function(model_dir = NULL) {
 #' 1. The directory named by `EDSAN_TRIMMER_PATH` (or a direct path to its
 #'    `model.onnx`). The legacy `REDSAN_TRIMMER_PATH` variable is used only when
 #'    `EDSAN_TRIMMER_PATH` is unset. This is the only way to select an artifact
-#'    outside the cache, such as a development checkout's export.
+#'    outside the cache, such as a development checkout's export. A path that
+#'    does not contain `model.onnx` is an error; it never falls through.
 #' 2. The installed version named by `EDSAN_TRIMMER_VERSION`. An unknown
 #'    version is an error that lists the installed versions.
 #' 3. The highest valid installed version (compared as a numeric version).
@@ -1248,23 +1249,28 @@ edsan_trimmer_versions <- function() {
     if (file.exists(env_path) && !dir.exists(env_path) && tolower(basename(env_path)) == "model.onnx") {
       env_path <- dirname(env_path)
     }
-    if (file.exists(file.path(env_path, "model.onnx"))) {
-      path <- normalizePath(env_path)
-      return(list(
-        path = path,
-        version = manifest_version(path),
-        source = env_name
-      ))
-    } else {
-      warning(
+    # An explicit override that points nowhere is an error: falling through
+    # would silently run a different artifact than the one the user named.
+    if (!file.exists(file.path(env_path, "model.onnx"))) {
+      stop(
         sprintf(
-          "%s is set to '%s', but 'model.onnx' was not found in that folder.",
+          paste0(
+            "%s is set to '%s', but 'model.onnx' was not found in that folder.\n",
+            "Fix the path, or unset %s to use the installed trimmer versions."
+          ),
           env_name,
-          env_path
+          env_path,
+          env_name
         ),
         call. = FALSE
       )
     }
+    path <- normalizePath(env_path)
+    return(list(
+      path = path,
+      version = manifest_version(path),
+      source = env_name
+    ))
   }
 
   cache_dir <- edsan_trimmer_cache_dir()

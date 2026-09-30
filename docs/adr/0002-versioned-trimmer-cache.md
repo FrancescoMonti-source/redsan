@@ -76,7 +76,8 @@ When no `model_dir` is passed, the artifact directory is the first of:
    names an artifact directory, or a `model.onnx` inside one. It may point
    anywhere, and it is the only way to select an artifact outside the cache
    (for example a development checkout's export). If it does not contain
-   `model.onnx`, `redsan` warns and continues down the list.
+   `model.onnx`, it is an error; like a pin, an explicit path never falls
+   through, because falling through would silently run another artifact.
 2. `EDSAN_TRIMMER_VERSION`: the installation whose folder name equals the value
    exactly. A value with no matching installation is an error that lists the
    installed versions; it never falls through to another version.

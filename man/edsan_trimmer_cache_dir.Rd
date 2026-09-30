@@ -44,7 +44,8 @@ When \code{model_dir} is not supplied to \code{\link[=trim_doceds_onnx]{trim_doc
 \item The directory named by \code{EDSAN_TRIMMER_PATH} (or a direct path to its
 \code{model.onnx}). The legacy \code{REDSAN_TRIMMER_PATH} variable is used only when
 \code{EDSAN_TRIMMER_PATH} is unset. This is the only way to select an artifact
-outside the cache, such as a development checkout's export.
+outside the cache, such as a development checkout's export. A path that
+does not contain \code{model.onnx} is an error; it never falls through.
 \item The installed version named by \code{EDSAN_TRIMMER_VERSION}. An unknown
 version is an error that lists the installed versions.
 \item The highest valid installed version (compared as a numeric version).

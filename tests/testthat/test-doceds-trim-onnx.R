@@ -900,6 +900,20 @@ test_that("EDSAN_TRIMMER_PATH wins over the pin and the cache", {
   expect_identical(edsan_trimmer_versions()$selected, c(FALSE, FALSE))
 })
 
+test_that("an EDSAN_TRIMMER_PATH without model.onnx is an error, not a fallback", {
+  local_trimmer_cache()
+  install_trimmer_versions("1.3.0")
+  empty <- withr::local_tempdir()
+  withr::local_envvar(EDSAN_TRIMMER_PATH = empty)
+
+  expect_error(
+    redsan:::.edsan_get_trimmer_dir(),
+    "EDSAN_TRIMMER_PATH is set to .*'model.onnx' was not found"
+  )
+  # Listing stays usable and selects nothing.
+  expect_identical(edsan_trimmer_versions()$selected, FALSE)
+})
+
 test_that("the legacy REDSAN_TRIMMER_PATH is used only when EDSAN_TRIMMER_PATH is unset", {
   local_trimmer_cache()
   legacy <- trimmer_protocol_fixture()$model_dir
