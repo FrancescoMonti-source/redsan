@@ -7,45 +7,62 @@
 edsan_trimmer_cache_dir()
 }
 \value{
-A character scalar containing the default cache path. The path ends
-in \code{edsan_doc_trimmer/v1} (with platform-specific separators).
+A character scalar containing the cache root path (with
+platform-specific separators).
 }
 \description{
-Returns the single user-cache directory where \code{\link[=edsan_install_trimmer]{edsan_install_trimmer()}}
-installs a trimmer artifact by default. This function reports the path; it
-does not create the directory or inspect the installed artifact.
+Returns the root of the user-cache directory where \code{\link[=edsan_install_trimmer]{edsan_install_trimmer()}}
+installs trimmer artifacts. This function reports the path; it does not
+create the directory or inspect what is installed. Use
+\code{\link[=edsan_trimmer_versions]{edsan_trimmer_versions()}} to list installations.
 }
-\details{
+\section{Cache layout}{
+
+The root is \code{tools::R_user_dir("edsan_doc_trimmer", "cache")}, which honors
+\code{R_USER_CACHE_DIR} on every platform (for example, the root is
+\verb{<R_USER_CACHE_DIR>/R/edsan_doc_trimmer}). Each installation is a direct
+child folder named exactly after the \code{artifact_version} of the
+\code{artifact.json} manifest it contains:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{<root>/
+  1.2.0/   model.onnx  tokenizer.json  trim_batch_service.py  artifact.json
+  1.3.0/   model.onnx  tokenizer.json  trim_batch_service.py  artifact.json
+}\if{html}{\out{</div>}}
+
+Versions coexist. A folder is an installation only if its name is a dotted
+numeric version (\verb{1.3.0}), it passes artifact validation, and its manifest's
+\code{artifact_version} equals its name. Anything else (for example \code{v1.3}, or a
+folder whose manifest disagrees with its name) is ignored. Staging folders
+used during installation are also ignored.
+}
+
+\section{Discovery order}{
+
 When \code{model_dir} is not supplied to \code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}} or
-\code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}}, \code{redsan} uses the first directory containing
-\code{model.onnx} in this order:
+\code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}}, \code{redsan} selects one artifact, in this order:
 \enumerate{
 \item The directory named by \code{EDSAN_TRIMMER_PATH} (or a direct path to its
 \code{model.onnx}). The legacy \code{REDSAN_TRIMMER_PATH} variable is used only when
-\code{EDSAN_TRIMMER_PATH} is unset.
-\item The local cache returned by \code{edsan_trimmer_cache_dir()}.
-\item Known development paths inside a local \code{edsan-doc-trimmer} checkout.
+\code{EDSAN_TRIMMER_PATH} is unset. This is the only way to select an artifact
+outside the cache, such as a development checkout's export.
+\item The installed version named by \code{EDSAN_TRIMMER_VERSION}. An unknown
+version is an error that lists the installed versions.
+\item The highest valid installed version (compared as a numeric version).
+\item The legacy single-slot install \verb{<root>/v1}, used with a message asking you
+to reinstall into the versioned layout.
+\item Otherwise an error with installation instructions.
 }
 
-There is no automatic download. The first matching directory wins; discovery
-does not compare artifact versions. Use \code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}} to inspect the
-selected artifact, set \code{EDSAN_TRIMMER_PATH} to select an extracted artifact
-explicitly, or call \code{\link[=edsan_install_trimmer]{edsan_install_trimmer()}} to replace the cached artifact.
-
-The cache contains one installation slot named \code{v1}. Here \code{v1} is the cache
-layout, not the model's artifact version, so versions such as 1.1.0 and 1.2.0
-cannot coexist in the default cache. Installing another compatible archive
-replaces the slot.
-
-The parent cache location is platform-specific and comes from
-\code{tools::R_user_dir("edsan_doc_trimmer", "cache")}. For example, on Windows it
-is normally below the user's local R cache directory.
+There is no automatic download and no implicit fallback to a development
+checkout. Every \code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}} call that runs the worker prints the
+version and path it used, and \code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}} reports them.
 }
+
 \examples{
 edsan_trimmer_cache_dir()
 
 }
 \seealso{
-\code{\link[=edsan_install_trimmer]{edsan_install_trimmer()}}, \code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}},
-\code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}}
+\code{\link[=edsan_install_trimmer]{edsan_install_trimmer()}}, \code{\link[=edsan_trimmer_versions]{edsan_trimmer_versions()}},
+\code{\link[=trim_doceds_onnx]{trim_doceds_onnx()}}, \code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}}
 }

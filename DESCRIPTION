@@ -1,7 +1,7 @@
 Package: redsan
 Type: Package
 Title: Retrieve and Normalize EDSAN Warehouse Data
-Version: 1.0.0
+Version: 2.0.0
 Authors@R: c(
     person(
       given = "Francesco",
@@ -44,7 +44,8 @@ Suggests:
     RJDBC,
     rJava,
     rstudioapi,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    withr
 Enhances:
     d2imr
 Config/testthat/edition: 3

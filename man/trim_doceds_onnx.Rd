@@ -24,7 +24,7 @@ Defaults to auto-detecting the \code{edsan-doc-trimmer} virtual environment or \
 
 \item{model_dir}{Path to the versioned runtime artifact containing \code{model.onnx},
 \code{tokenizer.json}, \code{trim_batch_service.py}, and \code{artifact.json}. If \code{NULL},
-automatically resolved via \code{.edsan_get_trimmer_dir()}.}
+the artifact is discovered as described in \code{\link[=edsan_trimmer_cache_dir]{edsan_trimmer_cache_dir()}}.}
 }
 \value{
 Depending on the input shape:
@@ -41,6 +41,12 @@ table augmented.
 and returns the list of bundles with each \code{sources$doceds} augmented, leaving all original
 schema structures and attributes intact.
 }
+
+Each top-level call that runs the worker prints one line,
+\verb{edsan-doc-trimmer <version> (<path>)}, naming the artifact that ran. The line
+is printed once per call, not per chunk or per bundle, and not at all when the
+input is empty and no worker is started. \code{\link[=doceds_onnx_spec]{doceds_onnx_spec()}} returns the same
+identification programmatically.
 
 The runtime artifact owns model selection and inference policy. \code{redsan}
 validates the artifact and response protocol, but does not reproduce those
