@@ -14,6 +14,15 @@
   valid installed version, then the legacy `v1` slot. The implicit
   development-checkout fallback is removed; name a checkout with
   `EDSAN_TRIMMER_PATH`.
+  **Breaking:** an `EDSAN_TRIMMER_PATH` (or `REDSAN_TRIMMER_PATH`) that does
+  not contain `model.onnx` is now an error instead of a warning followed by the
+  cache, because falling through silently ran a different artifact. Remove a
+  stale value from `~/.Renviron`. `edsan_install_trimmer()` reports the cause
+  when discovery fails.
+
+- `tools/check_doceds_trimmer_artifact.R` accepts any artifact the package
+  validator accepts; pass the expected `artifact_version` as a third argument
+  to gate a specific release.
 
 - Add `edsan_trimmer_versions()`, which lists installed versions, their paths,
   and the selected one.

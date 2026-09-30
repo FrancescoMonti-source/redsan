@@ -692,12 +692,41 @@ edsan_install_trimmer <- function(zip_path, overwrite = FALSE) {
     )
   }
   version <- .doceds_onnx_validate_artifact(artifact_dir)
+  # Only installs need a folder-safe version: the name is how discovery finds
+  # them. Artifacts named by model_dir or EDSAN_TRIMMER_PATH never need one.
+  if (!grepl(.DOCEDS_ONNX_VERSION_PATTERN, version)) {
+    stop(
+      sprintf(
+        paste0(
+          "Invalid trimmer archive; artifact_version '%s' must be dotted ",
+          "numbers such as 1.3.0, because it names the install folder."
+        ),
+        version
+      ),
+      call. = FALSE
+    )
+  }
   dest_dir <- file.path(cache_root, version)
   if (file.exists(dest_dir) && !dir.exists(dest_dir)) {
     stop("Trimmer destination exists and is not a directory.", call. = FALSE)
   }
 
-  if (dir.exists(dest_dir)) {
+  # A folder that fails validation is not an installation (discovery skips
+  # it), so replacing it needs no overwrite and is reported as a repair.
+  existing_valid <- dir.exists(dest_dir) && !is.null(tryCatch(
+    .doceds_onnx_validate_artifact(dest_dir),
+    error = function(e) NULL
+  ))
+  if (dir.exists(dest_dir) && !existing_valid) {
+    message(
+      sprintf(
+        "[redsan] %s exists but is not a valid installation; replacing it.",
+        normalizePath(dest_dir, mustWork = FALSE)
+      )
+    )
+  }
+
+  if (existing_valid) {
     if (.doceds_onnx_same_artifact(artifact_dir, dest_dir)) {
       message(
         sprintf(
@@ -785,14 +814,16 @@ edsan_install_trimmer <- function(zip_path, overwrite = FALSE) {
 .doceds_onnx_selection_note <- function(installed_dir) {
   selected <- tryCatch(
     suppressWarnings(.edsan_resolve_trimmer(quiet = TRUE)),
-    error = function(e) NULL
+    error = function(e) e
   )
   installed <- normalizePath(installed_dir, mustWork = FALSE)
-  if (!is.null(selected) && identical(selected$path, installed)) {
-    return("Selected:  yes, this is the artifact trim_doceds_onnx() will use.\n")
+  if (inherits(selected, "error")) {
+    # Name the cause, e.g. a stale EDSAN_TRIMMER_PATH or an unknown pin.
+    reason <- strsplit(conditionMessage(selected), "\n", fixed = TRUE)[[1L]][[1L]]
+    return(sprintf("Selected:  no, discovery fails: %s\n", reason))
   }
-  if (is.null(selected)) {
-    return("Selected:  no, discovery does not currently select it.\n")
+  if (identical(selected$path, installed)) {
+    return("Selected:  yes, this is the artifact trim_doceds_onnx() will use.\n")
   }
   sprintf(
     "Selected:  no, %s is selected instead (%s).\n",
@@ -881,23 +912,6 @@ edsan_install_trimmer <- function(zip_path, overwrite = FALSE) {
   }
   version <- if (is.null(manifest)) NULL else manifest$artifact_version
   worker_contract <- if (is.null(manifest)) NULL else manifest$worker_contract
-  if (
-    is.character(version) &&
-      length(version) == 1L &&
-      nzchar(version) &&
-      !grepl(.DOCEDS_ONNX_VERSION_PATTERN, version)
-  ) {
-    stop(
-      sprintf(
-        paste0(
-          "Invalid trimmer archive; artifact_version '%s' must be dotted ",
-          "numbers such as 1.3.0, because it names the install folder."
-        ),
-        version
-      ),
-      call. = FALSE
-    )
-  }
   parsed_version <- tryCatch(
     numeric_version(version),
     error = function(e) NULL

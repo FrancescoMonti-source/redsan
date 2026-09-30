@@ -723,14 +723,59 @@ test_that("edsan_install_trimmer rejects malformed manifests", {
 
 test_that("edsan_install_trimmer rejects versions that cannot name a folder", {
   cache <- local_trimmer_cache()
-  zip_file <- trimmer_archive_fixture(version = "1.3.0-beta")
+  zip_file <- trimmer_archive_fixture(version = "1.3-0")
   on.exit(unlink(zip_file), add = TRUE)
 
   expect_error(
     edsan_install_trimmer(zip_file),
-    "artifact_version '1.3.0-beta' must be dotted numbers"
+    "artifact_version '1.3-0' must be dotted numbers"
   )
   expect_identical(list.dirs(cache, recursive = FALSE, full.names = FALSE), character())
+})
+
+test_that("the folder-name rule applies to installs, not to named artifacts", {
+  artifact <- tempfile("trimmer_dev_")
+  dir.create(artifact)
+  on.exit(unlink(artifact, recursive = TRUE), add = TRUE)
+  for (f in c("model.onnx", "tokenizer.json", "trim_batch_service.py")) {
+    writeLines("x", file.path(artifact, f))
+  }
+  writeLines(
+    '{"artifact_version":"1.3-0","worker_contract":"model-only-v1"}',
+    file.path(artifact, "artifact.json")
+  )
+  expect_identical(redsan:::.doceds_onnx_validate_artifact(artifact), "1.3-0")
+})
+
+test_that("an invalid existing install folder is replaced without overwrite", {
+  cache <- local_trimmer_cache()
+  broken <- file.path(cache, "1.3.0")
+  dir.create(broken, recursive = TRUE)
+  writeLines("half-copied", file.path(broken, "model.onnx"))
+  zip_file <- trimmer_archive_fixture(version = "1.3.0", model = "good weights")
+  on.exit(unlink(zip_file), add = TRUE)
+
+  msg <- testthat::capture_messages(edsan_install_trimmer(zip_file))
+
+  expect_match(paste(msg, collapse = ""), "not a valid installation; replacing it")
+  expect_identical(
+    readLines(file.path(broken, "model.onnx"), warn = FALSE),
+    "good weights"
+  )
+})
+
+test_that("the install message names why discovery fails", {
+  local_trimmer_cache()
+  zip_file <- trimmer_archive_fixture(version = "1.3.0")
+  on.exit(unlink(zip_file), add = TRUE)
+  withr::local_envvar(EDSAN_TRIMMER_PATH = tempfile("missing_"))
+
+  msg <- testthat::capture_messages(edsan_install_trimmer(zip_file))
+
+  expect_match(
+    paste(msg, collapse = ""),
+    "Selected:  no, discovery fails: EDSAN_TRIMMER_PATH is set to"
+  )
 })
 
 test_that("edsan_install_trimmer accepts one nested artifact root", {

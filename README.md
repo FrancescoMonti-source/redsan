@@ -353,8 +353,11 @@ package candidate and run the acceptance gate against that exact unpacked
 artifact and Python environment:
 
 ```sh
-Rscript tools/check_doceds_trimmer_artifact.R /path/to/python /path/to/versioned/artifact
+Rscript tools/check_doceds_trimmer_artifact.R /path/to/python /path/to/versioned/artifact X.Y.Z
 ```
+
+`X.Y.Z` is the `artifact_version` the release claims; the gate fails if the
+manifest names another version.
 
 This invokes the artifact through the public `trim_doceds_onnx()` interface and
 fails unless the versioned protocol, output schema, identity mapping, and exact
