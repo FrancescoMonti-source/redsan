@@ -122,7 +122,7 @@
 }
 
 .edsan_cora_iep_ipp_map <- function(ieps, query = .cora_query,
-                                    max_in_ids = 900L) {
+                                    max_in_ids = 900L, force = FALSE) {
   ieps <- as.character(ieps)
   ieps <- unique(ieps[!is.na(ieps) & nzchar(trimws(ieps))])
   if (!length(ieps)) {
@@ -165,10 +165,11 @@
     !is.na(map$IEP) & nzchar(map$IEP) & !is.na(map$IPP) & nzchar(map$IPP),
     , drop = FALSE
   ])
+  map <- map[map$IEP %in% ieps, , drop = FALSE]
 
   counts <- table(map$IEP)
   ambiguous <- names(counts[counts > 1L])
-  if (length(ambiguous)) {
+  if (length(ambiguous) && !isTRUE(force)) {
     stop(
       "CORA returned multiple IPP values for IEP(s): ",
       paste(ambiguous, collapse = ", "),
@@ -183,6 +184,13 @@
       map,
       tibble::tibble(IEP = missing_ieps, IPP = NA_character_)
     )
+  }
+
+  if (isTRUE(force)) {
+    map$.order <- match(map$IEP, ieps)
+    map <- map[order(map$.order, seq_len(nrow(map))),
+               c("IEP", "IPP"), drop = FALSE]
+    return(map)
   }
 
   map[match(ieps, map$IEP), , drop = FALSE]
@@ -213,7 +221,9 @@
   valid_ieps <- unique(evtid_iep$IEP[
     !is.na(evtid_iep$IEP) & nzchar(evtid_iep$IEP)
   ])
-  iep_ipp <- .edsan_cora_iep_ipp_map(valid_ieps, query = query)
+  iep_ipp <- .edsan_cora_iep_ipp_map(
+    valid_ieps, query = query, force = force
+  )
   bridge <- dplyr::left_join(evtid_iep, iep_ipp, by = "IEP")
 
   valid_ipps <- unique(bridge$IPP[!is.na(bridge$IPP) & nzchar(bridge$IPP)])
@@ -254,13 +264,16 @@
 
 # Prefer the CORA/EDSaN CT bridge when it is configured. PMSI is the fallback
 # for environments without the CORA and EDSaN CT capabilities.
-.edsan_evtid_patid_map <- function(evtids, get = edsan_get, force = FALSE) {
+.edsan_evtid_patid_map <- function(evtids, get = edsan_get, force = FALSE,
+                                    env = "edsan-ct", ks_path = NULL) {
   evtids <- unique(.edsan_ct_validate_ids(evtids, require_character = TRUE))
 
   if (missing(get)) {
     capabilities <- .redsan_workflow_capabilities()
     if (isTRUE(capabilities$edsan_ct_cora)) {
-      return(.edsan_evtid_patid_via_cora(evtids, force = force))
+      return(.edsan_evtid_patid_via_cora(
+        evtids, env = env, ks_path = ks_path, force = force
+      ))
     }
     if (!isTRUE(capabilities$pmsi)) {
       stop(

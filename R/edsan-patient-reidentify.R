@@ -1,6 +1,6 @@
 # EDSaN CT patient identity enrichment --------------------------------------
 
-.edsan_ct_patient_call <- function(patid, ks_path = NULL) {
+.edsan_ct_patient_call <- function(patid, ks_path = NULL, env = "edsan-ct") {
   if (!requireNamespace("d2imr", quietly = TRUE)) {
     stop("Package `d2imr` is required for EDSaN CT patient reidentification.",
          call. = FALSE)
@@ -23,9 +23,15 @@
     stop("Unable to unlock the active d2imr keystore.", call. = FALSE)
   }
 
-  api_url <- as.character(keystore_get("ws.edsan-ct.url"))
-  usr <- as.character(keystore_get("ws.edsan-ct.usr"))
-  pwd <- as.character(keystore_get("ws.edsan-ct.pwd"))
+  api_url <- as.character(keystore_get(
+    paste0("ws.", env, ".url"), path = ks_path
+  ))
+  usr <- as.character(keystore_get(
+    paste0("ws.", env, ".usr"), path = ks_path
+  ))
+  pwd <- as.character(keystore_get(
+    paste0("ws.", env, ".pwd"), path = ks_path
+  ))
 
   proxy_fn <- tryCatch(
     getFromNamespace("d2im_wsc.proxy_config", "d2imr"),
@@ -67,11 +73,11 @@
   payload$patient
 }
 
-.edsan_patient_rows <- function(patids, ks_path = NULL) {
+.edsan_patient_rows <- function(patids, ks_path = NULL, env = "edsan-ct") {
   patids <- unique(.edsan_ct_validate_ids(patids, require_character = TRUE))
 
   rows <- lapply(patids, function(patid) {
-    patient <- .edsan_ct_patient_call(patid, ks_path = ks_path)
+    patient <- .edsan_ct_patient_call(patid, ks_path = ks_path, env = env)
     if (is.null(patient)) return(tibble::tibble(PATID = patid))
 
     values <- lapply(patient, function(x) {

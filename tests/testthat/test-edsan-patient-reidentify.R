@@ -59,7 +59,7 @@ test_that("force keeps all distinct PATID mappings for ambiguous EVTIDs", {
 
   expect_error(
     redsan:::.edsan_evtid_patid_map("ambiguous", get = fake_get),
-    "Pass `force = TRUE` to `edsan_ct\(\)`"
+    "Pass `force = TRUE` to `edsan_ct"
   )
 
   out <- redsan:::.edsan_evtid_patid_map(

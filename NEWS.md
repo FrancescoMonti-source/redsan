@@ -1,5 +1,9 @@
 
 
+- Pass the requested EDSaN environment and keystore through identity enrichment.
+  With `force = TRUE`, retain all IPP candidates when CORA maps one IEP to
+  multiple IPPs, allowing downstream PATID candidates to be returned.
+
 - Keep the desktop direct-connection override limited to interactive EDSaN CT
   calls. Keystore-backed patient reidentification requests now use d2imr's proxy
   configuration in Podman.

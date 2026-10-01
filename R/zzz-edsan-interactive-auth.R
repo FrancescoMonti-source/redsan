@@ -281,13 +281,13 @@
 
 # Patient identity enrichment uses the same authentication policy as identifier
 # translation. This supersedes the earlier keystore-only implementation.
-.edsan_ct_patient_call <- function(patid, ks_path = NULL) {
+.edsan_ct_patient_call <- function(patid, ks_path = NULL, env = "edsan-ct") {
   resolved_path <- .redsan_keystore_path(ks_path)
-  key_auth <- .edsan_ct_keystore_auth(env = "edsan-ct", ks_path = resolved_path)
+  key_auth <- .edsan_ct_keystore_auth(env = env, ks_path = resolved_path)
 
   interactive_auth <- is.null(key_auth)
   if (interactive_auth) {
-    api_url <- .edsan_ct_configured_url(env = "edsan-ct", ks_path = resolved_path)
+    api_url <- .edsan_ct_configured_url(env = env, ks_path = resolved_path)
     if (!.edsan_ct_valid_scalar(api_url)) {
       stop(
         "EDSaN CT REST URL is unavailable. Set `REDSAN_EDSAN_CT_URL` in ",
