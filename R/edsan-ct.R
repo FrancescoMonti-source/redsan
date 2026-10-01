@@ -377,13 +377,15 @@
   if (from %in% c("IPP", "PATID")) {
     patids <- unique(result$PATID[!is.na(result$PATID) & nzchar(result$PATID)])
     if (!length(patids)) return(result)
-    patient <- .edsan_patient_rows(patids, ks_path = ks_path)
+    patient <- .edsan_patient_rows(patids, env = env, ks_path = ks_path)
     return(.edsan_ct_join_enrichment(result, patient, by = "PATID"))
   }
 
   evtids <- unique(result$EVTID[!is.na(result$EVTID) & nzchar(result$EVTID)])
   if (!length(evtids)) return(result)
-  evtid_patid <- .edsan_evtid_patid_map(evtids, force = force)
+  evtid_patid <- .edsan_evtid_patid_map(
+    evtids, force = force, env = env, ks_path = ks_path
+  )
   result <- .edsan_ct_join_enrichment(
     result, evtid_patid, by = "EVTID", allow_new_identifiers = TRUE
   )
@@ -395,7 +397,7 @@
     result, patid_ipp, by = "PATID", allow_new_identifiers = TRUE
   )
 
-  patient <- .edsan_patient_rows(patids, ks_path = ks_path)
+  patient <- .edsan_patient_rows(patids, env = env, ks_path = ks_path)
   .edsan_ct_join_enrichment(result, patient, by = "PATID")
 }
 

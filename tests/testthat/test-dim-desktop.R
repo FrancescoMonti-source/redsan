@@ -68,6 +68,28 @@ test_that("CORA IEP to IPP mapping is explicit and preserves misses", {
   expect_true(is.na(out$IPP[[3L]]))
 })
 
+test_that("force preserves multiple CORA IPP candidates for an IEP", {
+  fake_query <- function(sql) {
+    tibble::tibble(
+      IEP = c("12345", "12345"),
+      IPP = c("00111", "00222")
+    )
+  }
+
+  expect_error(
+    redsan:::.edsan_cora_iep_ipp_map("12345", query = fake_query),
+    "CORA returned multiple IPP values"
+  )
+
+  out <- redsan:::.edsan_cora_iep_ipp_map(
+    "12345", query = fake_query, force = TRUE
+  )
+  expect_identical(
+    out,
+    tibble::tibble(IEP = c("12345", "12345"), IPP = c("00111", "00222"))
+  )
+})
+
 test_that("desktop EVTID to PATID bridge composes EDSaN CT and CORA", {
   calls <- list()
 
@@ -116,6 +138,34 @@ test_that("desktop EVTID to PATID bridge composes EDSaN CT and CORA", {
   expect_identical(calls[[2L]]$input_types, c("IPP", "IPP"))
   expect_identical(out$EVTID, c("EVT-1", "EVT-2"))
   expect_identical(out$PATID, c("PAT-1", "PAT-2"))
+})
+
+test_that("force keeps all PATID candidates produced by a multi-IPP CORA bridge", {
+  fake_translate <- function(ids, input_types, direction, env, ks_path) {
+    if (identical(direction, "edsan_to_his")) {
+      return(tibble::tibble(input_id = ids, output_id = "12345"))
+    }
+    tibble::tibble(input_id = ids, output_id = paste0("PAT-", ids))
+  }
+  fake_query <- function(sql) {
+    tibble::tibble(
+      IEP = c("12345", "12345"),
+      IPP = c("00111", "00222")
+    )
+  }
+
+  expect_error(
+    redsan:::.edsan_evtid_patid_via_cora(
+      "EVT-1", query = fake_query, translate = fake_translate
+    ),
+    "CORA returned multiple IPP values"
+  )
+
+  out <- redsan:::.edsan_evtid_patid_via_cora(
+    "EVT-1", query = fake_query, translate = fake_translate, force = TRUE
+  )
+  expect_identical(out$EVTID, c("EVT-1", "EVT-1"))
+  expect_identical(out$PATID, c("PAT-00111", "PAT-00222"))
 })
 
 test_that("desktop fallback accepts interactive EDSaN CT auth without personal keystore credentials", {
@@ -188,6 +238,29 @@ test_that("CORA bridge is preferred when both identifier routes are configured",
 
   out <- redsan:::.edsan_evtid_patid_map("EVT-1")
   expect_identical(out$PATID, "CORA-EVT-1")
+})
+
+test_that("CORA identity route uses the requested EDSaN environment and keystore", {
+  observed <- NULL
+  testthat::local_mocked_bindings(
+    .redsan_workflow_capabilities = function() {
+      list(pmsi = TRUE, edsan_ct_cora = TRUE)
+    },
+    .edsan_evtid_patid_via_cora = function(evtids, env, ks_path, force) {
+      observed <<- list(env = env, ks_path = ks_path, force = force)
+      tibble::tibble(EVTID = evtids, PATID = "PAT-1")
+    },
+    .package = "redsan"
+  )
+
+  redsan:::.edsan_evtid_patid_map(
+    "EVT-1", force = TRUE, env = "edsan-ct-test", ks_path = "/explicit/ks"
+  )
+
+  expect_identical(
+    observed,
+    list(env = "edsan-ct-test", ks_path = "/explicit/ks", force = TRUE)
+  )
 })
 
 test_that("PMSI is used when CORA is not configured", {
