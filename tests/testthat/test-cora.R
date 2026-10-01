@@ -57,12 +57,15 @@ test_that("CORA query returns a tibble using a supplied connection", {
 test_that("CORA query owns and closes transient connections", {
   disconnected <- FALSE
   seen_jar <- NULL
+  seen_keystore <- NULL
 
   out <- redsan:::.cora_query(
     "SELECT 1 AS n FROM dual",
     ojdbc_jar = "/tmp/ojdbc.jar",
-    connect = function(ojdbc_jar) {
+    ks_path = "/tmp/explicit-keystore",
+    connect = function(ojdbc_jar, ks_path) {
       seen_jar <<- ojdbc_jar
+      seen_keystore <<- ks_path
       structure(list(), class = "fake_connection")
     },
     execute = function(connection, sql) {
@@ -74,6 +77,7 @@ test_that("CORA query owns and closes transient connections", {
   )
 
   expect_identical(seen_jar, "/tmp/ojdbc.jar")
+  expect_identical(seen_keystore, "/tmp/explicit-keystore")
   expect_true(disconnected)
   expect_identical(out$n, 1L)
 })

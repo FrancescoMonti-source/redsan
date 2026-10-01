@@ -67,7 +67,7 @@
   hit[[1L]]
 }
 
-.cora_connect <- function(ojdbc_jar = NULL) {
+.cora_connect <- function(ojdbc_jar = NULL, ks_path = NULL) {
   .cora_require_namespace("DBI", "connection setup")
   .cora_require_namespace("RJDBC", "connection setup")
   .cora_require_namespace("rJava", "connection setup")
@@ -95,15 +95,15 @@
 
   jdbc_url <- paste0(
     "jdbc:oracle:thin:@",
-    .cora_keystore_value("db.cora.url")
+    .cora_keystore_value("db.cora.url", ks_path = ks_path)
   )
 
   tryCatch(
     DBI::dbConnect(
       drv,
       jdbc_url,
-      .cora_keystore_value("db.cora.usr"),
-      .cora_keystore_value("db.cora.pwd")
+      .cora_keystore_value("db.cora.usr", ks_path = ks_path),
+      .cora_keystore_value("db.cora.pwd", ks_path = ks_path)
     ),
     error = function(e) {
       stop("Could not connect to CORA: ", conditionMessage(e), call. = FALSE)

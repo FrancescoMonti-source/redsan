@@ -62,12 +62,17 @@
 .cora_query <- function(sql, connection = NULL, ojdbc_jar = NULL,
                         connect = .cora_connect,
                         execute = .cora_execute,
-                        disconnect = .cora_disconnect) {
+                        disconnect = .cora_disconnect,
+                        ks_path = NULL) {
   sql <- .cora_validate_read_query(sql)
 
   owns_connection <- is.null(connection)
   if (owns_connection) {
-    connection <- connect(ojdbc_jar = ojdbc_jar)
+    if (is.null(ks_path)) {
+      connection <- connect(ojdbc_jar = ojdbc_jar)
+    } else {
+      connection <- connect(ojdbc_jar = ojdbc_jar, ks_path = ks_path)
+    }
     if (is.null(connection)) {
       stop("The CORA connection factory returned `NULL`.", call. = FALSE)
     }

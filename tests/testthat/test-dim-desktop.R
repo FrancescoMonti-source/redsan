@@ -68,6 +68,32 @@ test_that("CORA IEP to IPP mapping is explicit and preserves misses", {
   expect_true(is.na(out$IPP[[3L]]))
 })
 
+test_that("default CORA IEP query uses the requested keystore", {
+  seen <- NULL
+  testthat::local_mocked_bindings(
+    .cora_query = function(sql, ks_path = NULL) {
+      seen <<- list(sql = sql, ks_path = ks_path)
+      tibble::tibble(IEP = "12345", IPP = "00111")
+    },
+    .package = "redsan"
+  )
+
+  out <- redsan:::.edsan_evtid_patid_via_cora(
+    "EVT-1",
+    ks_path = "/tmp/explicit-cora-keystore",
+    translate = function(ids, input_types, direction, env, ks_path) {
+      if (identical(direction, "edsan_to_his")) {
+        return(tibble::tibble(input_id = ids, output_id = "12345"))
+      }
+      tibble::tibble(input_id = ids, output_id = "PAT-1")
+    }
+  )
+
+  expect_identical(seen$ks_path, "/tmp/explicit-cora-keystore")
+  expect_match(seen$sql, "CORA_REC.TB_SEJOUR")
+  expect_identical(out$PATID, "PAT-1")
+})
+
 test_that("force preserves multiple CORA IPP candidates for an IEP", {
   fake_query <- function(sql) {
     tibble::tibble(
@@ -170,7 +196,7 @@ test_that("force keeps all PATID candidates produced by a multi-IPP CORA bridge"
 
 test_that("desktop fallback accepts interactive EDSaN CT auth without personal keystore credentials", {
   testthat::local_mocked_bindings(
-    .redsan_keystore_has = function(required_keys) {
+    .redsan_keystore_has = function(required_keys, ks_path = NULL) {
       identical(required_keys, c("db.cora.url", "db.cora.usr", "db.cora.pwd"))
     },
     .edsan_ct_keystore_auth = function(...) NULL,
@@ -212,6 +238,39 @@ test_that("workflow capability wiring consumes d2imr keystore_has", {
   expect_false(capabilities$pmsi)
 })
 
+test_that("workflow capabilities inspect the requested environment and keystore", {
+  observed <- list()
+  testthat::local_mocked_bindings(
+    .redsan_keystore_has = function(required_keys, ks_path = NULL) {
+      observed$keystore_paths <<- c(observed$keystore_paths, ks_path)
+      identical(required_keys, c("db.cora.url", "db.cora.usr", "db.cora.pwd"))
+    },
+    .edsan_ct_configured_url = function(env, ks_path = NULL) {
+      observed$url <<- list(env = env, ks_path = ks_path)
+      "https://test.invalid/edsan-ct"
+    },
+    .edsan_ct_keystore_auth = function(env, ks_path = NULL) {
+      observed$auth <<- list(env = env, ks_path = ks_path)
+      list(url = "https://test.invalid/edsan-ct")
+    },
+    .edsan_ct_interactive_available = function() FALSE,
+    .package = "redsan"
+  )
+
+  capabilities <- redsan:::.redsan_workflow_capabilities(
+    env = "custom-edsan", ks_path = "/tmp/explicit-keystore"
+  )
+
+  expect_true(capabilities$edsan_ct_cora)
+  expect_identical(observed$url, list(
+    env = "custom-edsan", ks_path = "/tmp/explicit-keystore"
+  ))
+  expect_identical(observed$auth, list(
+    env = "custom-edsan", ks_path = "/tmp/explicit-keystore"
+  ))
+  expect_identical(observed$keystore_paths, rep("/tmp/explicit-keystore", 2L))
+})
+
 test_that("legacy EVTID to PATID lookup remains injectable", {
   fake_get <- function(...) {
     tibble::tibble(EVTID = "EVT-1", PATID = "PAT-1")
@@ -224,7 +283,7 @@ test_that("legacy EVTID to PATID lookup remains injectable", {
 
 test_that("CORA bridge is preferred when both identifier routes are configured", {
   testthat::local_mocked_bindings(
-    .redsan_workflow_capabilities = function() {
+    .redsan_workflow_capabilities = function(env = "edsan-ct", ks_path = NULL) {
       list(pmsi = TRUE, edsan_ct_cora = TRUE)
     },
     edsan_get = function(...) {
@@ -242,8 +301,10 @@ test_that("CORA bridge is preferred when both identifier routes are configured",
 
 test_that("CORA identity route uses the requested EDSaN environment and keystore", {
   observed <- NULL
+  capabilities_seen <- NULL
   testthat::local_mocked_bindings(
-    .redsan_workflow_capabilities = function() {
+    .redsan_workflow_capabilities = function(env = "edsan-ct", ks_path = NULL) {
+      capabilities_seen <<- list(env = env, ks_path = ks_path)
       list(pmsi = TRUE, edsan_ct_cora = TRUE)
     },
     .edsan_evtid_patid_via_cora = function(evtids, env, ks_path, force) {
@@ -261,11 +322,15 @@ test_that("CORA identity route uses the requested EDSaN environment and keystore
     observed,
     list(env = "edsan-ct-test", ks_path = "/explicit/ks", force = TRUE)
   )
+  expect_identical(
+    capabilities_seen,
+    list(env = "edsan-ct-test", ks_path = "/explicit/ks")
+  )
 })
 
 test_that("PMSI is used when CORA is not configured", {
   testthat::local_mocked_bindings(
-    .redsan_workflow_capabilities = function() {
+    .redsan_workflow_capabilities = function(env = "edsan-ct", ks_path = NULL) {
       list(pmsi = TRUE, edsan_ct_cora = FALSE)
     },
     edsan_get = function(...) {
@@ -280,7 +345,7 @@ test_that("PMSI is used when CORA is not configured", {
 
 test_that("fallback capability selects the EDSaN CT and CORA bridge", {
   testthat::local_mocked_bindings(
-    .redsan_workflow_capabilities = function() {
+    .redsan_workflow_capabilities = function(env = "edsan-ct", ks_path = NULL) {
       list(pmsi = FALSE, edsan_ct_cora = TRUE)
     },
     .edsan_evtid_patid_via_cora = function(evtids, ...) {
@@ -295,7 +360,7 @@ test_that("fallback capability selects the EDSaN CT and CORA bridge", {
 
 test_that("identifier routing fails clearly without a configured capability", {
   testthat::local_mocked_bindings(
-    .redsan_workflow_capabilities = function() {
+    .redsan_workflow_capabilities = function(env = "edsan-ct", ks_path = NULL) {
       list(pmsi = FALSE, edsan_ct_cora = FALSE)
     },
     .package = "redsan"

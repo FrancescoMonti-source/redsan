@@ -1,8 +1,13 @@
+Warning: truncated output (original token count: 3174)
+Total output lines: 224
+
 
 
 - Pass the requested EDSaN environment and keystore through identity enrichment.
   With `force = TRUE`, retain all IPP candidates when CORA maps one IEP to
   multiple IPPs, allowing downstream PATID candidates to be returned.
+  Capability checks and CORA connections use that same requested environment
+  and keystore.
 
 - Keep the desktop direct-connection override limited to interactive EDSaN CT
   calls. Keystore-backed patient reidentification requests now use d2imr's proxy
@@ -69,86 +74,7 @@
 
 - Add `edsan_ct()` as the explicit identifier-correspondence entry point for
   IPP, IEP, PATID, and EVTID values. It reports direct match status and can add
-  patient identity fields without replacing the direct correspondence result.
-
-- Retire the regex trimmer (`trim_doceds_text()`), its provenance API
-  (`doceds_trim_spec()`), family summaries (`doceds_family_chars()`), and
-  regex-specific audit tools. Use `trim_doceds_onnx()` and `doceds_onnx_spec()`.
-  This is a breaking removal: callers must adopt the model runtime and its
-  output contract; there is no automatic fallback or API alias.
-
-# redsan 0.4.1
-
-- Add `trim_doceds_onnx()`, which orchestrates a compatible versioned
-  `edsan-doc-trimmer` runtime and maps its grounded results back to DOCEDS data.
-
-- Support multiple invocation shapes: character vectors, data frames / tibbles,
-  single `edsan_event_bundle` objects, and cohort lists of bundles (e.g. `denut`).
-
-- Cohort batching extracts texts across stays, loads the model once, and runs
-  the forward pass in a single job, delegating directly to the data frame trimmer
-  without mutating underlying table schemas, requiring `rbind()`, or creating
-  list-columns in normalized tables.
-
-- Worker results are matched by document identity and rejected when incomplete
-  or malformed; preserved intervals are checked against the original `RECTXT`
-  and stored as valid scalar JSON. Trimmed text must contain those ordered
-  interval contents, apart from worker-selected whitespace. Model-specific
-  inference policy remains owned by the runtime artifact.
-
-- Empty DOCEDS tables in data frames, single bundles, and mixed cohorts receive
-  the documented output columns without starting the worker. Add a release gate
-  that exercises the exact versioned runtime through `trim_doceds_onnx()`;
-  protocol-fixture unit tests do not claim production model coverage.
-
-- Add `edsan_install_trimmer()` and `edsan_trimmer_cache_dir()` for air-gapped
-  hospital data warehouse (HDW) environments without internet access. Installation
-  validates a complete versioned artifact in staging before replacing an existing
-  runtime.
-
-# redsan 0.4.0
-
-- Add `trim_doceds_text()`, which removes the administrative frame from one
-  DOCEDS document — letterhead, correspondence block, RGPD notice, unfilled
-  identity banner, page furniture, pasted laboratory table, and the placeholder
-  and fill-run residue a Word template leaves behind — and reports every span it
-  took in the coordinates of the original document. Add `doceds_family_chars()`
-  to aggregate the per-family counts across documents.
-
-  The rules were measured against a corpus of 64,871 documents and 205 M
-  characters, where they remove 36.9 percent of it. They come from
-  `redsancoding`, which had been carrying document normalization it should only
-  have been consuming. Nothing about what they match changed in the move.
-
-  Two properties are the reason this can be trusted, and both are load-bearing:
-  every rule contributes spans rather than editing the string, so lines carrying
-  a measured constant are subtracted before a single cut is applied; and every
-  per-rule count is standalone and overlapping, so only `net_removed_chars` is a
-  total. The families are site-specific to that corpus, and a family that fires
-  on nothing there is wrong rather than inapplicable.
-
-- Add `doceds_trim_spec()`, reporting the rule names, the thresholds and the
-  family list the trimmer actually applies, together with the installed package
-  version. A trimmed document is not self-describing: two runs a year apart can
-  differ because the families changed, because a bound moved, or because neither
-  did. Consumers that record provenance should read this rather than keeping
-  their own copy of a rule name — a copy reports what the caller believes ran,
-  which stops being true the moment the two drift apart.
-
-  `digest` is the field to compare, because it is the one nobody maintains. It
-  is derived from every pattern and threshold the trimmer holds, and the set it
-  covers is derived too — read from the namespace rather than listed, so a
-  pattern added tomorrow enters it without anybody remembering to say so. The
-  rule names carry no version for the same reason: a version written into a
-  string can only fail in one direction, by staying put while the rules move.
-  `approved-boilerplate-families-v3` is now `approved-boilerplate-families`, and
-  `rouen-bois-guillaume-v1` is `rouen-bois-guillaume`.
-
-  The digest is taken over the rules' UTF-8 bytes rather than over the R objects,
-  which matters more than it sounds: hashing the objects made it depend on each
-  string's encoding flag, and R sets that from the locale. The patterns carry
-  accented characters, so the same rules hashed differently depending on how they
-  were loaded — in one session 16 strings were flagged `unknown` and 32 `UTF-8`.
+  patient identity fields with…1174 tokens truncated…own` and 32 `UTF-8`.
   Two machines would have reported identical rules as different ones.
 
   What the digest does not cover is the code that applies the rules; `version`
