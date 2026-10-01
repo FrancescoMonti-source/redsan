@@ -48,3 +48,31 @@ test_that("EVTID to PATID lookup preserves missing identifiers", {
   expect_identical(out$PATID[[1L]], "703518850")
   expect_true(is.na(out$PATID[[2L]]))
 })
+
+test_that("force keeps all distinct PATID mappings for ambiguous EVTIDs", {
+  fake_get <- function(...) {
+    tibble::tibble(
+      EVTID = c("ambiguous", "ambiguous", "ambiguous", "unique"),
+      PATID = c("PAT-1", "PAT-2", "PAT-1", "PAT-3")
+    )
+  }
+
+  expect_error(
+    redsan:::.edsan_evtid_patid_map("ambiguous", get = fake_get),
+    "Pass `force = TRUE` to `edsan_ct\(\)`"
+  )
+
+  out <- redsan:::.edsan_evtid_patid_map(
+    c("ambiguous", "unique"),
+    get = fake_get,
+    force = TRUE
+  )
+
+  expect_identical(
+    out,
+    tibble::tibble(
+      EVTID = c("ambiguous", "ambiguous", "unique"),
+      PATID = c("PAT-1", "PAT-2", "PAT-3")
+    )
+  )
+})

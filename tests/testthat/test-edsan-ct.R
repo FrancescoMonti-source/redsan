@@ -363,6 +363,8 @@ test_that("edsan_ct validates its explicit public contract", {
   expect_error(edsan_ct("1", from = c("PATID", "EVTID")), "must be one of")
   expect_error(edsan_ct("1", from = "PATID", identity = NA), "TRUE or FALSE")
   expect_error(edsan_ct("1", from = "PATID", identity = "FALSE"), "TRUE or FALSE")
+  expect_error(edsan_ct("1", from = "PATID", force = NA), "TRUE or FALSE")
+  expect_error(edsan_ct("1", from = "PATID", force = "TRUE"), "TRUE or FALSE")
 })
 
 test_that("edsan_ct enriches patient identifiers without changing direct status", {
@@ -446,6 +448,46 @@ test_that("edsan_ct enriches stay identifiers with patient identifiers", {
   expect_identical(from_evtid$EVTID, "789")
   expect_identical(from_evtid$IEP, "IEP-789")
   expect_identical(from_evtid$PATID, "PAT-789")
+})
+
+test_that("edsan_ct force keeps all candidate PATIDs during identity enrichment", {
+  force_seen <- FALSE
+  fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
+    ids <- strsplit(api_query, ",", fixed = TRUE)[[1L]]
+    stats::setNames(
+      lapply(ids, function(id) stats::setNames(list(paste0("IEP-", id)), api_type)),
+      ids
+    )
+  }
+  fake_evtid_patid <- function(evtids, get = get_edsan, force = FALSE) {
+    force_seen <<- force
+    tibble::tibble(
+      EVTID = rep(evtids, each = 2L),
+      PATID = c("PAT-1", "PAT-2")
+    )
+  }
+  fake_patid_ipp <- function(patids, env = "edsan-ct", ks_path = NULL) {
+    tibble::tibble(PATID = patids, IPP = paste0("00", patids))
+  }
+  fake_patients <- function(patids, ks_path = NULL) {
+    tibble::tibble(PATID = patids, FAMILY_NAME = paste0("Family ", patids))
+  }
+  testthat::local_mocked_bindings(
+    .edsan_ct_call = fake_call,
+    .edsan_evtid_patid_map = fake_evtid_patid,
+    .edsan_patid_ipp_map = fake_patid_ipp,
+    .edsan_patient_rows = fake_patients,
+    .package = "redsan"
+  )
+
+  out <- edsan_ct("789", from = "EVTID", identity = TRUE, force = TRUE)
+
+  expect_true(force_seen)
+  expect_identical(out$EVTID, c("789", "789"))
+  expect_identical(out$PATID, c("PAT-1", "PAT-2"))
+  expect_identical(out$IPP, c("00PAT-1", "00PAT-2"))
+  expect_identical(out$status, c("matched", "matched"))
+  expect_identical(out$n_matches, c(1L, 1L))
 })
 
 test_that("identity enrichment preserves direct multiple-match metadata", {
