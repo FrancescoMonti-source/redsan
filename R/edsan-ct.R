@@ -430,9 +430,11 @@
 #'   With `force = TRUE`, ambiguous EVTID identity enrichment may add multiple
 #'   rows for an EVTID, one for each candidate PATID.
 #'
-#' @details By default, identity enrichment stops when PMSI or the CORA fallback
-#'   associates one EVTID with multiple PATIDs. Set `force = TRUE` to keep every
-#'   candidate mapping and continue enrichment. This does not choose a PATID.
+#' @details When both routes are configured, the CORA/EDSaN CT route is preferred;
+#'   PMSI is used when the CORA route is not configured. By default, enrichment
+#'   stops if the selected route associates one EVTID with multiple PATIDs. Set
+#'   `force = TRUE` to keep every candidate mapping and continue enrichment. This
+#'   does not choose a PATID.
 #' @export
 edsan_ct <- function(ids, from, identity = FALSE,
                      env = "edsan-ct", ks_path = NULL, force = FALSE) {

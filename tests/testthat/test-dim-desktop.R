@@ -172,10 +172,28 @@ test_that("legacy EVTID to PATID lookup remains injectable", {
   expect_identical(out$PATID, "PAT-1")
 })
 
-test_that("PMSI capability remains the preferred identifier route", {
+test_that("CORA bridge is preferred when both identifier routes are configured", {
   testthat::local_mocked_bindings(
     .redsan_workflow_capabilities = function() {
       list(pmsi = TRUE, edsan_ct_cora = TRUE)
+    },
+    edsan_get = function(...) {
+      stop("PMSI route should not be used when CORA is configured.")
+    },
+    .edsan_evtid_patid_via_cora = function(evtids, ...) {
+      tibble::tibble(EVTID = evtids, PATID = paste0("CORA-", evtids))
+    },
+    .package = "redsan"
+  )
+
+  out <- redsan:::.edsan_evtid_patid_map("EVT-1")
+  expect_identical(out$PATID, "CORA-EVT-1")
+})
+
+test_that("PMSI is used when CORA is not configured", {
+  testthat::local_mocked_bindings(
+    .redsan_workflow_capabilities = function() {
+      list(pmsi = TRUE, edsan_ct_cora = FALSE)
     },
     edsan_get = function(...) {
       tibble::tibble(EVTID = "EVT-1", PATID = "PAT-1")

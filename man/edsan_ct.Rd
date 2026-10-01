@@ -46,7 +46,9 @@ source data. A valid response without a correspondence is retained with
 errors.
 }
 \details{
-By default, identity enrichment stops when PMSI or the CORA fallback associates
-one EVTID with multiple PATIDs. Set \code{force = TRUE} to keep every candidate
-mapping and continue enrichment. This does not choose a PATID.
+When both routes are configured, the CORA/EDSaN CT route is preferred; PMSI is
+used when the CORA route is not configured. By default, enrichment stops if the
+selected route associates one EVTID with multiple PATIDs. Set
+\code{force = TRUE} to keep every candidate mapping and continue enrichment.
+This does not choose a PATID.
 }

@@ -252,20 +252,20 @@
   dplyr::left_join(out, valid, by = "EVTID")
 }
 
-# The EVTID -> PATID route is independent of how d2imr resolved the keystore.
-# Capability-based workflow selection belongs to the downstream routing ticket.
+# Prefer the CORA/EDSaN CT bridge when it is configured. PMSI is the fallback
+# for environments without the CORA and EDSaN CT capabilities.
 .edsan_evtid_patid_map <- function(evtids, get = edsan_get, force = FALSE) {
   evtids <- unique(.edsan_ct_validate_ids(evtids, require_character = TRUE))
 
   if (missing(get)) {
     capabilities <- .redsan_workflow_capabilities()
-    if (!isTRUE(capabilities$pmsi) && isTRUE(capabilities$edsan_ct_cora)) {
+    if (isTRUE(capabilities$edsan_ct_cora)) {
       return(.edsan_evtid_patid_via_cora(evtids, force = force))
     }
-    if (!isTRUE(capabilities$pmsi) && !isTRUE(capabilities$edsan_ct_cora)) {
+    if (!isTRUE(capabilities$pmsi)) {
       stop(
         "No configured keystore capability can resolve EVTID to PATID. ",
-        "Configure the PMSI keys or the EDSaN CT and CORA fallback keys.",
+        "Configure the EDSaN CT and CORA keys, or PMSI keys.",
         call. = FALSE
       )
     }
