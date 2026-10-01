@@ -120,7 +120,7 @@
   credentials
 }
 
-.edsan_ct_proxy_config <- function() {
+.edsan_ct_d2imr_proxy_config <- function() {
   if (!requireNamespace("httr", quietly = TRUE)) return(NULL)
   if (!requireNamespace("d2imr", quietly = TRUE)) return(httr::config())
 
@@ -142,7 +142,10 @@
   paste(pieces, collapse = "/")
 }
 
-.edsan_ct_http_get <- function(url, usr, pwd, accept = "application/json") {
+.edsan_ct_http_get <- function(
+  url, usr, pwd, accept = "application/json",
+  proxy = .edsan_ct_d2imr_proxy_config()
+) {
   if (!requireNamespace("httr", quietly = TRUE)) {
     stop("Interactive EDSaN CT access requires the optional package `httr`.",
          call. = FALSE)
@@ -161,7 +164,6 @@
       timeout = 30
     )
   )
-  proxy <- .edsan_ct_proxy_config()
   if (!is.null(proxy)) args[[length(args) + 1L]] <- proxy
   do.call(httr::GET, args)
 }
@@ -208,7 +210,10 @@
 
   credentials <- .edsan_ct_interactive_credentials()
   call_url <- .edsan_ct_build_url(api_url, api_fct, api_type, api_query)
-  response <- .edsan_ct_http_get(call_url, credentials$usr, credentials$pwd)
+  response <- .edsan_ct_http_get(
+    call_url, credentials$usr, credentials$pwd,
+    proxy = .edsan_ct_desktop_proxy_config()
+  )
   .edsan_ct_parse_http_response(response, interactive_auth = TRUE)
 }
 
@@ -305,7 +310,12 @@
     call_url,
     credentials$usr,
     credentials$pwd,
-    accept = "application/json"
+    accept = "application/json",
+    proxy = if (interactive_auth) {
+      .edsan_ct_desktop_proxy_config()
+    } else {
+      .edsan_ct_d2imr_proxy_config()
+    }
   )
 
   status <- httr::status_code(response)

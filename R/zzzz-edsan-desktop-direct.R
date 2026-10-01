@@ -7,7 +7,7 @@
 # keystore-backed d2imr path is unchanged and continues to use d2imr's own proxy
 # policy.
 
-.edsan_ct_proxy_config <- function() {
+.edsan_ct_desktop_proxy_config <- function() {
   if (!requireNamespace("httr", quietly = TRUE)) return(NULL)
 
   proxy <- getOption("redsan.edsan_ct_proxy", NULL)

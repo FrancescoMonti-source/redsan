@@ -1,5 +1,9 @@
 
 
+- Keep the desktop direct-connection override limited to interactive EDSaN CT
+  calls. Keystore-backed patient reidentification requests now use d2imr's proxy
+  configuration in Podman.
+
 - Prefer the CORA/EDSaN CT route for EVTID-to-PATID identity enrichment when it
   is configured. PMSI is now used only when the CORA route is not configured.
 
