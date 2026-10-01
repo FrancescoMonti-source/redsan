@@ -372,7 +372,8 @@
 }
 
 .edsan_ct_enrich_identity <- function(result, from,
-                                      env = "edsan-ct", ks_path = NULL) {
+                                      env = "edsan-ct", ks_path = NULL,
+                                      force = FALSE) {
   if (from %in% c("IPP", "PATID")) {
     patids <- unique(result$PATID[!is.na(result$PATID) & nzchar(result$PATID)])
     if (!length(patids)) return(result)
@@ -382,7 +383,7 @@
 
   evtids <- unique(result$EVTID[!is.na(result$EVTID) & nzchar(result$EVTID)])
   if (!length(evtids)) return(result)
-  evtid_patid <- .edsan_evtid_patid_map(evtids)
+  evtid_patid <- .edsan_evtid_patid_map(evtids, force = force)
   result <- .edsan_ct_join_enrichment(
     result, evtid_patid, by = "EVTID", allow_new_identifiers = TRUE
   )
@@ -419,13 +420,22 @@
 #' @param env EDSaN CT web-service environment name.
 #' @param ks_path Optional d2imr keystore path. When `NULL`, the active path is
 #'   resolved by d2imr.
+#' @param force If `TRUE`, allow `identity = TRUE` to return all PATID
+#'   candidates when an EVTID maps to multiple PATIDs. No candidate is selected
+#'   automatically; affected EVTIDs produce one row per candidate PATID.
 #'
 #' @return A tibble containing the source and destination identifier columns,
 #'   `status`, and `n_matches`. With `identity = TRUE`, patient identifiers and
 #'   identity fields are appended without changing the direct-match metadata.
+#'   With `force = TRUE`, ambiguous EVTID identity enrichment may add multiple
+#'   rows for an EVTID, one for each candidate PATID.
+#'
+#' @details By default, identity enrichment stops when PMSI or the CORA fallback
+#'   associates one EVTID with multiple PATIDs. Set `force = TRUE` to keep every
+#'   candidate mapping and continue enrichment. This does not choose a PATID.
 #' @export
 edsan_ct <- function(ids, from, identity = FALSE,
-                     env = "edsan-ct", ks_path = NULL) {
+                     env = "edsan-ct", ks_path = NULL, force = FALSE) {
   ids <- .edsan_ct_validate_ids(ids, require_character = TRUE)
   supported <- c("IPP", "IEP", "PATID", "EVTID")
   if (!is.character(from) || length(from) != 1L || is.na(from) ||
@@ -438,10 +448,15 @@ edsan_ct <- function(ids, from, identity = FALSE,
   if (!is.logical(identity) || length(identity) != 1L || is.na(identity)) {
     stop("`identity` must be TRUE or FALSE.", call. = FALSE)
   }
+  if (!is.logical(force) || length(force) != 1L || is.na(force)) {
+    stop("`force` must be TRUE or FALSE.", call. = FALSE)
+  }
   result <- .edsan_ct_direct(ids, from, env = env, ks_path = ks_path)
   if (!isTRUE(identity)) return(result)
 
-  .edsan_ct_enrich_identity(result, from, env = env, ks_path = ks_path)
+  .edsan_ct_enrich_identity(
+    result, from, env = env, ks_path = ks_path, force = force
+  )
 }
 
 .edsan_ct_legacy_pseudonymize <- function(ids, id_type = NULL,

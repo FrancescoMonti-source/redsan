@@ -4,7 +4,8 @@
 \alias{edsan_ct}
 \title{Resolve EDSaN CT identifier correspondence}
 \usage{
-edsan_ct(ids, from, identity = FALSE, env = "edsan-ct", ks_path = NULL)
+edsan_ct(ids, from, identity = FALSE, env = "edsan-ct", ks_path = NULL,
+  force = FALSE)
 }
 \arguments{
 \item{ids}{One or more identifiers as character strings. Character input is
@@ -21,11 +22,17 @@ patient identity associated with the direct correspondence.}
 
 \item{ks_path}{Optional d2imr keystore path. When \code{NULL}, the active path is
 resolved by d2imr.}
+
+\item{force}{If \code{TRUE}, allow \code{identity = TRUE} to return all PATID
+candidates when an EVTID maps to multiple PATIDs. No candidate is selected
+automatically; affected EVTIDs produce one row per candidate PATID.}
 }
 \value{
 A tibble containing the source and destination identifier columns,
 \code{status}, and \code{n_matches}. With \code{identity = TRUE}, patient identifiers and
 identity fields are appended without changing the direct-match metadata.
+With \code{force = TRUE}, ambiguous EVTID identity enrichment may add multiple
+rows for an EVTID, one for each candidate PATID.
 }
 \description{
 Translates one explicit identifier type through the EDSaN correspondence
@@ -37,4 +44,9 @@ Results use the semantic identifier names so they can be joined directly to
 source data. A valid response without a correspondence is retained with
 \code{status = "not_found"} and \code{n_matches = 0}; service and response failures are
 errors.
+}
+\details{
+By default, identity enrichment stops when PMSI or the CORA fallback associates
+one EVTID with multiple PATIDs. Set \code{force = TRUE} to keep every candidate
+mapping and continue enrichment. This does not choose a PATID.
 }

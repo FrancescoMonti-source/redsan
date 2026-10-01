@@ -191,7 +191,8 @@
 .edsan_evtid_patid_via_cora <- function(evtids, env = "edsan-ct",
                                          ks_path = NULL,
                                          query = .cora_query,
-                                         translate = .edsan_ct_translate) {
+                                         translate = .edsan_ct_translate,
+                                         force = FALSE) {
   evtids <- unique(.edsan_ct_validate_ids(evtids, require_character = TRUE))
   if (!length(evtids)) {
     return(tibble::tibble(EVTID = character(), PATID = character()))
@@ -237,11 +238,12 @@
   valid <- map[!is.na(map$PATID) & nzchar(map$PATID), , drop = FALSE]
   counts <- table(valid$EVTID)
   ambiguous <- names(counts[counts > 1L])
-  if (length(ambiguous)) {
+  if (length(ambiguous) && !isTRUE(force)) {
     stop(
       "CORA/EDSaN bridge returned multiple PATID values for EVTID(s): ",
       paste(ambiguous, collapse = ", "),
-      ". Refusing to choose one arbitrarily.",
+      ". Pass `force = TRUE` to `edsan_ct()` to continue with all candidate ",
+      "PATID mappings; no PATID is selected arbitrarily.",
       call. = FALSE
     )
   }
@@ -252,13 +254,13 @@
 
 # The EVTID -> PATID route is independent of how d2imr resolved the keystore.
 # Capability-based workflow selection belongs to the downstream routing ticket.
-.edsan_evtid_patid_map <- function(evtids, get = edsan_get) {
+.edsan_evtid_patid_map <- function(evtids, get = edsan_get, force = FALSE) {
   evtids <- unique(.edsan_ct_validate_ids(evtids, require_character = TRUE))
 
   if (missing(get)) {
     capabilities <- .redsan_workflow_capabilities()
     if (!isTRUE(capabilities$pmsi) && isTRUE(capabilities$edsan_ct_cora)) {
-      return(.edsan_evtid_patid_via_cora(evtids))
+      return(.edsan_evtid_patid_via_cora(evtids, force = force))
     }
     if (!isTRUE(capabilities$pmsi) && !isTRUE(capabilities$edsan_ct_cora)) {
       stop(
@@ -291,11 +293,12 @@
 
   counts <- table(map$EVTID)
   ambiguous <- names(counts[counts > 1L])
-  if (length(ambiguous)) {
+  if (length(ambiguous) && !isTRUE(force)) {
     stop(
       "PMSI returned multiple PATID values for EVTID(s): ",
       paste(ambiguous, collapse = ", "),
-      ". Refusing to choose one arbitrarily.",
+      ". Pass `force = TRUE` to `edsan_ct()` to continue with all candidate ",
+      "PATID mappings; no PATID is selected arbitrarily.",
       call. = FALSE
     )
   }

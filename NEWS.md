@@ -1,5 +1,9 @@
 
 
+- `edsan_ct(identity = TRUE)` stops on EVTIDs mapped to multiple PATIDs by
+  default. Set `force = TRUE` to keep all candidate PATID mappings and continue
+  enrichment; the function does not select a candidate arbitrarily.
+
 - Version the trimmer cache. `edsan_install_trimmer()` now installs each
   artifact in `<cache root>/<artifact_version>`, so versions coexist, and
   `edsan_trimmer_cache_dir()` returns the cache root instead of the `v1` slot.
