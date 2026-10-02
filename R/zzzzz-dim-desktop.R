@@ -26,8 +26,16 @@
   .redsan_keystore_context(path)$path
 }
 
-.redsan_keystore_has <- function(required_keys) {
+.redsan_keystore_has <- function(required_keys, ks_path = NULL) {
   if (!requireNamespace("d2imr", quietly = TRUE)) return(FALSE)
+
+  if (.edsan_ct_valid_scalar(ks_path)) {
+    path <- .redsan_keystore_path(ks_path)
+    if (!.edsan_ct_valid_scalar(path) || !file.exists(path)) return(FALSE)
+    return(all(vapply(required_keys, function(key) {
+      .edsan_ct_valid_scalar(.edsan_ct_keystore_get(key, ks_path = path))
+    }, logical(1))))
+  }
 
   info <- .d2imr_keystore_info()
   if (!is.list(info) || is.null(info$path)) return(FALSE)
@@ -53,20 +61,22 @@
   )
 }
 
-.redsan_workflow_capabilities <- function() {
+.redsan_workflow_capabilities <- function(env = "edsan-ct", ks_path = NULL) {
   cora_configured <- .redsan_keystore_has(c(
     "db.cora.url", "db.cora.usr", "db.cora.pwd"
-  ))
+  ), ks_path = ks_path)
   edsan_ct_url_configured <- .edsan_ct_valid_scalar(
-    .edsan_ct_configured_url(env = "edsan-ct")
+    .edsan_ct_configured_url(env = env, ks_path = ks_path)
   )
-  edsan_ct_auth_available <- !is.null(.edsan_ct_keystore_auth(env = "edsan-ct")) ||
+  edsan_ct_auth_available <- !is.null(
+    .edsan_ct_keystore_auth(env = env, ks_path = ks_path)
+  ) ||
     .edsan_ct_interactive_available()
 
   list(
     pmsi = .redsan_keystore_has(c(
       "ws.edsan.url", "ws.edsan.usr", "ws.edsan.pwd"
-    )),
+    ), ks_path = ks_path),
     edsan_ct_cora = isTRUE(cora_configured) &&
       edsan_ct_url_configured &&
       isTRUE(edsan_ct_auth_available)
@@ -121,8 +131,9 @@
   value
 }
 
-.edsan_cora_iep_ipp_map <- function(ieps, query = .cora_query,
-                                    max_in_ids = 900L) {
+.edsan_cora_iep_ipp_map <- function(ieps, query = NULL,
+                                    max_in_ids = 900L, force = FALSE,
+                                    ks_path = NULL) {
   ieps <- as.character(ieps)
   ieps <- unique(ieps[!is.na(ieps) & nzchar(trimws(ieps))])
   if (!length(ieps)) {
@@ -140,6 +151,11 @@
   }
 
   chunks <- split(seq_along(ieps), ceiling(seq_along(ieps) / max_in_ids))
+  query_sql <- if (is.null(query)) {
+    function(sql) .cora_query(sql = sql, ks_path = ks_path)
+  } else {
+    query
+  }
   rows <- lapply(chunks, function(idx) {
     values <- paste0("'", ieps[idx], "'", collapse = ",")
     sql <- paste0(
@@ -148,7 +164,7 @@
       "JOIN CORA_REC.TB_PATIENT p ON p.ID_PATIENT = s.ID_PATIENT ",
       "WHERE s.NO_SEJOUR IN (", values, ")"
     )
-    query(sql)
+    query_sql(sql)
   })
 
   map <- dplyr::bind_rows(rows)
@@ -165,10 +181,11 @@
     !is.na(map$IEP) & nzchar(map$IEP) & !is.na(map$IPP) & nzchar(map$IPP),
     , drop = FALSE
   ])
+  map <- map[map$IEP %in% ieps, , drop = FALSE]
 
   counts <- table(map$IEP)
   ambiguous <- names(counts[counts > 1L])
-  if (length(ambiguous)) {
+  if (length(ambiguous) && !isTRUE(force)) {
     stop(
       "CORA returned multiple IPP values for IEP(s): ",
       paste(ambiguous, collapse = ", "),
@@ -185,12 +202,19 @@
     )
   }
 
+  if (isTRUE(force)) {
+    map$.order <- match(map$IEP, ieps)
+    map <- map[order(map$.order, seq_len(nrow(map))),
+               c("IEP", "IPP"), drop = FALSE]
+    return(map)
+  }
+
   map[match(ieps, map$IEP), , drop = FALSE]
 }
 
 .edsan_evtid_patid_via_cora <- function(evtids, env = "edsan-ct",
                                          ks_path = NULL,
-                                         query = .cora_query,
+                                         query = NULL,
                                          translate = .edsan_ct_translate,
                                          force = FALSE) {
   evtids <- unique(.edsan_ct_validate_ids(evtids, require_character = TRUE))
@@ -213,7 +237,9 @@
   valid_ieps <- unique(evtid_iep$IEP[
     !is.na(evtid_iep$IEP) & nzchar(evtid_iep$IEP)
   ])
-  iep_ipp <- .edsan_cora_iep_ipp_map(valid_ieps, query = query)
+  iep_ipp <- .edsan_cora_iep_ipp_map(
+    valid_ieps, query = query, force = force, ks_path = ks_path
+  )
   bridge <- dplyr::left_join(evtid_iep, iep_ipp, by = "IEP")
 
   valid_ipps <- unique(bridge$IPP[!is.na(bridge$IPP) & nzchar(bridge$IPP)])
@@ -254,13 +280,16 @@
 
 # Prefer the CORA/EDSaN CT bridge when it is configured. PMSI is the fallback
 # for environments without the CORA and EDSaN CT capabilities.
-.edsan_evtid_patid_map <- function(evtids, get = edsan_get, force = FALSE) {
+.edsan_evtid_patid_map <- function(evtids, get = edsan_get, force = FALSE,
+                                    env = "edsan-ct", ks_path = NULL) {
   evtids <- unique(.edsan_ct_validate_ids(evtids, require_character = TRUE))
 
   if (missing(get)) {
-    capabilities <- .redsan_workflow_capabilities()
+    capabilities <- .redsan_workflow_capabilities(env = env, ks_path = ks_path)
     if (isTRUE(capabilities$edsan_ct_cora)) {
-      return(.edsan_evtid_patid_via_cora(evtids, force = force))
+      return(.edsan_evtid_patid_via_cora(
+        evtids, env = env, ks_path = ks_path, force = force
+      ))
     }
     if (!isTRUE(capabilities$pmsi)) {
       stop(

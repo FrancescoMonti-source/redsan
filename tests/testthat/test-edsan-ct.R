@@ -380,7 +380,7 @@ test_that("edsan_ct enriches patient identifiers without changing direct status"
       ids
     )
   }
-  fake_patients <- function(patids, ks_path = NULL) {
+  fake_patients <- function(patids, env = "edsan-ct", ks_path = NULL) {
     tibble::tibble(PATID = patids, GIVEN_NAME = paste0("Patient ", patids))
   }
   testthat::local_mocked_bindings(
@@ -417,13 +417,14 @@ test_that("edsan_ct enriches stay identifiers with patient identifiers", {
       ids
     )
   }
-  fake_evtid_patid <- function(evtids, get = get_edsan) {
+  fake_evtid_patid <- function(evtids, get = get_edsan, force = FALSE,
+                               env = "edsan-ct", ks_path = NULL) {
     tibble::tibble(EVTID = evtids, PATID = paste0("PAT-", sub("^EVT-", "", evtids)))
   }
   fake_patid_ipp <- function(patids, env = "edsan-ct", ks_path = NULL) {
     tibble::tibble(PATID = patids, IPP = paste0("00", patids))
   }
-  fake_patients <- function(patids, ks_path = NULL) {
+  fake_patients <- function(patids, env = "edsan-ct", ks_path = NULL) {
     tibble::tibble(PATID = patids, FAMILY_NAME = paste0("Family ", patids))
   }
   testthat::local_mocked_bindings(
@@ -459,7 +460,8 @@ test_that("edsan_ct force keeps all candidate PATIDs during identity enrichment"
       ids
     )
   }
-  fake_evtid_patid <- function(evtids, get = get_edsan, force = FALSE) {
+  fake_evtid_patid <- function(evtids, get = get_edsan, force = FALSE,
+                               env = "edsan-ct", ks_path = NULL) {
     force_seen <<- force
     tibble::tibble(
       EVTID = rep(evtids, each = 2L),
@@ -469,7 +471,7 @@ test_that("edsan_ct force keeps all candidate PATIDs during identity enrichment"
   fake_patid_ipp <- function(patids, env = "edsan-ct", ks_path = NULL) {
     tibble::tibble(PATID = patids, IPP = paste0("00", patids))
   }
-  fake_patients <- function(patids, ks_path = NULL) {
+  fake_patients <- function(patids, env = "edsan-ct", ks_path = NULL) {
     tibble::tibble(PATID = patids, FAMILY_NAME = paste0("Family ", patids))
   }
   testthat::local_mocked_bindings(
@@ -494,7 +496,7 @@ test_that("identity enrichment preserves direct multiple-match metadata", {
   fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
     list(`00123` = list(NIP = c("PAT-1", "PAT-2")))
   }
-  fake_patients <- function(patids, ks_path = NULL) {
+  fake_patients <- function(patids, env = "edsan-ct", ks_path = NULL) {
     tibble::tibble(PATID = patids, NAME = paste0("Name ", patids))
   }
   testthat::local_mocked_bindings(
@@ -514,7 +516,7 @@ test_that("identity payload metadata cannot replace direct-match metadata", {
   fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
     list(`00123` = list(NIP = "PAT-1"))
   }
-  fake_patients <- function(patids, ks_path = NULL) {
+  fake_patients <- function(patids, env = "edsan-ct", ks_path = NULL) {
     tibble::tibble(
       PATID = patids,
       status = "identity_status",
@@ -540,7 +542,7 @@ test_that("identity enrichment rejects contradictory identifier fields", {
   fake_call <- function(api_fct, api_type, api_query, env, ks_path) {
     list(`123` = list(NIP = "00123"))
   }
-  fake_patients <- function(patids, ks_path = NULL) {
+  fake_patients <- function(patids, env = "edsan-ct", ks_path = NULL) {
     tibble::tibble(PATID = patids, IPP = "00999", NAME = "Conflict")
   }
   testthat::local_mocked_bindings(
