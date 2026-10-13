@@ -109,11 +109,11 @@
 #'   are included in the diagnostic output.
 #' @examples
 #' \dontrun{
-#' check_connections()
-#' check_connections(oracle_query = TRUE)
+#' edsan_check_connections()
+#' edsan_check_connections(oracle_query = TRUE)
 #' }
 #' @export
-check_connections <- function(env = "edsan-ct", ks_path = NULL,
+edsan_check_connections <- function(env = "edsan-ct", ks_path = NULL,
                               timeout = 3, oracle_query = FALSE) {
   if (!is.numeric(timeout) || length(timeout) != 1L ||
       is.na(timeout) || !is.finite(timeout) || timeout <= 0) {
