@@ -35,7 +35,7 @@ test_that("connection diagnostic reports each layer independently", {
     .package = "redsan"
   )
 
-  without_jdbc <- check_connections()
+  without_jdbc <- edsan_check_connections()
   expect_identical(
     without_jdbc$check,
     c("correspondence", "configuration", "DNS oracle-p7", "DNS oracle-p8",
@@ -44,7 +44,7 @@ test_that("connection diagnostic reports each layer independently", {
   expect_identical(without_jdbc$status[[7L]], "skipped")
   expect_true(all(without_jdbc$status[-7L] == "ok"))
 
-  with_jdbc <- check_connections(oracle_query = TRUE)
+  with_jdbc <- edsan_check_connections(oracle_query = TRUE)
   expect_identical(with_jdbc$status[[7L]], "ok")
 })
 
@@ -56,7 +56,7 @@ test_that("failures are reported without masking independent checks", {
     .check_connections_tcp = function(host, port, timeout) stop("TCP failure"),
     .package = "redsan"
   )
-  x <- check_connections()
+  x <- edsan_check_connections()
   expect_identical(
     x$status, c("failed", "ok", "failed", "failed", "skipped")
   )
@@ -72,7 +72,7 @@ test_that("missing CORA configuration skips network and JDBC probes", {
     .check_connections_tcp = function(...) stop("Unexpected TCP probe"),
     .package = "redsan"
   )
-  x <- check_connections(oracle_query = TRUE)
+  x <- edsan_check_connections(oracle_query = TRUE)
   expect_identical(x$status, c("ok", "failed", "skipped", "skipped"))
 })
 
@@ -86,6 +86,6 @@ test_that("diagnostic redacts request URLs and patient identifier-like strings",
 })
 
 test_that("connection probe rejects invalid timeout and Oracle options", {
-  expect_error(check_connections(timeout = 0), "timeout")
-  expect_error(check_connections(oracle_query = NA), "oracle_query")
+  expect_error(edsan_check_connections(timeout = 0), "timeout")
+  expect_error(edsan_check_connections(oracle_query = NA), "oracle_query")
 })
