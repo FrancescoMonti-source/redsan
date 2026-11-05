@@ -131,22 +131,41 @@ receive a missing label.
 
 ## Pancarte measurements
 
-`edsan_get("pancarte", query = list(EVTID = "123456789"))` returns one row
-per measurement through `pancarte_normalize()`. Raw responses are lists of
-15-field records. Their outer names are transport keys; `ELTID` is read from
-each record, and several measurements may share it. No measurement is removed
-on that basis.
+Retrieve measurements for a stay:
+
+```r
+measurements <- edsan_get("pancarte", query = list(EVTID = "123456789"))
+```
+
+The result contains one row per measurement through `pancarte_normalize()`.
+Raw responses are lists of 15-field records. Their outer names are transport
+keys; `ELTID` is read from each record, and several measurements may share it.
+No measurement is removed on that basis.
 
 `DATEMES` keeps the complete measurement timestamp, with `HEURE_DATEMES` for an
-explicitly supplied time. Stay dates use the same datetime conventions as
-PMSI. The date-only `JOURMES` is omitted from normalized output. `RES` becomes
-`STRRES`; `NUMRES` and `PATAGE` are numeric. Original `TYPE` codes are retained
+explicitly supplied time. Measurement and stay dates use the same
+`Europe/Paris` datetime convention as PMSI. The date-only `JOURMES` is omitted
+from normalized output. `RES` becomes `STRRES`; `NUMRES` and `PATAGE` are
+numeric. Original `TYPE` codes are retained
 and enriched with `TYPE_LABEL` from `edsan_reference("pancarte")`. Unknown types
 keep their rows with a missing label. No unit is inferred from a type code.
 
 Use `process = FALSE` to keep the raw records, including `JOURMES` and `RES`,
 for inspection or later normalization. Pancarte is available in event bundles
 as `bundle$sources$pancarte` and is included by `modules = "all"`.
+
+```r
+# Keep the source payload and normalize it separately.
+raw <- edsan_get("pancarte", query = list(EVTID = "123456789"), process = FALSE)
+measurements <- pancarte_normalize(raw)
+
+# Inspect the complete type reference.
+type_reference <- edsan_reference("pancarte")
+
+# Include measurements with clinical documents in an event bundle.
+bundle <- edsan_get_event_bundle("123456789", modules = c("doceds", "pancarte"))
+bundle$sources$pancarte
+```
 
 ## Reference mappings
 

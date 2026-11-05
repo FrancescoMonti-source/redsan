@@ -29,7 +29,8 @@ module normalizer:
 \item \code{\link[=doceds_normalize]{doceds_normalize()}} for documents;
 \item \code{\link[=pmsi_normalize]{pmsi_normalize()}} for PMSI movement-level main rows, acts, and diagnoses;
 \item \code{\link[=biol_normalize]{biol_normalize()}} for biology results;
-\item \code{\link[=viro_normalize]{viro_normalize()}} for virology results.
+\item \code{\link[=viro_normalize]{viro_normalize()}} for virology results;
+\item \code{\link[=pancarte_normalize]{pancarte_normalize()}} for ward measurements and observations.
 }
 
 Set \code{process = FALSE} in \code{\link[=edsan_get]{edsan_get()}} when the raw response is the artifact
@@ -43,7 +44,9 @@ to retain or normalize later.
 PMSI objects and can be applied to older artifacts. \code{\link[=pmsi_normalize]{pmsi_normalize()}} reuses
 it so new normalized outputs are labelled automatically.
 \code{\link[=label_biol]{label_biol()}} similarly adds packaged analyte labels to normalized biology
-rows, and \code{\link[=biol_normalize]{biol_normalize()}} reuses it for new outputs. \code{\link[=edsan_reference]{edsan_reference()}}
+rows, and \code{\link[=biol_normalize]{biol_normalize()}} reuses it for new outputs. \code{\link[=label_pancarte]{label_pancarte()}}
+adds measurement type labels through \code{TYPE}, and \code{\link[=pancarte_normalize]{pancarte_normalize()}}
+applies it automatically. \code{\link[=edsan_reference]{edsan_reference()}}
 returns any normalized mapping for explicit joins. Enrichment preserves
 native codes and row grain; unmatched codes receive a missing label.
 }
@@ -87,7 +90,8 @@ building, and rendering do not require a live EDSAN connection.
 
 \seealso{
 \code{\link[=edsan_source_catalog]{edsan_source_catalog()}}, \code{\link[=edsan_reference_catalog]{edsan_reference_catalog()}}, \code{\link[=label_pmsi]{label_pmsi()}},
-\code{\link[=label_biol]{label_biol()}}, \code{\link[=edsan_get]{edsan_get()}}, \code{\link[=edsan_ct]{edsan_ct()}}, \code{\link[=edsan_get_event_bundle]{edsan_get_event_bundle()}}
+\code{\link[=label_biol]{label_biol()}}, \code{\link[=label_pancarte]{label_pancarte()}}, \code{\link[=pancarte_normalize]{pancarte_normalize()}}, \code{\link[=edsan_get]{edsan_get()}},
+\code{\link[=edsan_ct]{edsan_ct()}}, \code{\link[=edsan_get_event_bundle]{edsan_get_event_bundle()}}
 }
 \author{
 \strong{Maintainer}: Francesco Monti-source \email{58150610+FrancescoMonti-source@users.noreply.github.com}

@@ -28,7 +28,8 @@ normalized module results are retained in every affected bundle.
 
 Modules are retrieved with \code{process = TRUE}, so reference labels added by the
 module processors are present in every bundle: \code{biol} carries \code{TYPEANA_LABEL}
-from \code{\link[=label_biol]{label_biol()}} and PMSI carries the labels added by \code{\link[=label_pmsi]{label_pmsi()}}.
+from \code{\link[=label_biol]{label_biol()}}, \code{pancarte} carries \code{TYPE_LABEL} from \code{\link[=label_pancarte]{label_pancarte()}},
+and PMSI carries the labels added by \code{\link[=label_pmsi]{label_pmsi()}}.
 }
 \examples{
 \dontrun{
