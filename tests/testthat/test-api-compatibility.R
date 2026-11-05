@@ -86,7 +86,7 @@ test_that("CORA and ICCA exported queries retain legacy behavior", {
 
 test_that("the domain-first API is exported", {
   expected <- c(
-    "edsan_ct", "edsan_get", "edsan_source_catalog",
+    "edsan_connect", "edsan_ct", "edsan_get", "edsan_source_catalog",
     "edsan_reference_catalog", "edsan_event_bundle", "edsan_event_bundles",
     "edsan_get_event_bundle", "edsan_get_event_bundles",
     "edsan_render_event_bundle", "doceds_normalize", "pmsi_normalize",

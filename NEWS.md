@@ -1,3 +1,8 @@
+- Add `edsan_connect()` for persistent DBI connections to CORA and ICCA,
+  including adult/pediatric ICCA instance selection. Connection options are
+  forwarded to the existing source factories. The caller owns the connection
+  and must close it with `DBI::dbDisconnect()`.
+
 - Infer pancarte time-batching bounds from `query$DATEMES` ranges, including
   when separate `start_date` and `end_date` arguments are absent. Backend limit
   errors can then reduce the remaining time windows through adaptive batching.
