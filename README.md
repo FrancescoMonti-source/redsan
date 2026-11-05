@@ -332,6 +332,32 @@ icca_rows <- icca_query(
 )
 ```
 
+For repeated queries or dbplyr exploration, `edsan_connect()` opens a persistent
+DBI connection using the same source-specific credentials and driver setup.
+It supports `"cora"` and `"icca"` (`instance = "adult"` or `"ped"`); REST
+sources such as EDSaN CT are excluded. You own the returned connection and must
+close it with `DBI::dbDisconnect()` when finished:
+
+```r
+con <- edsan_connect("cora")
+tryCatch({
+  # Requires the optional dbplyr package. Collect results before disconnecting.
+  sejour <- dplyr::tbl(con, dbplyr::in_schema("CORA_REC", "TB_SEJOUR"))
+  dplyr::collect(utils::head(sejour, 10))
+}, finally = DBI::dbDisconnect(con))
+
+con <- edsan_connect("icca", instance = "ped")
+tryCatch(
+  icca_query("SELECT TOP 10 * FROM dbo.D_Encounter", connection = con),
+  finally = DBI::dbDisconnect(con)
+)
+```
+
+Additional options are forwarded to the existing factories: CORA accepts
+`ojdbc_jar` and `ks_path`; ICCA accepts `driver`, `database`, and `tds_version`.
+Queries without a supplied connection still open and close their own transient
+connection.
+
 ## Deprecated names
 
 The former names remain temporarily available and emit deprecation warnings.
