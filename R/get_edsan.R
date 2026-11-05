@@ -161,7 +161,7 @@
     stop("Unsupported batch_key for pmsi")
   }
 
-  if (module %in% c("biol", "viro")) {
+  if (module %in% c("biol", "viro", "pancarte")) {
     b <- .edsan_extract_bounds(query[[batch_key]])
     if (is.null(b$lo) || is.null(b$hi) || b$lo > b$hi) {
       stop("missing_time_window: ", module, " requires ", batch_key, " bounds")

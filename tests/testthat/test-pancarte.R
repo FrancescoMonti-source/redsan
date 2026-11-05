@@ -160,3 +160,65 @@ test_that("event bundles retain and label every pancarte measurement", {
   retrieved <- edsan_get_event_bundle("E1", modules = "pancarte")
   expect_identical(retrieved$sources$pancarte, bundles$E1$sources$pancarte)
 })
+
+test_that("pancarte infers time batches from query date ranges", {
+  for (range in list("{2024-01-01,2024-12-31}", c("2024-01-01", "2024-12-31"))) {
+    calls <- character()
+    testthat::local_mocked_bindings(
+      .edsan_call = function(module, query, what, fields = NULL, ...) {
+        calls <<- c(calls, query$DATEMES)
+        record <- pancarte_test_records()[[1L]]
+        record$JOURMES <- substr(query$DATEMES, 2, 11)
+        record$DATEMES <- paste0(record$JOURMES, "T08:30:00")
+        value <- stats::setNames(list(record), paste0("batch_", length(calls)))
+        list(ok = TRUE, value = value, error = NULL)
+      },
+      .package = "redsan"
+    )
+
+    out <- edsan_get("pancarte", query = list(DATEMES = range))
+
+    expect_identical(calls, c("{2024-01-01,2024-06-30}", "{2024-07-01,2024-12-31}"))
+    expect_identical(format(out$DATEMES, "%Y-%m-%d"), c("2024-01-01", "2024-07-01"))
+    expect_identical(out$ELTID, c("L1", "L1"))
+  }
+})
+
+test_that("pancarte date batching recovers from backend limits without repeating completed periods", {
+  full_range <- "{2024-01-01,2024-12-31}"
+  for (probe in c(FALSE, TRUE)) {
+    calls <- character()
+    testthat::local_mocked_bindings(
+      .edsan_call = function(module, query, what, fields = NULL, ...) {
+        calls <<- c(calls, query$DATEMES)
+        if (query$DATEMES %in% c(full_range, "{2024-07-01,2024-12-31}")) {
+          return(list(ok = FALSE, value = NULL, error = "Allowed size limit exceeded"))
+        }
+        record <- pancarte_test_records()[[1L]]
+        record$JOURMES <- substr(query$DATEMES, 2, 11)
+        record$DATEMES <- paste0(record$JOURMES, "T08:30:00")
+        value <- stats::setNames(list(record), paste0("batch_", length(calls)))
+        list(ok = TRUE, value = value, error = NULL)
+      },
+      .package = "redsan"
+    )
+
+    out <- edsan_get(
+      "pancarte", query = list(DATEMES = full_range),
+      batch_on_error_only = probe, return_audit = TRUE
+    )
+
+    expected_calls <- c(
+      "{2024-01-01,2024-06-30}", "{2024-07-01,2024-12-31}",
+      "{2024-07-01,2024-09-30}", "{2024-10-01,2024-12-31}"
+    )
+    if (probe) expected_calls <- c(full_range, expected_calls)
+    expect_identical(calls, expected_calls)
+    expect_identical(
+      format(out$data$DATEMES, "%Y-%m-%d"),
+      c("2024-01-01", "2024-07-01", "2024-10-01")
+    )
+    expect_identical(out$data$ELTID, rep("L1", 3))
+    expect_equal(sum(!out$audit$ok), 1L + as.integer(probe))
+  }
+})

@@ -137,6 +137,20 @@ Retrieve measurements for a stay:
 measurements <- edsan_get("pancarte", query = list(EVTID = "123456789"))
 ```
 
+An interval supplied through `DATEMES` also supplies the time-batching bounds;
+separate `start_date` and `end_date` arguments are not required:
+
+```r
+measurements <- edsan_get(
+  "pancarte",
+  query = list(DATEMES = "{2024-01-01,2024-12-31}"),
+  periods_by = "6 months"
+)
+```
+
+This starts with two six-month requests. If a request exceeds the backend
+limit, retrieval retries the remaining period with smaller time windows.
+
 The result contains one row per measurement through `pancarte_normalize()`.
 Raw responses are lists of 15-field records. Their outer names are transport
 keys; `ELTID` is read from each record, and several measurements may share it.
