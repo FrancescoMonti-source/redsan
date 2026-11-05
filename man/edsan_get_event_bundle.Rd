@@ -15,7 +15,7 @@ registered module, or provide a character vector.}
 \value{
 One \code{edsan_event_bundle}: a list with \code{event_id}, \code{sources}, and
 \code{created_at} entries. PMSI remains a list with \code{main}, \code{actes}, and \code{diag};
-DOCEDS, BIOL, and VIRO remain normalized tibbles.
+DOCEDS, BIOL, VIRO, and PANCARTE remain normalized tibbles.
 }
 \description{
 Singular convenience wrapper around \code{\link[=edsan_get_event_bundles]{edsan_get_event_bundles()}}. It retrieves each

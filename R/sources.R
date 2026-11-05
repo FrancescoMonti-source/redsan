@@ -2,10 +2,11 @@
 
 .edsan_source_registry <- function() {
   tibble::tibble(
-    module = c("doceds", "pmsi", "pmsi", "pmsi", "biol", "viro"),
-    table = c("documents", "main", "actes", "diag", "results", "results"),
-    grain = c("document", "movement", "acte", "diagnosis", "biology_result", "virology_result"),
+    module = c("doceds", "pmsi", "pmsi", "pmsi", "biol", "viro", "pancarte"),
+    table = c("documents", "main", "actes", "diag", "results", "results", "results"),
+    grain = c("document", "movement", "acte", "diagnosis", "biology_result", "virology_result", "measurement"),
     identifiers = list(
+      c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID"),
@@ -13,19 +14,20 @@
       c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID")
     ),
-    source_time_kind = c("point", "interval", "point", "interval", "point", "point"),
-    source_time_start = c("RECDATE", "DATENT", "DATEACTE", "DATENT", "DATEXAM", "DATEPRELEV"),
-    source_time_end = c(NA_character_, "DATSORT", NA_character_, "DATSORT", NA_character_, NA_character_),
+    source_time_kind = c("point", "interval", "point", "interval", "point", "point", "point"),
+    source_time_start = c("RECDATE", "DATENT", "DATEACTE", "DATENT", "DATEXAM", "DATEPRELEV", "DATEMES"),
+    source_time_end = c(NA_character_, "DATSORT", NA_character_, "DATSORT", NA_character_, NA_character_, NA_character_),
     query_date_keys = list(
       "RECDATE",
       c("DATENT", "DATSORT"),
       c("DATENT", "DATSORT"),
       c("DATENT", "DATSORT"),
       "DATEXAM",
-      "DATEPRELEV"
+      "DATEPRELEV",
+      "DATEMES"
     ),
-    default_batch_key = c("RECDATE", "DATENT", "DATENT", "DATENT", "DATEXAM", "DATEPRELEV"),
-    normalizer = c("doceds_normalize", "pmsi_normalize", "pmsi_normalize", "pmsi_normalize", "biol_normalize", "viro_normalize"),
+    default_batch_key = c("RECDATE", "DATENT", "DATENT", "DATENT", "DATEXAM", "DATEPRELEV", "DATEMES"),
+    normalizer = c("doceds_normalize", "pmsi_normalize", "pmsi_normalize", "pmsi_normalize", "biol_normalize", "viro_normalize", "pancarte_normalize"),
     notes = c(
       "Clinical documents; RECTXT and RECTYPE are document payload fields.",
       paste(
@@ -39,7 +41,8 @@
         "PATID + EVTID limits from the complete main table."
       ),
       "Biology results; analyte/value/unit columns depend on the returned payload.",
-      "Virology results; BIOL-like payload with ELTID traceability and DATEPRELEV point time."
+      "Virology results; BIOL-like payload with ELTID traceability and DATEPRELEV point time.",
+      "Pancarte measurements; DATEMES point time, native TYPE codes, and ELTID source traceability."
     )
   )
 }
@@ -196,7 +199,7 @@
 #' scientific notation.
 #'
 #' @param module Optional module filter. Supported values are `"doceds"`,
-#'   `"pmsi"`, `"biol"`, and `"viro"`.
+#'   `"pmsi"`, `"biol"`, `"viro"`, and `"pancarte"`.
 #' @param table Optional normalized table filter, for example `"main"`,
 #'   `"actes"`, `"diag"`, or `"results"`.
 #'

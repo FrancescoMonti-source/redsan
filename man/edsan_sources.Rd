@@ -8,7 +8,7 @@ edsan_sources(module = NULL, table = NULL)
 }
 \arguments{
 \item{module}{Optional module filter. Supported values are \code{"doceds"},
-\code{"pmsi"}, \code{"biol"}, and \code{"viro"}.}
+\code{"pmsi"}, \code{"biol"}, \code{"viro"}, and \code{"pancarte"}.}
 
 \item{table}{Optional normalized table filter, for example \code{"main"},
 \code{"actes"}, \code{"diag"}, or \code{"results"}.}

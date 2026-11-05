@@ -43,6 +43,8 @@ A \code{biol} source carrying \code{TYPEANA} without \code{TYPEANA_LABEL} is lab
 normalized before labelling existed carry the same columns as bundles built
 from \code{\link[=edsan_get_event_bundles]{edsan_get_event_bundles()}}. Existing \code{TYPEANA_LABEL} values are left as they
 are, and a \code{biol} source without \code{TYPEANA} is passed through untouched.
+A \code{pancarte} source carrying \code{TYPE} without \code{TYPE_LABEL} is labelled
+through \code{\link[=label_pancarte]{label_pancarte()}} by the same rule.
 Biology and virology artifacts using the former \code{BIOL_ID} or \code{VIRO_ID} names
 are upgraded to \code{ELTID}. When an artifact contains both names, their values
 must agree and only \code{ELTID} is retained.

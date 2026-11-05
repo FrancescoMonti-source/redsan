@@ -68,7 +68,8 @@
 # reference label. Upgrade both differences once at this boundary.
 .EVENT_BUNDLE_LABELLERS <- list(
   biol = list(key = "TYPEANA", label = "TYPEANA_LABEL"),
-  doceds = list(key = "RECTYPE", label = "RECTYPE_LABEL")
+  doceds = list(key = "RECTYPE", label = "RECTYPE_LABEL"),
+  pancarte = list(key = "TYPE", label = "TYPE_LABEL")
 )
 
 .label_event_bundle_source <- function(source, source_name) {
@@ -76,7 +77,11 @@
   if (is.null(spec) || !is.data.frame(source)) return(source)
   if (spec$label %in% names(source)) return(source)
   if (!spec$key %in% names(source) && nrow(source) > 0L) return(source)
-  switch(source_name, biol = label_biol(source), doceds = label_doceds(source))
+  switch(source_name,
+    biol = label_biol(source),
+    doceds = label_doceds(source),
+    pancarte = label_pancarte(source)
+  )
 }
 
 .slice_event_table <- function(x, event_id, label) {
@@ -145,6 +150,8 @@
 #' normalized before labelling existed carry the same columns as bundles built
 #' from [edsan_get_event_bundles()]. Existing `TYPEANA_LABEL` values are left as they
 #' are, and a `biol` source without `TYPEANA` is passed through untouched.
+#' A `pancarte` source carrying `TYPE` without `TYPE_LABEL` is labelled through
+#' [label_pancarte()] by the same rule.
 #' Biology and virology artifacts using the former `BIOL_ID` or `VIRO_ID` names
 #' are upgraded to `ELTID`. When an artifact contains both names, their values
 #' must agree and only `ELTID` is retained.
@@ -257,7 +264,7 @@ edsan_get_event_bundles <- function(event_ids, modules = "all") {
 #'
 #' @return One `edsan_event_bundle`: a list with `event_id`, `sources`, and
 #'   `created_at` entries. PMSI remains a list with `main`, `actes`, and `diag`;
-#'   DOCEDS, BIOL, and VIRO remain normalized tibbles.
+#'   DOCEDS, BIOL, VIRO, and PANCARTE remain normalized tibbles.
 #'
 #' @details
 #' This function only forwards to [edsan_get_event_bundles()] and unwraps the single
