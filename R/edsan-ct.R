@@ -407,10 +407,17 @@
 #' service. The direction is determined entirely by `from`: `IPP` resolves to
 #' `PATID`, `PATID` to `IPP`, `IEP` to `EVTID`, and `EVTID` to `IEP`.
 #'
+#' @details
 #' Results use the semantic identifier names so they can be joined directly to
 #' source data. A valid response without a correspondence is retained with
 #' `status = "not_found"` and `n_matches = 0`; service and response failures are
 #' errors.
+#'
+#' When both routes are configured, the CORA/EDSaN CT route is preferred;
+#' PMSI is used when the CORA route is not configured. By default, enrichment
+#' stops if the selected route associates one EVTID with multiple PATIDs. Set
+#' `force = TRUE` to keep every candidate mapping and continue enrichment. This
+#' does not choose a PATID.
 #'
 #' @param ids One or more identifiers as character strings. Character input is
 #'   required to preserve leading zeroes and values outside safe floating-point
@@ -432,11 +439,6 @@
 #'   With `force = TRUE`, ambiguous EVTID identity enrichment may add multiple
 #'   rows for an EVTID, one for each candidate PATID.
 #'
-#' @details When both routes are configured, the CORA/EDSaN CT route is preferred;
-#'   PMSI is used when the CORA route is not configured. By default, enrichment
-#'   stops if the selected route associates one EVTID with multiple PATIDs. Set
-#'   `force = TRUE` to keep every candidate mapping and continue enrichment. This
-#'   does not choose a PATID.
 #' @export
 edsan_ct <- function(ids, from, identity = FALSE,
                      env = "edsan-ct", ks_path = NULL, force = FALSE) {

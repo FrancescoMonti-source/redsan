@@ -4,8 +4,14 @@
 \alias{edsan_ct}
 \title{Resolve EDSaN CT identifier correspondence}
 \usage{
-edsan_ct(ids, from, identity = FALSE, env = "edsan-ct", ks_path = NULL,
-  force = FALSE)
+edsan_ct(
+  ids,
+  from,
+  identity = FALSE,
+  env = "edsan-ct",
+  ks_path = NULL,
+  force = FALSE
+)
 }
 \arguments{
 \item{ids}{One or more identifiers as character strings. Character input is
@@ -44,11 +50,10 @@ Results use the semantic identifier names so they can be joined directly to
 source data. A valid response without a correspondence is retained with
 \code{status = "not_found"} and \code{n_matches = 0}; service and response failures are
 errors.
-}
-\details{
-When both routes are configured, the CORA/EDSaN CT route is preferred; PMSI is
-used when the CORA route is not configured. By default, enrichment stops if the
-selected route associates one EVTID with multiple PATIDs. Set
-\code{force = TRUE} to keep every candidate mapping and continue enrichment.
-This does not choose a PATID.
+
+When both routes are configured, the CORA/EDSaN CT route is preferred;
+PMSI is used when the CORA route is not configured. By default, enrichment
+stops if the selected route associates one EVTID with multiple PATIDs. Set
+\code{force = TRUE} to keep every candidate mapping and continue enrichment. This
+does not choose a PATID.
 }
