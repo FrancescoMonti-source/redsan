@@ -332,21 +332,21 @@ icca_rows <- icca_query(
 )
 ```
 
-For repeated queries or dbplyr exploration, `edsan_connect()` opens a persistent
+For repeated queries or dbplyr exploration, `db_connect()` opens a persistent
 DBI connection using the same source-specific credentials and driver setup.
 It supports `"cora"` and `"icca"` (`instance = "adult"` or `"ped"`); REST
 sources such as EDSaN CT are excluded. You own the returned connection and must
 close it with `DBI::dbDisconnect()` when finished:
 
 ```r
-con <- edsan_connect("cora")
+con <- db_connect("cora")
 tryCatch({
   # Requires the optional dbplyr package. Collect results before disconnecting.
   sejour <- dplyr::tbl(con, dbplyr::in_schema("CORA_REC", "TB_SEJOUR"))
   dplyr::collect(utils::head(sejour, 10))
 }, finally = DBI::dbDisconnect(con))
 
-con <- edsan_connect("icca", instance = "ped")
+con <- db_connect("icca", instance = "ped")
 tryCatch(
   icca_query("SELECT TOP 10 * FROM dbo.D_Encounter", connection = con),
   finally = DBI::dbDisconnect(con)

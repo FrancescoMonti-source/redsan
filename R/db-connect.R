@@ -21,20 +21,20 @@
 #' @seealso [cora_query()], [icca_query()]
 #' @examples
 #' \dontrun{
-#' con <- edsan_connect("cora")
+#' con <- db_connect("cora")
 #' tryCatch(
 #'   DBI::dbGetQuery(con, "SELECT 1 AS n FROM dual"),
 #'   finally = DBI::dbDisconnect(con)
 #' )
 #'
-#' con <- edsan_connect("icca", instance = "ped")
+#' con <- db_connect("icca", instance = "ped")
 #' tryCatch(
 #'   icca_query("SELECT TOP 10 * FROM dbo.D_Encounter", connection = con),
 #'   finally = DBI::dbDisconnect(con)
 #' )
 #' }
 #' @export
-edsan_connect <- function(source, ...) {
+db_connect <- function(source, ...) {
   if (!is.character(source) || length(source) != 1L || is.na(source) ||
       !source %in% c("cora", "icca")) {
     stop(

@@ -1,4 +1,4 @@
-- Add `edsan_connect()` for persistent DBI connections to CORA and ICCA,
+- Add `db_connect()` for persistent DBI connections to CORA and ICCA,
   including adult/pediatric ICCA instance selection. Connection options are
   forwarded to the existing source factories. The caller owns the connection
   and must close it with `DBI::dbDisconnect()`.
