@@ -1,3 +1,7 @@
+- Infer pancarte time-batching bounds from `query$DATEMES` ranges, including
+  when separate `start_date` and `end_date` arguments are absent. Backend limit
+  errors can then reduce the remaining time windows through adaptive batching.
+
 - Add the `pancarte` module to `edsan_get()` and event bundles. The normalizer
   retains each measurement, keeps `DATEMES` with its time, exposes `RES` as
   `STRRES`, and omits the redundant date-only `JOURMES`. Source `ELTID` comes
