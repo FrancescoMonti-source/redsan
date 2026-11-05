@@ -63,6 +63,7 @@ Current modules:
   bounds through `DATENT` and `DATSORT`
 - `biol`: biology results, point time through `DATEXAM`
 - `viro`: virology results, point time through `DATEPRELEV`
+- `pancarte`: measurements, point time through `DATEMES`
 
 ## Basic workflow
 
@@ -128,11 +129,30 @@ biology <- biol_normalize(raw_biol)
 `TYPEANA_LABEL`. Original analyte codes and rows are preserved; unknown codes
 receive a missing label.
 
+## Pancarte measurements
+
+`edsan_get("pancarte", query = list(EVTID = "123456789"))` returns one row
+per measurement through `pancarte_normalize()`. Raw responses are lists of
+15-field records. Their outer names are transport keys; `ELTID` is read from
+each record, and several measurements may share it. No measurement is removed
+on that basis.
+
+`DATEMES` keeps the complete measurement timestamp, with `HEURE_DATEMES` for an
+explicitly supplied time. Stay dates use the same datetime conventions as
+PMSI. The date-only `JOURMES` is omitted from normalized output. `RES` becomes
+`STRRES`; `NUMRES` and `PATAGE` are numeric. Original `TYPE` codes are retained
+and enriched with `TYPE_LABEL` from `edsan_reference("pancarte")`. Unknown types
+keep their rows with a missing label. No unit is inferred from a type code.
+
+Use `process = FALSE` to keep the raw records, including `JOURMES` and `RES`,
+for inspection or later normalization. Pancarte is available in event bundles
+as `bundle$sources$pancarte` and is included by `modules = "all"`.
+
 ## Reference mappings
 
 `edsan_reference_catalog()` lists the mappings distributed with the package.
 `edsan_reference()` returns one normalized mapping as a tibble.
-`pmsi_normalize()` and `biol_normalize()` call their labelling helpers
+`pmsi_normalize()`, `biol_normalize()`, and `pancarte_normalize()` call their labelling helpers
 automatically; the same helpers can enrich older normalized artifacts without
 replacing their source codes.
 

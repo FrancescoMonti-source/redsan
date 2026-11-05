@@ -1,4 +1,10 @@
-
+- Add the `pancarte` module to `edsan_get()` and event bundles. The normalizer
+  retains each measurement, keeps `DATEMES` with its time, exposes `RES` as
+  `STRRES`, and omits the redundant date-only `JOURMES`. Source `ELTID` comes
+  from the record fields rather than the suffixed outer record names.
+- Add `label_pancarte()` and the `pancarte` reference with 232 distinct `TYPE`
+  codes. Trim reference whitespace and consolidate duplicate `ACTIVITE` and
+  `TOTAL` entries under the labels `Activité` and `Total`.
 
 - Pass the requested EDSaN environment and keystore through identity enrichment.
   With `force = TRUE`, retain all IPP candidates when CORA maps one IEP to

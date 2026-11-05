@@ -16,17 +16,17 @@ edsan_reference_catalog <- function() {
     name = c(
       "actes", "bact", "bio", "ccam", "cdam", "cim10", "csarr", "ghm",
       "modeent", "modesort", "ngap", "rectypes", "uf", "uf2um",
-      "uf2umpmsi", "um"
+      "uf2umpmsi", "um", "pancarte"
     ),
     scope = c(
       "derived", "edsan", "edsan", "national", "national",
       "national", "national", "national", "national", "national",
-      "national", "local", "local", "local", "local", "local"
+      "national", "local", "local", "local", "local", "local", "edsan"
     ),
     key = c(
       "NOMENCLATURE + CODEACTE", "TYPEANA", "TYPEANA", "CODEACTE", "CODEACTE",
       "CODE", "CODEACTE", "GHM", "MODEENT", "MODESORT",
-      "CODEACTE", "RECTYPE", "SEJUF", "SEJUF", "SEJUF", "SEJUM"
+      "CODEACTE", "RECTYPE", "SEJUF", "SEJUF", "SEJUF", "SEJUM", "TYPE"
     ),
     description = c(
       "Combined CCAM, CDAM, CSARR, and NGAP acts with explicit nomenclature",
@@ -44,7 +44,8 @@ edsan_reference_catalog <- function() {
       "Functional unit codes",
       "Functional-unit to EDSAN medical-unit mapping",
       "Current functional-unit to EDSAN and PMSI medical-unit mapping",
-      "Medical unit codes"
+      "Medical unit codes",
+      "Pancarte measurement type codes"
     )
   )
 }
@@ -63,6 +64,7 @@ edsan_references <- function() {
     name,
     bact = c("TYPEANA", "TYPEANA_LABEL"),
     bio = c("TYPEANA", "TYPEANA_LABEL"),
+    pancarte = c("TYPE", "TYPE_LABEL"),
     ccam = c("CODEACTE", "CODEACTE_LABEL"),
     cdam = c("CODEACTE", "CODEACTE_LABEL"),
     cim10 = c("CODE", "CODE_LABEL"),
@@ -159,7 +161,8 @@ edsan_references <- function() {
 #'   and bacteriology, `CODEACTE` for acts, `CODE` for CIM-10, `GHM` for
 #'   diagnosis-related groups, `MODEENT` / `MODESORT` for PMSI stay modes,
 #'   `RECTYPE` for document types, and `SEJUF` / `SEJUM` / `UM_PMSI` for local
-#'   organizational mappings. Label columns use the corresponding `_LABEL`
+#'   organizational mappings, and `TYPE` for pancarte measurements.
+#'   Label columns use the corresponding `_LABEL`
 #'   suffix. The derived `actes` reference adds `NOMENCLATURE`.
 #'
 #' @examples

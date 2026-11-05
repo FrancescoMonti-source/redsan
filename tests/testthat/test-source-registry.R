@@ -31,9 +31,14 @@ test_that("registered identifiers remain opaque character coordinates", {
         DATEPRELEV = "2024-01-01",
         RESULTATS = data.frame(TYPEANA = "PCR", STRRES = "negative")
       )
-    ))
+    )),
+    "pancarte/results" = pancarte_normalize(list(c(
+      ids,
+      list(DATEMES = "2024-01-01T08:30:00", TYPE = "POIDS-KG", RES = "65", NUMRES = 65)
+    )))
   )
   registry <- edsan_source_catalog()
+  expect_setequal(names(tables), paste(registry$module, registry$table, sep = "/"))
   identifier_columns <- unlist(
     lapply(seq_len(nrow(registry)), function(index) {
       table_key <- paste(

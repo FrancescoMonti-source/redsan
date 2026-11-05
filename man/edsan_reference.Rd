@@ -14,7 +14,7 @@ A tibble preserving native reference headers: \code{TYPEANA} for biology
 and bacteriology, \code{CODEACTE} for acts, \code{CODE} for CIM-10, \code{GHM} for
 diagnosis-related groups, \code{MODEENT} / \code{MODESORT} for PMSI stay modes,
 \code{RECTYPE} for document types, and \code{SEJUF} / \code{SEJUM} / \code{UM_PMSI} for local
-organizational mappings. Label columns use the corresponding \verb{_LABEL}
+organizational mappings, and \code{TYPE} for pancarte measurements. Label columns use the corresponding \verb{_LABEL}
 suffix. The derived \code{actes} reference adds \code{NOMENCLATURE}.
 }
 \description{

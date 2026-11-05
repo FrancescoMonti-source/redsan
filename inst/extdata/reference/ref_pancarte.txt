@@ -1,0 +1,233 @@
+TYPE;TYPE_LABEL
+ACCIDENT-DU-TRAVAIL;Accident du travail
+ACCOMPAGNEMENT-AUX-WC;Accompagnement aux WC
+ACTIVITE;Activité
+AGITATION;Agitation
+AIDE-À-LA-MARCHE;Aide à la marche
+AIDE-AU-CHOIX-DU-MENU;Aide au choix du menu
+AIDE-AU-LEVER;Aide au lever
+AIDE-AU-REPAS;Aide au repas
+AIDE-AUX-DEPLACEMENTS;Aide aux déplacements
+AIDE-PARENTALE;Aide parentale
+AIDE-PRISE-HYDRIQUE;Aide prise hydrique
+ALITE;Alité
+ANTICIPATION;Anticipation
+ARRÊT-DE-TRAVAIL;Arrêt de travail
+ASSISTANCE-TECHNIQUE;Assistance technique
+ATAXIE;Ataxie
+AUTONOMIE;Autonomie
+AUTRES;Autres
+BAIN-DOUCHE;Bain / Douche
+BEURRE-UNITE;Beurre Unité
+BISCOTTE-UNITE;Biscotte Unité
+BISCUITS-UNITE;Biscuits Unité
+BLADDER-SCAN-ML-;Bladder scan (ml)
+BOISSONS-ALCOOLISEES;Boissons alcoolisées
+CAFE-THE-TISANE;Café thé tisane
+CAPILUVE;Capiluve
+CARACTERISTIQUE-DU-DOMICI;Caractéristique du domici
+CHAMP-VISUEL;Champ visuel
+CHANGE;Change
+CHANGEMENT-DE-POSITION;Changement de position
+CHANGEMENT-DE-VÊTEMENTS;Changement de vêtements
+CHUTE-RECENTE-<-6-MOIS;Chute récente <  6 mois
+COLLATION;Collation
+COMMANDE-OUVERTURE;Commande ouverture
+COMMUNICATION;Communication
+COMPLEMENTS-NUTRITIONNELS;Compléments nutritionnels
+COMPL.NUTRITIONNELS-ORAUX;Compl.nutritionnels oraux
+COMPOTE,-FRUIT;Compote, fruit
+COMPOTE-FRUIT;Compote/Fruit
+CONFITURE-UNITE;Confiture Unité
+CONSTIPATION;Constipation
+CONTENTION;Contention
+CORPS-CETONIQUES;Corps cétoniques
+COUSSIN-ASSISE-DYNAMIQUE;Coussin assise dynamique
+COUSSIN-ASSISE-STATIQUE;Coussin assise statique
+COUSSIN-DE-POSITIONNEMENT;Coussin de positionnement
+CREME-DESSERT;Crème dessert
+CREME-ENRICHIE;Crème enrichie
+DATE-DU-JOUR;Date du jour
+DEAMBULATION-NOCTURNE;Déambulation nocturne
+DEBIT-O2;Débit O2
+DECHARGE-TALONNIERE;Décharge talonnière
+DENSITE;Densité
+DESHABILLAGE;Déshabillage
+DOULEUR-THORACIQUE;Douleur thoracique
+DYSARTHRIE;Dysarthrie
+EDUCATION-À-LA-SANTE;Education à la santé
+EDUCATION-THERAPEUTIQUE;Education thérapeutique
+EN;EN
+ENTOURAGE;Entourage
+ENTREE;Entrée
+ENTRETIEN-ECOUTE;Entretien Ecoute
+ENTRETIEN-PROTHESES;Entretien prothèses
+ETAT-CLINIQUE;Etat clinique
+ETUI-PENIEN;Etui pénien
+EVA-À-L-ENTREE;EVA à l'entrée
+EVA;EVA
+EVS-À-L-ENTREE;EVS à l'entrée
+EVS;EVS
+FECULENTS;Féculents
+FREQUENCE-CARDIAQUE-CRIT;Fréquence cardiaque (crit
+FREQUENCE-RESPIRATOIRE;Fréquence respiratoire
+FREQUENCE-RESPIRATOIRE-MVTS-MIN;Fréquence respiratoire mvts/min
+FRICTION-CISAILLEMENT;FRICTION CISAILLEMENT
+FROMAGE;Fromage
+GDS-REALISE-SOUS-:;GDS réalisé sous :
+GLASGOW-CALCULE;Glasgow calculé
+GLASGOW;Glasgow
+GLUCOSE;Glucose
+GLYCEMIE-CAP-G-L-;Glycémie cap (g/l)
+GLYCEMIE-CAP-MMOL-L-;Glycémie cap (mmol/l)
+HABILLAGE;Habillage
+HCO3-:-MMOL-L;HCo3  : mmol/L
+HUMIDITE;HUMIDITE
+HYDRATATION;Hydratation
+HYDRATATION-PEAU-INTACTE;Hydratation peau intacte
+HYGIENE-BUCCALE;Hygiène buccale
+IMC;IMC
+INCONTINENCE;Incontinence
+INFO-CONSEIL;Info conseil
+INFORMATIONS;Informations
+INSTALLATION-AU-REPAS;Installation au repas
+INSTALLATION-POUR-LA-NUIT;Installation pour la nuit
+JUS-D-ORANGE-VERRE;Jus d'orange Verre
+KINESITHERAPIE;Kinésithérapie
+LABORATOIRE;Laboratoire
+LAIT-1-2-BOL;Lait 1/2 bol
+LANGAGE;Langage
+LANGUE-FRANÇAISE;Langue française
+LEGUMES-VERTS;Légumes verts
+LETTRE-AU-MEDECIN-TRAITAN;Lettre au médecin traitan
+LEUCOCYTES;Leucocytes
+LIEU-DE-VIE;Lieu de vie
+MATELAS-DYNAMIQUE;Matelas dynamique
+MATELAS-STATIQUE;Matelas statique
+MATERIEL-D-ELIMINATION;Matériel d'élimination
+MATERIEL;Matériel
+MATERIEL-MEDICAL;Matériel médical
+MEDICAMENTS;Médicaments
+MIMIQUE;Mimique
+MISE-AU-FAUTEUIL;Mise au fauteuil
+MOBILITE;MOBILITE
+MOTRICITE-MEMBRE-INFERIEU;Motricité membre inférieu
+MOTRICITE-MEMBRE-SUPERIEU;Motricité membre supérieu
+MOUVEMENTS;Mouvements
+NBRE-DE-CIGARETTES-JOUR;Nbre de cigarettes/jour
+NBRE-D-ENFANTS-FILLES;Nbre d' enfants filles
+NBRE-D-ENFANTS-GARÇONS;Nbre d' enfants garçons
+NBRE-DE-PAQUETS-JOUR;Nbre de paquets/jour
+NBRE-DE-REPAS-JOUR;Nbre de repas / jour
+NEGLIGENCE;Négligence
+NETTOYER-L-ENVIRONNEMENT;Nettoyer l'environnement
+NITRITES;Nitrites
+NOMBRE-D-ENFANTS;Nombre d'enfants
+NUTRITION;NUTRITION
+OCULOMOTRICITE;Oculomotricité
+ORIENTATION-MOIS-AGE;Orientation mois /age
+OXYGENE;Oxygène
+PACO2-:-KPA;PaCo2 : KPa
+PAIN-UNITE;Pain Unité
+PAO2-:-KPA;PaO2 : KPa
+PARALYSIE-FACIALE;Paralysie faciale
+PEDILUVE;Pédiluve
+PEIGNAGE;Peignage
+PERCEPTION-SENSORIELLE;PERCEPTION SENSORIELLE
+PERSONNE-À-CHARGE;Personne à charge
+PERTE-RECENTE;Perte récente
+PH;pH
+PH-:;Ph :
+PLAINTE;Plainte
+PLAINTES-PDT-SOIN;Plaintes pdt soin
+POIDS-HABITUEL;Poids habituel
+POIDS-KG;Poids kg
+POSITION-DE-CONFORT;Position de confort
+POSITION;Position
+POSITIONS-ANTALGIQUES-AU;Positions antalgiques au
+POTAGE-ENRICHI;Potage enrichi
+POTAGE;Potage
+POULS-BTS-MIN;Pouls bts/min
+POULS-PEDIEUX;Pouls pédieux
+POULS-RADIAL;Pouls radial
+PRECISION-SENSIBILITE;precision sensibilite
+PREPARATION-ALIMENTAIRE;Préparation alimentaire
+PRESENCE-PARENTALE;Présence parentale
+PRESSION-ART-SYST;Pression Art Syst
+PRESTATAIRE-DE-SERVICE;Prestataire de service
+PREVENTION-ESCARRES;Prévention escarres
+PROTECTION-AUTRE;Protection autre
+PROTECTION-DE-ZONES-DOULO;Protection de zones doulo
+PROTECTIONS;Protections
+PROTECTION-URINAIRE;Protection urinaire
+PROTEINES;Protéines
+PROTHESE-ORTHESE;Prothèse / orthèse
+PUPILLES;Pupilles
+RASAGE-TONTE;Rasage / Tonte
+REACTION-PDT-MOBILISATION;Réaction pdt mobilisation
+REACTIONS-DOULOUREUSES;Réactions douloureuses
+REFECTION-DE-LIT;Réfection de lit
+REFECTION-LIT-OCCUPE;Réfection lit occupé
+REGARD-ET-MIMIQUE;Regard et Mimique
+REGIME-DE-SORTIE;Régime de sortie
+REGIME;Régime
+RELATION;Relation
+REPRISE-DU-TRANSIT;Reprise du transit
+RISQUE-DE;Risque de
+RITE-ENDORMISSEMENT;Rite endormissement
+RITUELS-D-ENDORMISSEMENT;Rituels d' endormissement
+SAC-COLLECTEUR-D-URINE;Sac collecteur d'urine
+SANG;Sang
+SA-O2-%;SA O2 %
+SAO2-:-%;SaO2 : %
+SCORE-OBTENU;Score obtenu
+SCORE-TOTAL;Score total
+SE-DEPLACER;Se déplacer
+SE-DEPLACE;Se déplace
+SELLES-QUALITE-QUANTITE-;Selles (qualité/quantité)
+SENSIBILITE;Sensibilité
+SIESTE;Sieste
+SITUATION-FAMILIALE;Situation familiale
+SOINS-D-ONGLES;Soins d'ongles
+SOINS-D-OREILLES;Soins d'oreilles
+SOINS-D-YEUX;Soins d'yeux
+SOINS-EFFETS-PERSONNELS;Soins effets personnels
+SOINS-INFIRMIERS;Soins infirmiers
+SOMMEIL;Sommeil
+SONDE-URINAIRE;Sonde urinaire
+SOUTIEN-PSYCHOLOGIQUE;Soutien psychologique
+STOMIE;Stomie
+SUCRE-UNITE;Sucre Unité
+SUEURS;Sueurs
+SURFACE-CORPORELLE-M²;Surface Corporelle m²
+TABAGISME;Tabagisme
+TA-DIA-BRAS-DROIT-MM-HG;TA dia bras droit mm/hg
+TA-DIA-OU-BRAS-GAUCHE-MM-HG;TA dia ou bras gauche mm/hg
+TAILLE-CM;Taille cm
+TA-SYS-BRAS-DROIT-MM-HG;TA sys bras droit mm/hg
+TA-SYS-OU-BRAS-GAUCHE-MM-HG;TA sys ou bras gauche mm/hg
+TC-C;TC° °C
+TEXTURE;Texture
+TOILETTE-AU-LAVABO;Toilette au lavabo
+TOILETTE-AU-LIT;Toilette au lit
+TOILETTE-ET-OU-HABILLAGE;Toilette et/ou habillage
+TOILETTE-PARTIE-DU-CORPS;Toilette partie du corps
+TOILETTE-SOINS-PALLIATIFS;Toilette soins palliatifs
+TOTAL-OUI-5;Total oui / 5
+TOTAL;Total
+TRANSFERT;Transfert
+TREMBLEMENTS;Tremblements
+TROUBLES-DE-LA-DEGLUTIT-;Troubles de la déglutit°
+TROUBLES-DU-COMPORTEMENT;Troubles du comportement
+TROUBLES-SENSORIELS;Troubles sensoriels
+TYPE-DE-NUTRITION;Type de nutrition
+UTILISATION-DE-LAXATIFS;Utilisation de laxatifs
+VIANDE,-POISSON,-OEUFS;Viande, poisson, oeufs
+VIANDE,POISSON,OEUFS;Viande,poisson,oeufs
+VIE-SOCIALE;Vie sociale
+VIGILANCE;Vigilance
+VISITE;Visite
+YAOURT-FROM-BLANC,SUISSE;Yaourt from blanc,suisse
+YAOURT,FROM-BLANC,SUISSE;Yaourt,from blanc,suisse
+1MODEDEVII;1MODEDEVII
+3CONFIANCE;3CONFIANCE
