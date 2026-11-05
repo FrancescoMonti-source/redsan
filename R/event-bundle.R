@@ -223,7 +223,8 @@ edsan_event_bundle <- function(event_id, sources) {
 #'
 #' Modules are retrieved with `process = TRUE`, so reference labels added by the
 #' module processors are present in every bundle: `biol` carries `TYPEANA_LABEL`
-#' from [label_biol()] and PMSI carries the labels added by [label_pmsi()].
+#' from [label_biol()], `pancarte` carries `TYPE_LABEL` from [label_pancarte()],
+#' and PMSI carries the labels added by [label_pmsi()].
 #'
 #' @examples
 #' \dontrun{
@@ -269,8 +270,9 @@ edsan_get_event_bundles <- function(event_ids, modules = "all") {
 #' @details
 #' This function only forwards to [edsan_get_event_bundles()] and unwraps the single
 #' bundle, so retrieval, normalization, and reference labelling behave exactly as
-#' in the plural form: `biol` carries `TYPEANA_LABEL` from [label_biol()] and
-#' PMSI carries the labels added by [label_pmsi()].
+#' in the plural form: `biol` carries `TYPEANA_LABEL` from [label_biol()],
+#' `pancarte` carries `TYPE_LABEL` from [label_pancarte()], and PMSI carries
+#' the labels added by [label_pmsi()].
 #'
 #' Retrieval is fail-fast. If any selected module cannot be retrieved, no
 #' partial bundle is returned. Empty normalized module tables are retained.

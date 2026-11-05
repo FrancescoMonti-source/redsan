@@ -26,6 +26,9 @@ The primary composite aggregate in `redsan`, packaging all multimodal data for a
 - `doceds`: Clinical documents (`RECTXT`, `RECTYPE`, dates, ward codes).
 - `pmsi`: Inpatient administrative coding (main stay data, CCAM surgical acts, CIM-10 diagnoses).
 - `biol`: Laboratory exam measurements (LOINC codes, raw values, reference ranges).
+- `viro`: Virology results with source time in `DATEPRELEV`.
+- `pancarte`: Ward measurements and observations, with source time in `DATEMES`,
+  measurement type in `TYPE`, and textual/numeric results in `STRRES` / `NUMRES`.
 
 ### Grounding Guarantee
 The invariant that any transformation, summarization, or trimming of a `RECTXT` document must map preserved clinical narrative back to exact character intervals `[start, end]` in the raw, unedited source text to ensure auditability in downstream medical coding.

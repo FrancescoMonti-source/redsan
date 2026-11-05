@@ -13,6 +13,14 @@
 #'   columns recording explicitly supplied times. `JOURMES` is omitted because
 #'   it repeats the date of `DATEMES`. `TYPE_LABEL` comes from [label_pancarte()].
 #'
+#' @details
+#' Datetimes use the existing `Europe/Paris` parsing convention. A date-only
+#' input has no explicit time in its `HEURE_*` column.
+#' `PATSEX`, `SEJUM`, `SEJUF`, and `CMT` retain their native names. Several unit
+#' codes in one field are joined with `;`, keeping one row per measurement.
+#' Textual and numeric results are retained independently; no unit or corrected
+#' clinical value is inferred from the measurement type.
+#'
 #' @examples
 #' raw <- list(
 #'   measurement_0 = list(

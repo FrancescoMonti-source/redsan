@@ -20,7 +20,8 @@
 #' * [doceds_normalize()] for documents;
 #' * [pmsi_normalize()] for PMSI movement-level main rows, acts, and diagnoses;
 #' * [biol_normalize()] for biology results;
-#' * [viro_normalize()] for virology results.
+#' * [viro_normalize()] for virology results;
+#' * [pancarte_normalize()] for ward measurements and observations.
 #'
 #' Set `process = FALSE` in [edsan_get()] when the raw response is the artifact
 #' to retain or normalize later.
@@ -31,7 +32,9 @@
 #' PMSI objects and can be applied to older artifacts. [pmsi_normalize()] reuses
 #' it so new normalized outputs are labelled automatically.
 #' [label_biol()] similarly adds packaged analyte labels to normalized biology
-#' rows, and [biol_normalize()] reuses it for new outputs. [edsan_reference()]
+#' rows, and [biol_normalize()] reuses it for new outputs. [label_pancarte()]
+#' adds measurement type labels through `TYPE`, and [pancarte_normalize()]
+#' applies it automatically. [edsan_reference()]
 #' returns any normalized mapping for explicit joins. Enrichment preserves
 #' native codes and row grain; unmatched codes receive a missing label.
 #'
@@ -66,7 +69,8 @@
 #'
 #' @seealso
 #' [edsan_source_catalog()], [edsan_reference_catalog()], [label_pmsi()],
-#' [label_biol()], [edsan_get()], [edsan_ct()], [edsan_get_event_bundle()]
+#' [label_biol()], [label_pancarte()], [pancarte_normalize()], [edsan_get()],
+#' [edsan_ct()], [edsan_get_event_bundle()]
 #'
 #' @keywords internal
 #' @importFrom magrittr %>%
