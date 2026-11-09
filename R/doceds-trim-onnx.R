@@ -1531,55 +1531,183 @@ edsan_trimmer_versions <- function() {
 
 #' Resolve edsan-doc-trimmer Python Executable
 #'
+#' REDSAN_PYTHON_PATH is an explicit override. Otherwise inspect known virtual
+#' environments, Python configured for RStudio/reticulate, system interpreters,
+#' and Windows per-user installations. Only return interpreters that can
+#' actually import the three runtime dependencies.
+#'
 #' @noRd
 .edsan_get_python_exe <- function() {
-  env_path <- Sys.getenv("REDSAN_PYTHON_PATH", "")
-  if (nzchar(env_path) && file.exists(env_path)) {
-    return(normalizePath(env_path))
+  configured <- Sys.getenv("REDSAN_PYTHON_PATH", "")
+  candidates <- if (nzchar(configured)) {
+    configured
+  } else {
+    .edsan_python_candidates()
   }
+  candidates <- unique(path.expand(candidates[nzchar(candidates)]))
+  failures <- character()
+
+  for (candidate in candidates) {
+    if (!file.exists(candidate) || dir.exists(candidate)) {
+      failures <- c(failures, sprintf("%s: executable not found", candidate))
+      next
+    }
+    candidate <- normalizePath(candidate, winslash = "/", mustWork = TRUE)
+    check <- .edsan_python_probe(candidate)
+    if (isTRUE(check$ok)) {
+      return(candidate)
+    }
+    failures <- c(failures, sprintf("%s: %s", candidate, check$reason))
+  }
+
+  heading <- if (nzchar(configured)) {
+    "REDSAN_PYTHON_PATH does not point to a usable Python environment."
+  } else {
+    "No Python environment with the required packages was found."
+  }
+  stop(
+    paste0(
+      "[redsan] ", heading, "\n",
+      "The document trimmer needs Python with onnxruntime, tokenizers and numpy.\n",
+      if (length(failures)) {
+        paste0("Checked interpreters:\n  - ", paste(failures, collapse = "\n  - "), "\n")
+      } else {
+        "No Python executable candidates were discovered.\n"
+      },
+      "Install the missing packages in an existing environment, or set ",
+      "REDSAN_PYTHON_PATH to a suitable python executable."
+    ),
+    call. = FALSE
+  )
+}
+
+#' Check the Python worker dependencies using a subprocess, without binding
+#' reticulate to an interpreter in the running R process.
+#' @noRd
+.edsan_python_probe <- function(executable) {
+  result <- tryCatch(
+    processx::run(
+      executable,
+      c("-c", "import onnxruntime, tokenizers, numpy"),
+      error_on_status = FALSE,
+      timeout = 15000
+    ),
+    error = function(e) e
+  )
+  if (inherits(result, "error")) {
+    return(list(ok = FALSE, reason = conditionMessage(result)))
+  }
+  if (identical(result$status, 0L)) {
+    return(list(ok = TRUE, reason = ""))
+  }
+  details <- trimws(paste(result$stderr, result$stdout))
+  missing <- regmatches(
+    details,
+    gregexpr("No module named ['\"][^'\"]+['\"]", details, perl = TRUE)
+  )[[1L]]
+  reason <- if (length(missing)) {
+    paste(missing, collapse = "; ")
+  } else if (nzchar(details)) {
+    substr(details, 1L, 500L)
+  } else {
+    sprintf("Python exited with status %s", result$status)
+  }
+  list(ok = FALSE, reason = reason)
+}
+
+#' Discover Python interpreters in priority order, without importing Python.
+#' @noRd
+.edsan_python_candidates <- function() {
+  roots <- c(Sys.getenv("USERPROFILE", ""), Sys.getenv("HOME", ""))
+  roots <- unique(roots[nzchar(roots)])
+  project_venvs <- unlist(lapply(
+    roots,
+    function(root) c(
+      file.path(root, "Documents", "Git", "edsan-doc-trimmer", ".venv", "Scripts", "python.exe"),
+      file.path(root, "Documents", "Git", "edsan-doc-trimmer", ".venv", "bin", "python")
+    )
+  ), use.names = FALSE)
+
+  reticulate_path <- if (requireNamespace("reticulate", quietly = TRUE)) {
+    # py_discover_config() does not initialize embedded Python.
+    tryCatch(reticulate::py_discover_config()$python, error = function(e) "")
+  } else {
+    ""
+  }
+
+  win_candidates <- character()
+  if (.Platform$OS.type == "windows") {
+    local_app <- Sys.getenv("LOCALAPPDATA", "")
+    if (nzchar(local_app)) {
+      install_root <- file.path(local_app, "Programs", "Python")
+      if (dir.exists(install_root)) {
+        win_candidates <- file.path(
+          list.dirs(install_root, recursive = FALSE, full.names = TRUE),
+          "python.exe"
+        )
+      }
+    }
+    win_candidates <- c(win_candidates, .edsan_python_launcher_candidates())
+  }
+
+  rstudio_path <- getOption("rstudio.python.installationPath", "")
+  # RStudio may provide an installation directory rather than an executable.
+  if (length(rstudio_path) == 1L && nzchar(rstudio_path) &&
+      dir.exists(rstudio_path)) {
+    rstudio_path <- file.path(
+      rstudio_path,
+      if (.Platform$OS.type == "windows") "python.exe" else "bin/python"
+    )
+  }
+
+  virtual_env <- Sys.getenv("VIRTUAL_ENV", "")
+  conda_env <- Sys.getenv("CONDA_PREFIX", "")
   candidates <- c(
-    file.path(
-      Sys.getenv("USERPROFILE"),
-      "Documents",
-      "Git",
-      "edsan-doc-trimmer",
-      ".venv",
-      "Scripts",
-      "python.exe"
+    Sys.getenv("RETICULATE_PYTHON", ""),
+    if (nzchar(virtual_env)) file.path(
+      virtual_env, if (.Platform$OS.type == "windows") "Scripts/python.exe" else "bin/python"
     ),
-    file.path(
-      Sys.getenv("HOME"),
-      "Documents",
-      "Git",
-      "edsan-doc-trimmer",
-      ".venv",
-      "bin",
-      "python"
+    if (nzchar(conda_env)) file.path(
+      conda_env, if (.Platform$OS.type == "windows") "python.exe" else "bin/python"
     ),
-    file.path(
-      Sys.getenv("HOME"),
-      "Documents",
-      "Git",
-      "edsan-doc-trimmer",
-      ".venv",
-      "Scripts",
-      "python.exe"
-    ),
+    rstudio_path,
+    project_venvs,
     file.path("..", "edsan-doc-trimmer", ".venv", "Scripts", "python.exe"),
     file.path("..", "edsan-doc-trimmer", ".venv", "bin", "python"),
-    file.path(".venv", "bin", "python"),
     file.path(".venv", "Scripts", "python.exe"),
-    file.path("venv", "bin", "python"),
+    file.path(".venv", "bin", "python"),
     file.path("venv", "Scripts", "python.exe"),
+    file.path("venv", "bin", "python"),
+    reticulate_path,
     Sys.which("python3"),
-    Sys.which("python")
+    Sys.which("python"),
+    win_candidates
   )
-  for (cand in candidates) {
-    if (nzchar(cand) && file.exists(cand)) {
-      return(normalizePath(cand))
-    }
+  unique(candidates[!is.na(candidates) & nzchar(candidates)])
+}
+
+#' Ask the Windows Python launcher for registered interpreter paths.
+#' @noRd
+.edsan_python_launcher_candidates <- function() {
+  launcher <- Sys.which("py")
+  if (!nzchar(launcher)) {
+    return(character())
   }
-  ""
+  result <- tryCatch(
+    processx::run(launcher, "-0p", error_on_status = FALSE, timeout = 5000),
+    error = function(e) NULL
+  )
+  if (is.null(result) || !identical(result$status, 0L)) {
+    return(character())
+  }
+  lines <- strsplit(paste(result$stdout, result$stderr, sep = "\n"), "\n", fixed = TRUE)[[1L]]
+  paths <- vapply(lines, function(line) {
+    # Launcher output commonly looks like "-V:3.13 * C:\...\python.exe".
+    drive <- regexpr("[A-Za-z]:", line)
+    if (drive[1L] < 0L) return("")
+    gsub('"', "", trimws(substr(line, drive[1L], nchar(line))), fixed = TRUE)
+  }, character(1))
+  paths[nzchar(paths) & grepl("python\\.exe$", paths, ignore.case = TRUE)]
 }
 
 #' Resolve edsan-doc-trimmer Model Directory
