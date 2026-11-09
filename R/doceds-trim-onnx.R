@@ -1705,7 +1705,7 @@ edsan_trimmer_versions <- function() {
     # Launcher output commonly looks like "-V:3.13 * C:\...\python.exe".
     drive <- regexpr("[A-Za-z]:", line)
     if (drive[1L] < 0L) return("")
-    trimws(gsub('^["' + "'" + ']|["' + "'" + ']$', "", substr(line, drive[1L], nchar(line))))
+    gsub('"', "", trimws(substr(line, drive[1L], nchar(line))), fixed = TRUE)
   }, character(1))
   paths[nzchar(paths) & grepl("python\\.exe$", paths, ignore.case = TRUE)]
 }
