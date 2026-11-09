@@ -178,3 +178,35 @@ test_that("ambiguous EVTID/IEP mappings fail rather than multiplying data", {
     connection = structure(list(), class = "fake_connection")
   ), "Ambiguous")
 })
+
+test_that("bundle retrieval opts into CORA only when requested", {
+  calls <- character()
+  fake_edsan <- function(module, what, query, process) {
+    calls <<- c(calls, module)
+    tibble::tibble(EVTID = query$EVTID, ELTID = "EDSAN:D1",
+                   RECTXT = "Existing", RECTYPE = "CR")
+  }
+  fake_cora <- function(ids, id_type, types) {
+    expect_identical(ids, c("101", "102"))
+    expect_identical(id_type, "EVTID")
+    expect_identical(types, "DIET")
+    tibble::tibble(
+      EVTID = "101", NODOCUMENT = "7", TYPEDOC = "W",
+      OBS_CODE = "DIET", NOSOUSVOLET = "443", TYPEEVT = "H",
+      CORA_NOEVT = "8", TEXT = "Nutrition"
+    )
+  }
+  testthat::local_mocked_bindings(
+    edsan_get = fake_edsan,
+    cora_get_observations = fake_cora,
+    .package = "redsan"
+  )
+  baseline <- edsan_get_event_bundles(c("101", "102"), modules = "doceds")
+  expect_identical(nrow(baseline[["101"]]$sources$doceds), 1L)
+  out <- edsan_get_event_bundles(c("101", "102"),
+    modules = "doceds", include_observations = "DIET"
+  )
+  expect_identical(calls, c("doceds", "doceds"))
+  expect_identical(nrow(out[["101"]]$sources$doceds), 2L)
+  expect_identical(nrow(out[["102"]]$sources$doceds), 1L)
+})
