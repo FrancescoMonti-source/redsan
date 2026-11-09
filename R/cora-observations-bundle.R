@@ -102,7 +102,9 @@ add_observations <- function(bundles, observations) {
             nrow(existing)) {
           observed <- existing[[column]]
           idx <- which(!is.na(observed))
-          if (length(idx)) {
+          # One EVTID can have multiple PATID values in EDSaN: do not
+          # invent a patient identity when the native data are ambiguous.
+          if (length(idx) && length(unique(as.character(observed[idx]))) == 1L) {
             added[[column]] <- rep(observed[idx[[1L]]], nrow(added))
           }
         }
