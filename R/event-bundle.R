@@ -214,6 +214,11 @@ edsan_event_bundle <- function(event_id, sources) {
 #' @param modules EDSAN modules to retrieve. Use `"all"` (the default) for every
 #'   module registered by [edsan_source_catalog()], or provide a character vector.
 #'
+#' @param include_observations NULL (default) for EDSaN only, "all" for all
+#'   active CORA observation types, or CORA T_SOUS_VOLET.CODE values.
+#'   Requested CORA documents are added to sources$doceds after retrieval;
+#'   if doceds was not selected, only the CORA rows form that source.
+#'
 #' @return A named list of `edsan_event_bundle` objects in requested event order.
 #'
 #' @details Retrieval is fail-fast. If any requested module cannot be retrieved,
@@ -236,7 +241,8 @@ edsan_event_bundle <- function(event_id, sources) {
 #' }
 #'
 #' @export
-edsan_get_event_bundles <- function(event_ids, modules = "all") {
+edsan_get_event_bundles <- function(event_ids, modules = "all",
+                                    include_observations = NULL) {
   event_ids <- .validate_event_ids(event_ids)
   modules <- .resolve_event_bundle_modules(modules)
 
@@ -250,7 +256,14 @@ edsan_get_event_bundles <- function(event_ids, modules = "all") {
     )
   }
 
-  edsan_event_bundles(event_ids, retrieved)
+  bundles <- edsan_event_bundles(event_ids, retrieved)
+  if (!is.null(include_observations)) {
+    observations <- cora_get_observations(
+      event_ids, id_type = "EVTID", types = include_observations
+    )
+    bundles <- add_observations(bundles, observations)
+  }
+  bundles
 }
 
 #' Retrieve normalized EDSAN sources for one event
@@ -287,8 +300,12 @@ edsan_get_event_bundles <- function(event_ids, modules = "all") {
 #' }
 #'
 #' @export
-edsan_get_event_bundle <- function(event_id, modules = "all") {
-  edsan_get_event_bundles(.validate_single_event_id(event_id), modules)[[1L]]
+edsan_get_event_bundle <- function(event_id, modules = "all",
+                                   include_observations = NULL) {
+  edsan_get_event_bundles(
+    .validate_single_event_id(event_id), modules,
+    include_observations = include_observations
+  )[[1L]]
 }
 
 #' Deprecated event-bundle constructor names
@@ -315,18 +332,22 @@ build_event_bundle <- function(event_id, sources) {
 #' @inheritParams edsan_get_event_bundles
 #' @return The value returned by [edsan_get_event_bundles()].
 #' @export
-get_event_bundles <- function(event_ids, modules = "all") {
+get_event_bundles <- function(event_ids, modules = "all",
+                              include_observations = NULL) {
   .redsan_deprecate("get_event_bundles", "edsan_get_event_bundles")
-  edsan_get_event_bundles(event_ids, modules)
+  edsan_get_event_bundles(event_ids, modules,
+                          include_observations = include_observations)
 }
 
 #' @rdname get_event_bundles
 #' @inheritParams edsan_get_event_bundle
 #' @return The value returned by [edsan_get_event_bundle()].
 #' @export
-get_event_bundle <- function(event_id, modules = "all") {
+get_event_bundle <- function(event_id, modules = "all",
+                             include_observations = NULL) {
   .redsan_deprecate("get_event_bundle", "edsan_get_event_bundle")
-  edsan_get_event_bundle(event_id, modules)
+  edsan_get_event_bundle(event_id, modules,
+                         include_observations = include_observations)
 }
 
 .event_bundle_count <- function(x) {
