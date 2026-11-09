@@ -95,6 +95,18 @@ add_observations <- function(bundles, observations) {
                      , drop = FALSE]
     }
     if (nrow(added)) {
+      # Reuse patient context from an already-normalized EDSaN document when
+      # available. CORA rows stay valid even when no EDSaN document exists.
+      for (column in c("PATID", "PATAGE", "PATSEX", "PATBD")) {
+        if (column %in% names(existing) && !column %in% names(added) &&
+            nrow(existing)) {
+          observed <- existing[[column]]
+          idx <- which(!is.na(observed))
+          if (length(idx)) {
+            added[[column]] <- rep(observed[idx[[1L]]], nrow(added))
+          }
+        }
+      }
       # Existing EDSaN rows keep their data and provenance; the bind adds only
       # new columns required to carry CORA metadata.
       bundle$sources$doceds <- dplyr::bind_rows(existing, added)
