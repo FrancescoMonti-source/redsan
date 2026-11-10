@@ -25,10 +25,10 @@ avoid requiring database privileges for existing callers.
 observations <- redsan::cora_get_observations(
   evtids, id_type = "EVTID", types = "DIET"
 )
-bundles <- redsan::add_observations(bundles, observations)
+bundles <- redsan::cora_add_observations(bundles, observations)
 ```
 
-`add_observations()` works on one bundle or a list and is idempotent.
+`cora_add_observations()` works on one bundle or a list and is idempotent.
 When DOCEDS was not requested, it creates `sources$doceds` from CORA
 rows alone; it does **not** issue an additional EDSaN DOCEDS request.
 

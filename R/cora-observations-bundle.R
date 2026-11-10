@@ -57,7 +57,7 @@
 #' @param observations Result of cora_get_observations().
 #' @return Bundles with merged sources$doceds tables.
 #' @export
-add_observations <- function(bundles, observations) {
+cora_add_observations <- function(bundles, observations) {
   single <- inherits(bundles, "edsan_event_bundle")
   if (single) bundles <- list(bundles)
   if (!is.list(bundles) ||

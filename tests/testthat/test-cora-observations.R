@@ -71,7 +71,7 @@ test_that("CORA rows retain compound IDs, provenance and raw text", {
       RECTYPE = "CR", RECTYPE_LABEL = "Compte rendu"
     ))
   )
-  joined <- add_observations(bundles, observations)
+  joined <- cora_add_observations(bundles, observations)
   first <- joined[["101"]]$sources$doceds
   expect_equal(nrow(first), 2L)
   expect_identical(first$ELTID, c("original", "CORA:W:55"))
@@ -85,7 +85,7 @@ test_that("CORA rows retain compound IDs, provenance and raw text", {
   expect_identical(second$RECTYPE, "CORA_KINE")
   expect_identical(second$TYPEEVT, "R")
   expect_identical(
-    add_observations(joined, observations),
+    cora_add_observations(joined, observations),
     joined
   )
 })
@@ -99,12 +99,12 @@ test_that("observations can add a DOCEDS source without EDSaN DOCEDS", {
     OBS_CODE = "DIET", NOSOUSVOLET = "443", TYPEEVT = "H",
     CORA_NOEVT = "8", TEXT = "Dénutrition"
   )
-  out <- add_observations(bundle, observations)
+  out <- cora_add_observations(bundle, observations)
   expect_s3_class(out, "edsan_event_bundle")
   expect_identical(out$sources$biol$NUMRES, 42)
   expect_identical(out$sources$doceds$RECTXT, "Dénutrition")
   expect_identical(
-    add_observations(out, observations)$sources$doceds,
+    cora_add_observations(out, observations)$sources$doceds,
     out$sources$doceds
   )
 })
@@ -114,7 +114,7 @@ test_that("no CORA observations preserves existing DOCEDS data", {
     doceds = tibble::tibble(EVTID = "101", ELTID = "D1", RECTXT = "Original")
   ))
   expect_identical(
-    add_observations(bundle, redsan:::.cora_empty_observations()),
+    cora_add_observations(bundle, redsan:::.cora_empty_observations()),
     bundle
   )
 })
@@ -128,7 +128,7 @@ test_that("unmapped CORA rows cannot be accidentally joined", {
     OBS_CODE = "DIET", NOSOUSVOLET = "443", TYPEEVT = "H",
     CORA_NOEVT = "8", TEXT = "Not safely mapped"
   )
-  expect_error(add_observations(bundle, observations), "without EVTID")
+  expect_error(cora_add_observations(bundle, observations), "without EVTID")
 })
 
 test_that("retrieval joins CORA catalog, CT mapping and documents", {

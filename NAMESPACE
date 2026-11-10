@@ -2,7 +2,7 @@
 
 S3method(print,edsan_event_bundle)
 S3method(print,icca_description)
-export(add_observations)
+export(cora_add_observations)
 export(cora_get_diet)
 export(cora_get_observations)
 export(cora_observation_catalog)

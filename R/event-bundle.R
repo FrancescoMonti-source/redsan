@@ -261,7 +261,7 @@ edsan_get_event_bundles <- function(event_ids, modules = "all",
     observations <- cora_get_observations(
       event_ids, id_type = "EVTID", types = include_observations
     )
-    bundles <- add_observations(bundles, observations)
+    bundles <- cora_add_observations(bundles, observations)
   }
   bundles
 }
