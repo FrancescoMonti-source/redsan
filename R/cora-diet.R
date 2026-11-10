@@ -9,7 +9,7 @@
   }
 }
 
-.cora_keystore_value <- function(key) {
+.cora_keystore_value <- function(key, ks_path = NULL) {
   .cora_require_namespace("d2imr", "connection setup")
 
   getter <- tryCatch(
@@ -24,7 +24,7 @@
   }
 
   value <- tryCatch(
-    getter(key),
+    if (is.null(ks_path)) getter(key) else getter(key, ks_path = ks_path),
     error = function(e) {
       stop(
         "Could not read CORA connection key `", key, "` from the d2imr keystore: ",
@@ -225,34 +225,6 @@
   )
 }
 
-.cora_query_diet_documents <- function(connection, ieps) {
-  ieps <- .cora_validate_ieps(ieps)
-  quoted <- paste0("'", ieps, "'", collapse = ", ")
-
-  sql <- paste0(
-    "SELECT DISTINCT\n",
-    "  m.NOSEJ AS IEP,\n",
-    "  d.NODOCUMENT,\n",
-    "  d.TYPEDOC,\n",
-    "  d.NOEVT AS CORA_NOEVT,\n",
-    "  d.DTDOC,\n",
-    "  d.TIMECREATE,\n",
-    "  d.REDACTEUR,\n",
-    "  m.NOUSHEB,\n",
-    "  m.NOUSRESP\n",
-    "FROM ICSF.MVTUS m\n",
-    "JOIN ICSF.T_DOCUMENT d\n",
-    "  ON d.NOEVT = m.NOMVTUS\n",
-    " AND d.TYPEEVT = 'H'\n",
-    "WHERE m.NOSEJ IN (", quoted, ")\n",
-    "  AND d.NOSOUSVOLET = 443\n",
-    "  AND d.ETATDOC = 1\n",
-    "ORDER BY m.NOSEJ, d.DTDOC"
-  )
-
-  DBI::dbGetQuery(connection, sql)
-}
-
 .cora_blob_length <- function(connection, nodocument, typedoc) {
   key <- .cora_validate_document_key(nodocument, typedoc)
   sql <- paste0(
@@ -339,109 +311,123 @@
   .cora_decode_gzip(do.call(c, chunks), nodocument = nodocument)
 }
 
-#' Retrieve CORA Diet observations by IEP or EVTID
+.cora_validate_diet_event_type <- function(event_type = c("H", "R")) {
+  match.arg(event_type, choices = c("H", "R"), several.ok = TRUE)
+}
+
+.cora_diet_documents_sql <- function(ieps, event_type = c("H", "R")) {
+  ieps <- .cora_validate_ieps(ieps)
+  event_type <- .cora_validate_diet_event_type(event_type)
+  quoted <- paste0("'", ieps, "'", collapse = ", ")
+
+  parts <- character()
+
+  if ("H" %in% event_type) {
+    parts <- c(parts, paste0(
+      "  SELECT DISTINCT\n",
+      "    m.NOSEJ AS IEP,\n",
+      "    d.NODOCUMENT,\n",
+      "    d.TYPEDOC,\n",
+      "    d.NOEVT AS CORA_NOEVT,\n",
+      "    d.DTDOC,\n",
+      "    d.TIMECREATE,\n",
+      "    d.REDACTEUR,\n",
+      "    m.NOUSHEB,\n",
+      "    m.NOUSRESP\n",
+      "  FROM ICSF.MVTUS m\n",
+      "  JOIN ICSF.T_DOCUMENT d\n",
+      "    ON d.NOEVT = m.NOMVTUS\n",
+      "   AND d.TYPEEVT = 'H'\n",
+      "  WHERE m.NOSEJ IN (", quoted, ")\n",
+      "    AND d.NOSOUSVOLET = 443\n",
+      "    AND d.ETATDOC = 1"
+    ))
+  }
+
+  if ("R" %in% event_type) {
+    parts <- c(parts, paste0(
+      "  SELECT DISTINCT\n",
+      "    r.NOSEJ AS IEP,\n",
+      "    d.NODOCUMENT,\n",
+      "    d.TYPEDOC,\n",
+      "    d.NOEVT AS CORA_NOEVT,\n",
+      "    d.DTDOC,\n",
+      "    d.TIMECREATE,\n",
+      "    d.REDACTEUR,\n",
+      "    CAST(NULL AS VARCHAR2(10)) AS NOUSHEB,\n",
+      "    CAST(NULL AS VARCHAR2(10)) AS NOUSRESP\n",
+      "  FROM ICSF.T_EVT_RDV r\n",
+      "  JOIN ICSF.T_DOCUMENT d\n",
+      "    ON d.NOEVT = r.NOEVT\n",
+      "   AND d.TYPEEVT = 'R'\n",
+      "  WHERE r.NOSEJ IN (", quoted, ")\n",
+      "    AND d.NOSOUSVOLET = 443\n",
+      "    AND d.ETATDOC = 1"
+    ))
+  }
+
+  paste0(
+    "SELECT *\n",
+    "FROM (\n",
+    paste(parts, collapse = "\n\n  UNION ALL\n\n"),
+    "\n)\n",
+    "ORDER BY IEP, DTDOC"
+  )
+}
+
+
+.cora_query_diet_documents <- function(connection, ieps,
+                                       event_type = c("H", "R"),
+                                       query_fn = DBI::dbGetQuery) {
+  ieps <- .cora_validate_ieps(ieps)
+  event_type <- .cora_validate_diet_event_type(event_type)
+  if (!length(ieps)) return(tibble::tibble())
+
+  # Oracle allows at most 1,000 expressions in an IN list. Keep each request
+  # below that limit so large CORA lookups work without caller-side batching.
+  batch_size <- 900L
+  batch_index <- (seq_along(ieps) - 1L) %/% batch_size
+  batches <- split(ieps, batch_index)
+
+  results <- lapply(batches, function(batch_ieps) {
+    query_fn(
+      connection,
+      .cora_diet_documents_sql(batch_ieps, event_type = event_type)
+    )
+  })
+  documents <- dplyr::bind_rows(results)
+
+  # Each SQL query sorts its own batch. Reapply the same keys after binding so
+  # rows from different batches retain the original global query order.
+  if (nrow(documents)) {
+    documents <- documents[
+      order(documents$IEP, documents$DTDOC, na.last = TRUE),
+      ,
+      drop = FALSE
+    ]
+  }
+
+  documents
+}
+
+
+#' Retrieve CORA dietary observations (legacy interface)
 #'
-#' Retrieves Diet observation documents associated with one or more hospital
-#' stays. Input identifiers may be real hospital IEPs or pseudonymized EDSaN
-#' EVTIDs. Both identifiers are returned in the output so their correspondence
-#' is preserved alongside the CORA document.
-#'
-#' @param ids Character vector of stay identifiers.
-#' @param id_type Input identifier type: `"IEP"` (default) or `"EVTID"`.
-#' @param event_type CORA event families to retrieve: hospital documents (`"H"`),
-#'   rehabilitation documents (`"R"`), or both (the default).
-#' @param connection Optional existing CORA DBI connection. When `NULL`,
-#'   `redsan` opens a CORA JDBC connection and closes it before returning.
-#' @param ojdbc_jar Optional path to an Oracle JDBC driver. Used only when
-#'   `connection` is `NULL`.
-#' @param chunk_size Maximum number of BLOB bytes requested per Oracle
-#'   `DBMS_LOB.SUBSTR()` call. The default (2000) is deliberately conservative
-#'   for Oracle RAW conversion through RJDBC.
-#' @param env EDSaN CT web-service environment used for EVTID/IEP mapping.
-#' @param ks_path Optional d2imr keystore path for EDSaN CT correspondence.
-#' @return A tibble with one row per active Diet document. The first two columns,
-#'   `EVTID` and `IEP`, expose the identifier correspondence; `TEXT` contains the
-#'   decompressed observation.
-#' @details CORA stores the IEP as `MVTSEJ.NOSEJ`. Diet documents are linked via
-#'   `MVTUS.NOMVTUS` to `T_DOCUMENT.NOEVT`, restricted to
-#'   `NOSOUSVOLET = 443`. `T_DOCUMENT.NOEVT` is a CORA-internal event key and is
-#'   returned as `CORA_NOEVT` to avoid confusion with the EDSaN `EVTID`.
-#'
-#'   Large lookups are split into batches of 900 IEPs to stay below Oracle's
-#'   1,000-expression limit for an `IN` list. `chunk_size` independently
-#'   controls the number of BLOB bytes read per request.
-#'
-#'   EVTID input is reidentified to IEP through EDSaN CT before the indexed CORA
-#'   lookup. IEP input is pseudonymized through EDSaN CT so the corresponding
-#'   EVTID can be returned. A valid IEP with no EDSaN correspondence can still
-#'   produce CORA rows with `EVTID = NA`; a CT backend failure raises an error.
-#'
-#'   The function performs indexed lookups by IEP and document key; it does not
-#'   scan `T_DOCUMENT` or `T_DOCUMENT_MEMO` for text.
+#' Compatibility wrapper preserving the historical 11-column result.
+#' Prefer cora_get_diet() for source metadata and provenance.
+#' @inheritParams cora_get_diet
+#' @return The historical 11-column CORA Diet tibble.
 #' @export
 get_cora_diet <- function(ids, id_type = c("IEP", "EVTID"),
+                          event_type = c("H", "R"),
                           connection = NULL, ojdbc_jar = NULL,
                           chunk_size = 2000L,
                           env = "edsan-ct", ks_path = NULL) {
-  id_type <- match.arg(id_type)
-  ids <- .cora_validate_stay_ids(ids, id_type)
-  if (!length(ids)) return(.cora_empty_diet())
-
-  if (length(chunk_size) != 1L || is.na(chunk_size) ||
-      chunk_size < 1L || chunk_size > 2000L) {
-    stop("`chunk_size` must be a single integer between 1 and 2000.",
-         call. = FALSE)
-  }
-  chunk_size <- as.integer(chunk_size)
-
-  mapping <- .cora_diet_id_map(
-    ids,
-    id_type = id_type,
-    env = env,
-    ks_path = ks_path
+  .redsan_deprecate("get_cora_diet", "cora_get_diet")
+  out <- cora_get_diet(
+    ids, id_type = id_type, event_type = event_type,
+    connection = connection, ojdbc_jar = ojdbc_jar,
+    chunk_size = chunk_size, env = env, ks_path = ks_path
   )
-  query_ieps <- unique(mapping$IEP[!is.na(mapping$IEP) & nzchar(mapping$IEP)])
-  if (!length(query_ieps)) return(.cora_empty_diet())
-
-  .cora_require_namespace("DBI", "query execution")
-
-  owns_connection <- is.null(connection)
-  if (owns_connection) {
-    connection <- .cora_connect(ojdbc_jar = ojdbc_jar)
-    on.exit(DBI::dbDisconnect(connection), add = TRUE)
-  }
-
-  docs <- .cora_query_diet_documents(connection, query_ieps)
-  if (!nrow(docs)) return(.cora_empty_diet())
-
-  docs <- tibble::as_tibble(docs)
-  docs$IEP <- trimws(as.character(docs$IEP))
-  docs$NODOCUMENT <- trimws(as.character(docs$NODOCUMENT))
-  docs$TYPEDOC <- trimws(as.character(docs$TYPEDOC))
-  docs$CORA_NOEVT <- trimws(as.character(docs$CORA_NOEVT))
-  docs$REDACTEUR <- trimws(as.character(docs$REDACTEUR))
-  docs$NOUSHEB <- trimws(as.character(docs$NOUSHEB))
-  docs$NOUSRESP <- trimws(as.character(docs$NOUSRESP))
-
-  docs <- dplyr::left_join(docs, mapping, by = "IEP")
-  docs <- docs[, c(
-    "EVTID", "IEP", "NODOCUMENT", "TYPEDOC", "CORA_NOEVT",
-    "DTDOC", "TIMECREATE", "REDACTEUR", "NOUSHEB", "NOUSRESP"
-  ), drop = FALSE]
-
-  docs$TEXT <- mapply(
-    function(nodocument, typedoc) {
-      .cora_read_diet_blob(
-        connection,
-        nodocument = nodocument,
-        typedoc = typedoc,
-        chunk_size = chunk_size
-      )
-    },
-    docs$NODOCUMENT,
-    docs$TYPEDOC,
-    USE.NAMES = FALSE
-  )
-
-  tibble::as_tibble(docs)
+  out[, names(.cora_empty_diet()), drop = FALSE]
 }

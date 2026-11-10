@@ -2,6 +2,10 @@
 
 S3method(print,edsan_event_bundle)
 S3method(print,icca_description)
+export(cora_add_observations)
+export(cora_get_diet)
+export(cora_get_observations)
+export(cora_observation_catalog)
 export(biol_normalize)
 export(build_event_bundle)
 export(build_event_bundles)

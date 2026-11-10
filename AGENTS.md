@@ -15,7 +15,7 @@ Source files in `R/` follow `<module>-<subsystem>.R`:
 *(Base single-word modules: `biol.R`, `cora.R`, `doceds.R`, `pmsi.R`, `sources.R`, `get_edsan.R`).*
 
 ### Collation Order Overrides (`zzz-*.R`)
-R collates and loads source files alphabetically. Files prefixed with `zzz-`, `zzzz-`, or `zzzzz-` are deliberate **collation overrides** that monkey-patch or extend earlier function definitions (e.g. `zzz-cora-diet-rdv.R`, `zzzz-edsan-desktop-direct.R`). Do not rename them to earlier alphabetical names.
+R collates and loads source files alphabetically. Files prefixed with `zzz-`, `zzzz-`, or `zzzzz-` are deliberate **collation overrides** that monkey-patch or extend earlier function definitions (e.g. `zzzz-edsan-desktop-direct.R`). Do not rename them to earlier alphabetical names.
 
 ### R Function Naming (`snake_case`)
 - **Canonical domain-level exports** are domain-first. The remaining terms name
