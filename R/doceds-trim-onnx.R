@@ -11,8 +11,10 @@
 #' @param text_col Column name containing the text if `data` is a data frame or bundle.
 #'   Defaults to `NULL`, which automatically checks `"RECTXT"`, `"text"`, `"raw_text"`,
 #'   `"content"`, or `"document"`.
-#' @param python_exe Path to Python executable with `onnxruntime` and `tokenizers` installed.
-#'   Defaults to auto-detecting the `edsan-doc-trimmer` virtual environment or `REDSAN_PYTHON_PATH`.
+#' @param python_exe Path to a Python executable with `onnxruntime`,
+#'   `tokenizers`, and `numpy`. By default, `REDSAN_PYTHON_PATH` selects
+#'   the executable when set. Otherwise the function searches for a usable
+#'   Python environment.
 #' @param model_dir Path to the versioned runtime artifact containing `model.onnx`,
 #'   `tokenizer.json`, `trim_batch_service.py`, and `artifact.json`. If `NULL`,
 #'   the artifact is discovered as described in [edsan_trimmer_cache_dir()].
@@ -47,8 +49,8 @@
 #'       `TRIM_EXECUTION_PROVIDER`.
 #'     \item **Single bundle (`edsan_event_bundle`)**: Returns the bundle with its `sources$doceds`
 #'       table augmented.
-#'     \item **List of bundles**: Evaluates all document texts in a single batch
-#'       and returns the list of bundles with each `sources$doceds` augmented, leaving all original
+#'     \item **List of bundles**: Processes document texts across the cohort in
+#'       chunks and returns the list with each `sources$doceds` augmented, leaving all original
 #'       schema structures and attributes intact.
 #'   }
 #'

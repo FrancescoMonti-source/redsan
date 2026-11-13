@@ -31,6 +31,7 @@
 #' [label_pmsi()] adds the packaged CIM-10 and CCAM/CDAM labels to normalized
 #' PMSI objects and can be applied to older artifacts. [pmsi_normalize()] reuses
 #' it so new normalized outputs are labelled automatically.
+#' [label_doceds()] adds `RECTYPE_LABEL` during document normalization.
 #' [label_biol()] similarly adds packaged analyte labels to normalized biology
 #' rows, and [biol_normalize()] reuses it for new outputs. [label_pancarte()]
 #' adds measurement type labels through `TYPE`, and [pancarte_normalize()]
@@ -45,6 +46,10 @@
 #' [edsan_event_bundles()] to partition them without another EDSAN request.
 #' [edsan_render_event_bundle()] serializes a bundle to neutral JSON without selecting
 #' clinical content.
+#' Set `include_observations` in either retrieval function to add CORA
+#' observations to `sources$doceds`. [cora_observation_catalog()] lists the
+#' available types, and [cora_add_observations()] attaches observations to
+#' bundles already in memory.
 #'
 #' @section Translate identifiers:
 #' [edsan_ct()] resolves explicit IPP, IEP, PATID, or EVTID correspondence and
@@ -54,7 +59,9 @@
 #'
 #' @section Query CORA and ICCA:
 #' [cora_query()] and [icca_query()] execute read-only queries against their
-#' respective systems. [icca_get()] retrieves ICCA data by EDSaN EVTID.
+#' respective systems. [db_connect()] opens a reusable connection.
+#' [cora_get_observations()] retrieves CORA observations by IEP or EVTID, and
+#' [icca_get()] retrieves ICCA data by EDSaN EVTID.
 #'
 #' @section Source and downstream responsibilities:
 #' `redsan` owns source mechanics: retrieval, batching, parsing, normalized table

@@ -95,10 +95,9 @@
 
 #' Execute a read-only query against CORA
 #'
-#' Executes one read-only Oracle query against CORA using the same JDBC
-#' connection settings already used by [get_cora_diet()]. The connection is
-#' configured through the active `d2imr` keystore (`db.cora.url`,
-#' `db.cora.usr`, and `db.cora.pwd`).
+#' Executes one read-only Oracle query against CORA. A transient connection
+#' uses the active `d2imr` keystore (`db.cora.url`, `db.cora.usr`, and
+#' `db.cora.pwd`). Use [db_connect()] to reuse a connection across queries.
 #'
 #' @param sql One Oracle `SELECT` statement. Common table expressions
 #'   (`WITH ... SELECT ...`) are accepted. Multiple statements, write operations,

@@ -22,8 +22,10 @@ a single \code{edsan_event_bundle}, or a list of event bundles.}
 Defaults to \code{NULL}, which automatically checks \code{"RECTXT"}, \code{"text"}, \code{"raw_text"},
 \code{"content"}, or \code{"document"}.}
 
-\item{python_exe}{Path to Python executable with \code{onnxruntime} and \code{tokenizers} installed.
-Defaults to auto-detecting the \code{edsan-doc-trimmer} virtual environment or \code{REDSAN_PYTHON_PATH}.}
+\item{python_exe}{Path to a Python executable with \code{onnxruntime},
+\code{tokenizers}, and \code{numpy}. By default, \code{REDSAN_PYTHON_PATH} selects
+the executable when set. Otherwise the function searches for a usable
+Python environment.}
 
 \item{model_dir}{Path to the versioned runtime artifact containing \code{model.onnx},
 \code{tokenizer.json}, \code{trim_batch_service.py}, and \code{artifact.json}. If \code{NULL},
@@ -63,8 +65,8 @@ Depending on the input shape:
 \code{TRIM_EXECUTION_PROVIDER}.
 \item \strong{Single bundle (\code{edsan_event_bundle})}: Returns the bundle with its \code{sources$doceds}
 table augmented.
-\item \strong{List of bundles}: Evaluates all document texts in a single batch
-and returns the list of bundles with each \code{sources$doceds} augmented, leaving all original
+\item \strong{List of bundles}: Processes document texts across the cohort in
+chunks and returns the list with each \code{sources$doceds} augmented, leaving all original
 schema structures and attributes intact.
 }
 
