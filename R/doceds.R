@@ -9,6 +9,7 @@
 #' @return A tibble. When `RECDATE` is present, it is parsed to `POSIXct` and
 #'   `HEURE_RECDATE` records an `hms` value only when the source string included
 #'   an explicit time. When `PATAGE` is present, it is converted to numeric.
+#'   When `RECTYPE` is present, [label_doceds()] adds `RECTYPE_LABEL`.
 #'
 #' @examples
 #' doceds_normalize(data.frame(
