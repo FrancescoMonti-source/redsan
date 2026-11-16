@@ -2,7 +2,7 @@
 % Please edit documentation in R/cora-diet.R
 \name{get_cora_diet}
 \alias{get_cora_diet}
-\title{Retrieve CORA Diet observations by IEP or EVTID}
+\title{Retrieve CORA dietary observations (legacy interface)}
 \usage{
 get_cora_diet(
   ids,
@@ -16,53 +16,33 @@ get_cora_diet(
 )
 }
 \arguments{
-\item{ids}{Character vector of stay identifiers.}
+\item{ids}{Character vector of stay identifiers containing digits only.}
 
-\item{id_type}{Input identifier type: \code{"IEP"} (default) or \code{"EVTID"}.}
+\item{id_type}{Input identifier type, \code{"IEP"} (default) or \code{"EVTID"}.}
 
-\item{event_type}{CORA event families to retrieve: hospital documents (\code{"H"}),
-rehabilitation documents (\code{"R"}), or both (the default).}
+\item{event_type}{CORA event types to include. Use \code{"H"} for hospital
+movements, \code{"R"} for appointments, or \code{c("H", "R")} (default) for both.}
 
-\item{connection}{Optional existing CORA DBI connection. When \code{NULL},
-\code{redsan} opens a CORA JDBC connection and closes it before returning.}
+\item{connection}{Optional existing CORA DBI connection. With \code{NULL},
+the function opens and closes its own connection.}
 
-\item{ojdbc_jar}{Optional path to an Oracle JDBC driver. Used only when
+\item{ojdbc_jar}{Optional path to an Oracle JDBC driver, used when
 \code{connection} is \code{NULL}.}
 
-\item{chunk_size}{Maximum number of BLOB bytes requested per Oracle
-\code{DBMS_LOB.SUBSTR()} call. The default (2000) is deliberately conservative
-for Oracle RAW conversion through RJDBC.}
+\item{chunk_size}{Number of bytes per read of the stored document text.
+Must be a whole number from 1 to 2000.}
 
-\item{env}{EDSaN CT web-service environment used for EVTID/IEP mapping.}
+\item{env}{EDSaN CT service environment used for EVTID/IEP mapping.}
 
-\item{ks_path}{Optional d2imr keystore path for EDSaN CT correspondence.}
+\item{ks_path}{Optional d2imr keystore path for EDSaN CT and any CORA
+connection opened by this function.}
 }
 \value{
-A tibble with one row per active Diet document. The first two columns,
-\code{EVTID} and \code{IEP}, expose the identifier correspondence; \code{TEXT} contains the
-decompressed observation.
+A tibble with \code{EVTID}, \code{IEP}, \code{NODOCUMENT}, \code{TYPEDOC},
+  \code{CORA_NOEVT}, \code{DTDOC}, \code{TIMECREATE}, \code{REDACTEUR}, \code{NOUSHEB},
+  \code{NOUSRESP}, and \code{TEXT}.
 }
 \description{
-Retrieves Diet observation documents associated with one or more hospital
-stays. Input identifiers may be real hospital IEPs or pseudonymized EDSaN
-EVTIDs. Both identifiers are returned in the output so their correspondence
-is preserved alongside the CORA document.
-}
-\details{
-CORA stores the IEP as \code{MVTSEJ.NOSEJ}. Diet documents are linked via
-\code{MVTUS.NOMVTUS} to \code{T_DOCUMENT.NOEVT}, restricted to
-\code{NOSOUSVOLET = 443}. \code{T_DOCUMENT.NOEVT} is a CORA-internal event key and is
-returned as \code{CORA_NOEVT} to avoid confusion with the EDSaN \code{EVTID}.
-
-Large lookups are split into batches of 900 IEPs to stay below Oracle's
-1,000-expression limit for an \code{IN} list. \code{chunk_size} independently
-controls the number of BLOB bytes read per request.
-
-EVTID input is reidentified to IEP through EDSaN CT before the indexed CORA
-lookup. IEP input is pseudonymized through EDSaN CT so the corresponding
-EVTID can be returned. A valid IEP with no EDSaN correspondence can still
-produce CORA rows with \code{EVTID = NA}; a CT backend failure raises an error.
-
-The function performs indexed lookups by IEP and document key; it does not
-scan \code{T_DOCUMENT} or \code{T_DOCUMENT_MEMO} for text.
+Deprecated wrapper for \code{\link[=cora_get_diet]{cora_get_diet()}} preserving the historical
+11-column result.
 }

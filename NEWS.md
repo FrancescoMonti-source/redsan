@@ -1,3 +1,12 @@
+# redsan 2.0.0
+
+- Add `include_observations` to `edsan_get_event_bundle()` and
+  `edsan_get_event_bundles()`. Pass active CORA observation codes or
+  `"all"` to add CORA rows to `sources$doceds`. The default skips CORA retrieval.
+- Add `cora_observation_catalog()`, `cora_get_observations()`,
+  `cora_get_diet()`, and `cora_add_observations()`. The deprecated
+  `get_cora_diet()` keeps its historical 11-column result.
+
 - Add `db_connect()` for persistent DBI connections to CORA and ICCA,
   including adult/pediatric ICCA instance selection. Connection options are
   forwarded to the existing source factories. The caller owns the connection

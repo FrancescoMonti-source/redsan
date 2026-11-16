@@ -413,10 +413,12 @@
 
 #' Retrieve CORA dietary observations (legacy interface)
 #'
-#' Compatibility wrapper preserving the historical 11-column result.
-#' Prefer cora_get_diet() for source metadata and provenance.
+#' Deprecated wrapper for [cora_get_diet()] preserving the historical
+#' 11-column result.
 #' @inheritParams cora_get_diet
-#' @return The historical 11-column CORA Diet tibble.
+#' @return A tibble with `EVTID`, `IEP`, `NODOCUMENT`, `TYPEDOC`,
+#'   `CORA_NOEVT`, `DTDOC`, `TIMECREATE`, `REDACTEUR`, `NOUSHEB`,
+#'   `NOUSRESP`, and `TEXT`.
 #' @export
 get_cora_diet <- function(ids, id_type = c("IEP", "EVTID"),
                           event_type = c("H", "R"),

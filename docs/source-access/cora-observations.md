@@ -8,7 +8,7 @@ include them directly without exporting an intermediate Excel file.
 bundles <- redsan::edsan_get_event_bundles(
   evtids,
   modules = "all",
-  include_observations = c("DIET", "KINE", "ERGO")
+  include_observations = "DIET"
 )
 
 # Available types are read from the live CORA observations catalog:
@@ -16,21 +16,23 @@ redsan::cora_observation_catalog()
 # Use include_observations = "all" for all active categories.
 ```
 
-By default, `include_observations = NULL`: no CORA lookup is made, to
-avoid requiring database privileges for existing callers.
+Both `edsan_get_event_bundle()` and `edsan_get_event_bundles()` accept
+`include_observations`. The default `NULL` skips CORA retrieval.
+Pass a character vector of active codes to include several types.
 
 ## Other entry points
 
 ```r
+bundles <- redsan::edsan_get_event_bundles(evtids)
 observations <- redsan::cora_get_observations(
   evtids, id_type = "EVTID", types = "DIET"
 )
 bundles <- redsan::cora_add_observations(bundles, observations)
 ```
 
-`cora_add_observations()` works on one bundle or a list and is idempotent.
-When DOCEDS was not requested, it creates `sources$doceds` from CORA
-rows alone; it does **not** issue an additional EDSaN DOCEDS request.
+`cora_add_observations()` works on one bundle or a list. Adding the same
+document again leaves the existing row in place. If the bundle has no DOCEDS
+table, the function creates `sources$doceds` from the supplied CORA rows.
 
 `cora_get_diet()` is a shortcut for `cora_get_observations(types = "DIET")`.
 The old `get_cora_diet()` remains available with its historical 11-column
@@ -48,12 +50,14 @@ output and a deprecation warning.
   Original `NODOCUMENT`, `TYPEDOC`, `NOSOUSVOLET`, `OBS_CODE`,
   `TYPEEVT`, and `CORA_NOEVT` are retained.
 - Native DOCEDS rows are left unchanged. Basic patient identity fields on
-  CORA rows can be derived from an existing native DOCEDS row for that EVTID.
-  When no native DOCEDS exists, those identity fields may be missing.
+  CORA rows can be copied from native DOCEDS when the available values agree
+  for that EVTID. These fields may be missing when values conflict or there
+  are no native DOCEDS rows.
 
-IEP and EVTID correspondence uses EDSaN CT. A missing mapping yields no
-attachment for that EVTID; technical errors raise an exception, and ambiguous
-mappings are rejected rather than guessed.
+IEP and EVTID correspondence uses EDSaN CT. With EVTID input, a missing
+mapping yields no CORA rows for that stay. With IEP input, retrieval can
+return rows with `EVTID = NA`. Filter those rows out before calling
+`cora_add_observations()`. Service errors and ambiguous mappings raise errors.
 
 The default `event_type = c("H", "R")` supports hospital movement and
 rendez-vous documents. SQL queries batch IEPs into groups of at most 900

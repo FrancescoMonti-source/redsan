@@ -16,7 +16,8 @@ EVTID
   -> EVTID reattached to the result
 ```
 
-The real IEP is used as a transient lookup key. `query_icca()` remains the unrestricted read-only SQL interface; `get_icca()` is the EVTID-oriented interface.
+The real IEP is used as a transient lookup key. Use `icca_query()` for
+read-only SQL and `icca_get()` for retrieval by EVTID.
 
 ## Database, schemas, tables, and views
 
@@ -154,7 +155,7 @@ A view dependency tells us which objects are used, but not necessarily the exact
 
 The reporting database contains hundreds of related objects. Only a subset contains `encounterId` directly. This does **not** imply that other clinical objects are unrelated to an encounter: they may be linked through `patientId`, `episodeId`, `systemId`, order/intervention/document identifiers, or longer relation paths.
 
-This describes the structure of the database, not necessarily what `get_icca()` can already traverse automatically. At present, `get_icca()` automatically uses `encounterId` when it is available. Objects exposing only `patientId` or `episodeId` can also be queried by choosing that linkage explicitly. `systemId` and arbitrary multi-step relation paths are not currently used as automatic anchors.
+This describes the structure of the database, not necessarily what `icca_get()` can already traverse automatically. At present, `icca_get()` automatically uses `encounterId` when it is available. Objects exposing only `patientId` or `episodeId` can also be queried by choosing that linkage explicitly. `systemId` and arbitrary multi-step relation paths are not currently used as automatic anchors.
 
 Accordingly, `redsan` should not treat `assessment`, `medication`, and `encounter` as a closed whitelist.
 
@@ -164,11 +165,11 @@ The main interfaces are:
 icca_catalog()
 icca_describe("DAR.PatientVentilation")
 icca_relations("DAR.PatientVentilation")
-query_icca(...)
-get_icca(evtids, source = "DAR.PatientVentilation")
+icca_query(...)
+icca_get(evtids, source = "DAR.PatientVentilation")
 ```
 
-`query_icca()` provides unrestricted read-only access to any readable object. `get_icca()` resolves EVTIDs to ICCA anchor keys and directly retrieves objects exposing a supported linkage. Objects requiring indirect traversal remain accessible through `query_icca()` while their relation paths are investigated.
+`icca_query()` provides unrestricted read-only access to any readable object. `icca_get()` resolves EVTIDs to ICCA anchor keys and directly retrieves objects exposing a supported linkage. Objects requiring indirect traversal remain accessible through `icca_query()` while their relation paths are investigated.
 
 The short aliases `assessment` and `medication` are conveniences only; they are not a whitelist.
 
@@ -228,19 +229,19 @@ icca_describe("DAR.PatientVentilation")
 icca_relations("DAR.PatientVentilation")
 
 # 5. Retrieve it for one or more EVTIDs when a supported direct link exists
-get_icca("357015848", source = "DAR.PatientVentilation")
+icca_get("357015848", source = "DAR.PatientVentilation")
 ```
 
 For a source with no `encounterId`, an explicit broader anchor may be used when appropriate:
 
 ```r
-get_icca(evtids, source = "schema.object", link = "patientId")
-get_icca(evtids, source = "schema.object", link = "episodeId")
+icca_get(evtids, source = "schema.object", link = "patientId")
+icca_get(evtids, source = "schema.object", link = "episodeId")
 ```
 
 These linkages have broader semantics than encounter-level linkage and can include data outside the requested stay. They therefore require an explicit choice rather than being guessed automatically.
 
-If the source cannot be linked directly through `encounterId`, `patientId`, or `episodeId`, use `icca_relations()` to inspect the graph and `query_icca()` for manual SQL access. Automatic arbitrary graph traversal is not yet implemented.
+If the source cannot be linked directly through `encounterId`, `patientId`, or `episodeId`, use `icca_relations()` to inspect the graph and `icca_query()` for manual SQL access. Automatic arbitrary graph traversal is not yet implemented.
 
 ## What remains unknown
 

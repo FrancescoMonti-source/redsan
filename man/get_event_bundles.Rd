@@ -5,15 +5,20 @@
 \alias{get_event_bundle}
 \title{Deprecated event-bundle retrieval names}
 \usage{
-get_event_bundles(event_ids, modules = "all")
+get_event_bundles(event_ids, modules = "all", include_observations = NULL)
 
-get_event_bundle(event_id, modules = "all")
+get_event_bundle(event_id, modules = "all", include_observations = NULL)
 }
 \arguments{
 \item{event_ids}{Non-empty vector of unique EDSAN \code{EVTID} values.}
 
 \item{modules}{EDSAN modules to retrieve. Use \code{"all"} (the default) for every
 module registered by \code{\link[=edsan_source_catalog]{edsan_source_catalog()}}, or provide a character vector.}
+
+\item{include_observations}{\code{NULL} (default) skips CORA retrieval. Use
+\code{"all"} for every active CORA observation type or a character vector of
+active codes (for example, \code{"DIET"}). See \code{\link[=cora_observation_catalog]{cora_observation_catalog()}}
+for available codes. Observations are added to \code{sources$doceds}.}
 
 \item{event_id}{One non-missing EDSAN \code{EVTID}.}
 }

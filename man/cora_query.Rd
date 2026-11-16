@@ -23,10 +23,9 @@ standard CORA workstation installation, or known Podsan Oracle paths.}
 A tibble containing the Oracle query result.
 }
 \description{
-Executes one read-only Oracle query against CORA using the same JDBC
-connection settings already used by \code{\link[=get_cora_diet]{get_cora_diet()}}. The connection is
-configured through the active \code{d2imr} keystore (\code{db.cora.url},
-\code{db.cora.usr}, and \code{db.cora.pwd}).
+Executes one read-only Oracle query against CORA. A transient connection
+uses the active \code{d2imr} keystore (\code{db.cora.url}, \code{db.cora.usr}, and
+\code{db.cora.pwd}). Use \code{\link[=db_connect]{db_connect()}} to reuse a connection across queries.
 }
 \details{
 \code{redsan} does not hard-code a CORA account or schema. The active environment

@@ -4,13 +4,18 @@
 \alias{edsan_get_event_bundles}
 \title{Retrieve normalized EDSAN sources for several events}
 \usage{
-edsan_get_event_bundles(event_ids, modules = "all")
+edsan_get_event_bundles(event_ids, modules = "all", include_observations = NULL)
 }
 \arguments{
 \item{event_ids}{Non-empty vector of unique EDSAN \code{EVTID} values.}
 
 \item{modules}{EDSAN modules to retrieve. Use \code{"all"} (the default) for every
 module registered by \code{\link[=edsan_source_catalog]{edsan_source_catalog()}}, or provide a character vector.}
+
+\item{include_observations}{\code{NULL} (default) skips CORA retrieval. Use
+\code{"all"} for every active CORA observation type or a character vector of
+active codes (for example, \code{"DIET"}). See \code{\link[=cora_observation_catalog]{cora_observation_catalog()}}
+for available codes. Observations are added to \code{sources$doceds}.}
 }
 \value{
 A named list of \code{edsan_event_bundle} objects in requested event order.
@@ -21,21 +26,29 @@ Retrieves each selected EDSAN module once for the complete set of requested
 \code{edsan_get()} remains responsible for any technical ID batching.
 }
 \details{
-Retrieval is fail-fast. If any requested module cannot be retrieved,
-no partial bundle collection is returned. Each selected module is retrieved
+Retrieval is fail-fast. An error retrieving an EDSaN module or
+the requested CORA observations aborts the call. Each selected module is retrieved
 once for the complete \code{event_ids} vector and then partitioned locally. Empty
 normalized module results are retained in every affected bundle.
 
 Modules are retrieved with \code{process = TRUE}, so reference labels added by the
-module processors are present in every bundle: \code{biol} carries \code{TYPEANA_LABEL}
-from \code{\link[=label_biol]{label_biol()}}, \code{pancarte} carries \code{TYPE_LABEL} from \code{\link[=label_pancarte]{label_pancarte()}},
-and PMSI carries the labels added by \code{\link[=label_pmsi]{label_pmsi()}}.
+module processors are available in the bundles. These include
+\code{TYPEANA_LABEL} from \code{\link[=label_biol]{label_biol()}}, \code{TYPE_LABEL} from \code{\link[=label_pancarte]{label_pancarte()}},
+\code{RECTYPE_LABEL} from \code{\link[=label_doceds]{label_doceds()}}, and the PMSI labels from
+\code{\link[=label_pmsi]{label_pmsi()}}.
+
+CORA enrichment uses \code{\link[=cora_get_observations]{cora_get_observations()}} to map EVTIDs through EDSaN
+CT and read observations from CORA. It requires access to both systems.
+An EVTID without an IEP match receives no CORA rows. If \code{modules} omits
+\code{"doceds"}, the resulting \code{sources$doceds} table contains CORA rows only.
+See \code{\link[=cora_add_observations]{cora_add_observations()}} for the columns that identify those rows.
 }
 \examples{
 \dontrun{
 bundles <- edsan_get_event_bundles(
   c("123456789", "987654321"),
-  modules = c("doceds", "pmsi", "biol")
+  modules = c("doceds", "pmsi", "biol"),
+  include_observations = "DIET"
 )
 bundles[["123456789"]]
 }

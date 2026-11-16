@@ -4,18 +4,23 @@
 \alias{edsan_get_event_bundle}
 \title{Retrieve normalized EDSAN sources for one event}
 \usage{
-edsan_get_event_bundle(event_id, modules = "all")
+edsan_get_event_bundle(event_id, modules = "all", include_observations = NULL)
 }
 \arguments{
 \item{event_id}{One non-missing EDSAN \code{EVTID}.}
 
 \item{modules}{EDSAN modules to retrieve. Use \code{"all"} (the default) for every
-registered module, or provide a character vector.}
+module registered by \code{\link[=edsan_source_catalog]{edsan_source_catalog()}}, or provide a character vector.}
+
+\item{include_observations}{\code{NULL} (default) skips CORA retrieval. Use
+\code{"all"} for every active CORA observation type or a character vector of
+active codes (for example, \code{"DIET"}). See \code{\link[=cora_observation_catalog]{cora_observation_catalog()}}
+for available codes. Observations are added to \code{sources$doceds}.}
 }
 \value{
 One \code{edsan_event_bundle}: a list with \code{event_id}, \code{sources}, and
-\code{created_at} entries. PMSI remains a list with \code{main}, \code{actes}, and \code{diag};
-DOCEDS, BIOL, VIRO, and PANCARTE remain normalized tibbles.
+  \code{created_at} entries. PMSI remains a list with \code{main}, \code{actes}, and \code{diag};
+  DOCEDS, BIOL, VIRO, and PANCARTE remain normalized tibbles.
 }
 \description{
 Singular convenience wrapper around \code{\link[=edsan_get_event_bundles]{edsan_get_event_bundles()}}. It retrieves each
@@ -24,20 +29,16 @@ inside a named collection.
 }
 \details{
 This function only forwards to \code{\link[=edsan_get_event_bundles]{edsan_get_event_bundles()}} and unwraps the single
-bundle, so retrieval, normalization, and reference labelling behave exactly as
-in the plural form: \code{biol} carries \code{TYPEANA_LABEL} from \code{\link[=label_biol]{label_biol()}},
-\code{pancarte} carries \code{TYPE_LABEL} from \code{\link[=label_pancarte]{label_pancarte()}}, and PMSI carries
-the labels added by \code{\link[=label_pmsi]{label_pmsi()}}.
-
-Retrieval is fail-fast. If any selected module cannot be retrieved, no
-partial bundle is returned. Empty normalized module tables are retained.
+bundle. Normalization, reference labelling, CORA enrichment and error
+handling follow the same rules as in the plural form.
 }
 \examples{
 \dontrun{
 bundle <- edsan_get_event_bundle("123456789")
 bundle <- edsan_get_event_bundle(
   "123456789",
-  modules = c("doceds", "pmsi", "biol")
+  modules = c("doceds", "pmsi", "biol"),
+  include_observations = "DIET"
 )
 }
 

@@ -119,7 +119,8 @@ available when retrieval and normalization need to be audited separately.
 raw_biol <- edsan_get(
   module = "biol",
   what = "data",
-  query = list(DATEXAM = "{2024-01-01,2024-01-31}")
+  query = list(DATEXAM = "{2024-01-01,2024-01-31}"),
+  process = FALSE
 )
 
 biology <- biol_normalize(raw_biol)
@@ -185,17 +186,14 @@ bundle$sources$pancarte
 
 `edsan_reference_catalog()` lists the mappings distributed with the package.
 `edsan_reference()` returns one normalized mapping as a tibble.
-`pmsi_normalize()`, `biol_normalize()`, and `pancarte_normalize()` call their labelling helpers
-automatically; the same helpers can enrich older normalized artifacts without
-replacing their source codes.
+`doceds_normalize()`, `pmsi_normalize()`, `biol_normalize()`, and
+`pancarte_normalize()` apply their labelling helpers automatically. The same
+helpers can enrich older normalized artifacts while preserving source codes.
 
-Not every mapping has a labelling helper. `ghm`, `modeent`, `modesort`, and
-`rectypes` describe columns that `redsan` already normalizes (`GHM`, `MODEENT`,
-and `MODESORT` in `pmsi$main`, `RECTYPE` in DOCEDS) but are not joined
-automatically; `bact` describes the EDSAN `bact` module, which `redsan` does not
-retrieve yet. All of them are available through `edsan_reference()` for explicit
-joins. A code whose label the source system leaves undocumented is retained with
-an `NA` label rather than dropped.
+`label_doceds()` uses the `rectypes` reference to add `RECTYPE_LABEL`.
+Use `edsan_reference()` to join `ghm`, `modeent`, and `modesort` explicitly
+to `pmsi$main`. The `bact` reference is also available for explicit joins
+with bacteriology data. Unmatched codes keep their rows with an `NA` label.
 
 ```r
 edsan_reference_catalog()
@@ -240,6 +238,10 @@ and `EVTID -> IEP`. A valid response without a correspondence is retained as
 `status = "not_found"`; network, authentication, HTTP, and malformed-response
 failures remain errors.
 
+For EVTID input, `identity = TRUE` adds patient identity and raises an
+error if a stay maps to multiple PATIDs. Set `force = TRUE` to keep one
+row per candidate PATID for those stays.
+
 ## Event bundles
 
 `edsan_get_event_bundle()` retrieves the normalized output of several modules for one
@@ -262,6 +264,24 @@ bundle$sources$pmsi$actes
 bundle$sources$pmsi$diag
 bundle$sources$biol
 ```
+
+Both retrieval functions accept `include_observations`. The default
+`NULL` skips CORA retrieval. Pass active codes from
+`cora_observation_catalog()` or use `"all"` for every active type.
+
+```r
+bundles <- edsan_get_event_bundles(
+  c("123456789", "987654321"),
+  modules = c("pmsi", "doceds"),
+  include_observations = "DIET"
+)
+```
+
+This requires CORA and EDSaN CT access. CORA rows appear in each bundle's
+`sources$doceds` with `SOURCE = "CORA"`. If `modules` omits
+`"doceds"`, that table contains CORA rows only. For existing bundles, use
+`cora_get_observations()` and `cora_add_observations()`.
+See the [CORA observations guide](docs/source-access/cora-observations.md).
 
 `edsan_get_event_bundle()` is a wrapper around `edsan_get_event_bundles()`: it retrieves
 through the same code path and only unwraps the single bundle, so normalization
@@ -309,9 +329,9 @@ model-specific prompt.
 
 Use `cora_query()` for read-only CORA SQL. Use `icca_get()` for EVTID-keyed
 ICCA retrieval and `icca_query()` for unrestricted read-only ICCA queries.
-Already compliant discovery and description names, including
-`cora_describe_table()`, `cora_dig()`, `icca_catalog()`, `icca_describe()`, and
-`icca_relations()`, remain unchanged.
+Use `cora_get_diet()` for CORA diet observations by IEP or EVTID.
+Use `cora_describe_table()` and `cora_dig()` to explore CORA, and
+`icca_catalog()`, `icca_describe()`, and `icca_relations()` to explore ICCA.
 
 ```r
 # Inspect a CORA table, then query its schema explicitly.
@@ -376,6 +396,7 @@ They delegate to the canonical implementations:
 | `process_biol()` | `biol_normalize()` |
 | `process_viro()` | `viro_normalize()` |
 | `query_cora()` | `cora_query()` |
+| `get_cora_diet()` | `cora_get_diet()` (adds observation metadata columns) |
 | `get_icca()` | `icca_get()` |
 | `query_icca()` | `icca_query()` |
 | `edsan_pseudonymize()`, `edsan_reidentify()` | `edsan_ct()` |
@@ -389,7 +410,7 @@ It can be applied at any level of granularity:
 
 ```r
 # 1. On a simple data frame or tibble (adds RECTXT_TRIMMED, TRIM_REDUCTION_PCT,
-#    and TRIM_PRESERVED_INTERVALS)
+#    TRIM_PRESERVED_INTERVALS, and TRIM_EXECUTION_PROVIDER)
 clean_table <- trim_doceds_onnx(bundle$sources$doceds)
 
 # 2. Directly on a character vector of texts
@@ -398,14 +419,18 @@ clean_texts <- trim_doceds_onnx(bundle$sources$doceds$RECTXT)
 # 3. On a single event bundle
 clean_bundle <- trim_doceds_onnx(bundle)
 
-# 4. In batch across an entire cohort (e.g. 779 stays)
-clean_cohort <- trim_doceds_onnx(denut)
+# 4. Across a cohort, with checkpoints for resuming an interrupted run
+clean_cohort <- trim_doceds_onnx(denut, checkpoint_dir = "trim-checkpoints")
 ```
 
-Cohort batching sends all non-empty texts in one worker request and maps results
-back by document identity. Original rows, source identifiers, unrelated columns,
-classes, names, and attributes are preserved. Empty DOCEDS tables receive the
-same three output columns without starting the worker.
+The worker processes non-empty texts in chunks of 500 documents by default
+and maps results back by document identity. Empty DOCEDS tables receive the
+same four output columns without starting the worker. If you set
+`checkpoint_dir`, rerunning the same call reuses validated chunks.
+Checkpoints contain patient text and document identifiers.
+
+Set `REDSAN_PYTHON_PATH` to select a Python executable with `onnxruntime`,
+`tokenizers`, and `numpy` installed, or pass `python_exe` for a single call.
 
 The versioned runtime artifact must contain the model, tokenizer, worker, and an
 `artifact.json` manifest declaring the compatible worker contract. `redsan`

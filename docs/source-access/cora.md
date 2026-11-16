@@ -1,6 +1,8 @@
-# CORA source-access discovery note
+# CORA source access
 
-Status: validated connectivity from the Podsan R environment; no `redsan` CORA backend is implemented yet.
+Use `cora_query()` for one-off read-only queries and `db_connect("cora")`
+for a connection shared across queries. Use `cora_observation_catalog()`
+and `cora_get_observations()` for [CORA observation documents](cora-observations.md).
 
 ## Validated access path
 
@@ -65,57 +67,16 @@ Oracle JDBC drivers:
 
 Only the FreeTDS ODBC driver is registered in `odbc::odbcListDrivers()`, so the validated CORA path is JDBC rather than ODBC.
 
-## Reproducible smoke test
+## Check a connection
 
 ```r
-library(DBI)
-library(RJDBC)
-
-drv <- RJDBC::JDBC(
-  "oracle.jdbc.OracleDriver",
-  "/opt/oracle/instantclient_23_26/ojdbc17.jar"
-)
-
-jdbc_url <- paste0(
-  "jdbc:oracle:thin:@",
-  d2imr::d2im_keystore.get("db.cora.url")
-)
-
-con <- DBI::dbConnect(
-  drv,
-  jdbc_url,
-  d2imr::d2im_keystore.get("db.cora.usr"),
-  d2imr::d2im_keystore.get("db.cora.pwd")
-)
-
-DBI::dbGetQuery(con, "SELECT 1 AS test FROM dual")
-DBI::dbDisconnect(con)
+redsan::cora_query("SELECT 1 AS TEST FROM DUAL")
+redsan::edsan_check_connections(oracle_query = TRUE)
 ```
 
-Expected smoke-test result:
+The query should return `TEST = 1`. The diagnostic also checks EDSaN CT
+and reports the DNS, TCP, and JDBC results for CORA.
 
-```text
-  TEST
-1    1
-```
-
-## Existing `d2imr` Oracle helper
-
-`d2imr` contains the internal function:
-
-```r
-d2imr:::d2im_dbc.oracle_execute_query
-```
-
-It should not be used as the basis for new CORA access without revision. The installed implementation is legacy because it:
-
-- expects a `db.<env>.jdbc` keystore entry, while the current CORA configuration exposes `db.cora.url`;
-- hard-codes `/appli/edsan_common/lib/j/ojdbc6.jar`;
-- catches errors and returns `NULL`, which hides failure semantics;
-- disconnects once in the main body and again in `finally`, so it can attempt a double disconnect.
-
-A future `redsan` CORA transport should therefore use the current keystore entries directly and the Java-17-compatible Oracle driver rather than wrapping this helper unchanged.
-
-## Current conclusion
-
-CORA has moved from "configuration present in the keystore" to "source access experimentally validated". The next implementation step, if needed, is a small native R transport such as `query_cora()` with the same separation of concerns used for other `redsan` source-access backends: connection setup, parameterized read-only query execution, explicit errors, and source-specific retrieval only after table semantics have been validated.
+Set `REDSAN_OJDBC_JAR` if the driver is installed in a different location,
+or pass `ojdbc_jar` to `cora_query()` or `db_connect("cora")`.
+Close a connection opened by `db_connect()` with `DBI::dbDisconnect()`.

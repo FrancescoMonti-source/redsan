@@ -150,8 +150,9 @@
 #' normalized before labelling existed carry the same columns as bundles built
 #' from [edsan_get_event_bundles()]. Existing `TYPEANA_LABEL` values are left as they
 #' are, and a `biol` source without `TYPEANA` is passed through untouched.
-#' A `pancarte` source carrying `TYPE` without `TYPE_LABEL` is labelled through
-#' [label_pancarte()] by the same rule.
+#' The same rule applies to `doceds` (`RECTYPE` and `RECTYPE_LABEL` via
+#' [label_doceds()]) and `pancarte` (`TYPE` and `TYPE_LABEL` via
+#' [label_pancarte()]).
 #' Biology and virology artifacts using the former `BIOL_ID` or `VIRO_ID` names
 #' are upgraded to `ELTID`. When an artifact contains both names, their values
 #' must agree and only `ELTID` is retained.
@@ -214,28 +215,36 @@ edsan_event_bundle <- function(event_id, sources) {
 #' @param modules EDSAN modules to retrieve. Use `"all"` (the default) for every
 #'   module registered by [edsan_source_catalog()], or provide a character vector.
 #'
-#' @param include_observations NULL (default) for EDSaN only, "all" for all
-#'   active CORA observation types, or CORA T_SOUS_VOLET.CODE values.
-#'   Requested CORA documents are added to sources$doceds after retrieval;
-#'   if doceds was not selected, only the CORA rows form that source.
+#' @param include_observations `NULL` (default) skips CORA retrieval. Use
+#'   `"all"` for every active CORA observation type or a character vector of
+#'   active codes (for example, `"DIET"`). See [cora_observation_catalog()]
+#'   for available codes. Observations are added to `sources$doceds`.
 #'
 #' @return A named list of `edsan_event_bundle` objects in requested event order.
 #'
-#' @details Retrieval is fail-fast. If any requested module cannot be retrieved,
-#' no partial bundle collection is returned. Each selected module is retrieved
+#' @details Retrieval is fail-fast. An error retrieving an EDSaN module or
+#' the requested CORA observations aborts the call. Each selected module is retrieved
 #' once for the complete `event_ids` vector and then partitioned locally. Empty
 #' normalized module results are retained in every affected bundle.
 #'
 #' Modules are retrieved with `process = TRUE`, so reference labels added by the
-#' module processors are present in every bundle: `biol` carries `TYPEANA_LABEL`
-#' from [label_biol()], `pancarte` carries `TYPE_LABEL` from [label_pancarte()],
-#' and PMSI carries the labels added by [label_pmsi()].
+#' module processors are available in the bundles. These include
+#' `TYPEANA_LABEL` from [label_biol()], `TYPE_LABEL` from [label_pancarte()],
+#' `RECTYPE_LABEL` from [label_doceds()], and the PMSI labels from
+#' [label_pmsi()].
+#'
+#' CORA enrichment uses [cora_get_observations()] to map EVTIDs through EDSaN
+#' CT and read observations from CORA. It requires access to both systems.
+#' An EVTID without an IEP match receives no CORA rows. If `modules` omits
+#' `"doceds"`, the resulting `sources$doceds` table contains CORA rows only.
+#' See [cora_add_observations()] for the columns that identify those rows.
 #'
 #' @examples
 #' \dontrun{
 #' bundles <- edsan_get_event_bundles(
 #'   c("123456789", "987654321"),
-#'   modules = c("doceds", "pmsi", "biol")
+#'   modules = c("doceds", "pmsi", "biol"),
+#'   include_observations = "DIET"
 #' )
 #' bundles[["123456789"]]
 #' }
@@ -273,8 +282,7 @@ edsan_get_event_bundles <- function(event_ids, modules = "all",
 #' inside a named collection.
 #'
 #' @param event_id One non-missing EDSAN `EVTID`.
-#' @param modules EDSAN modules to retrieve. Use `"all"` (the default) for every
-#'   registered module, or provide a character vector.
+#' @inheritParams edsan_get_event_bundles
 #'
 #' @return One `edsan_event_bundle`: a list with `event_id`, `sources`, and
 #'   `created_at` entries. PMSI remains a list with `main`, `actes`, and `diag`;
@@ -282,20 +290,16 @@ edsan_get_event_bundles <- function(event_ids, modules = "all",
 #'
 #' @details
 #' This function only forwards to [edsan_get_event_bundles()] and unwraps the single
-#' bundle, so retrieval, normalization, and reference labelling behave exactly as
-#' in the plural form: `biol` carries `TYPEANA_LABEL` from [label_biol()],
-#' `pancarte` carries `TYPE_LABEL` from [label_pancarte()], and PMSI carries
-#' the labels added by [label_pmsi()].
-#'
-#' Retrieval is fail-fast. If any selected module cannot be retrieved, no
-#' partial bundle is returned. Empty normalized module tables are retained.
+#' bundle. Normalization, reference labelling, CORA enrichment and error
+#' handling follow the same rules as in the plural form.
 #'
 #' @examples
 #' \dontrun{
 #' bundle <- edsan_get_event_bundle("123456789")
 #' bundle <- edsan_get_event_bundle(
 #'   "123456789",
-#'   modules = c("doceds", "pmsi", "biol")
+#'   modules = c("doceds", "pmsi", "biol"),
+#'   include_observations = "DIET"
 #' )
 #' }
 #'

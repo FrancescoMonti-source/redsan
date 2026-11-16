@@ -15,15 +15,20 @@
           "DTDOC", "TIMECREATE", "REDACTEUR", "NOUSHEB", "NOUSRESP", "TEXT")]
 }
 
-#' List the CORA observations sub-volets
+#' List CORA observation types
 #'
-#' Reads the live CORA reference table rather than maintaining a local list.
-#' Observations belong to CORA volet 53 (MCK_OBSERV). Inactive categories
-#' (ETAT != "A") are omitted unless requested explicitly.
-#' @param connection Existing DBI connection, or NULL to connect temporarily.
-#' @param ojdbc_jar Optional Oracle driver path.
-#' @param active_only Whether to return only active categories.
-#' @return A tibble with NOSOUSVOLET, CODE, LIBCOURT, LIBLONG, ETAT and volet fields.
+#' Reads observation types from the live CORA reference for volet 53
+#' (`MCK_OBSERV`). Use the returned `CODE` values with
+#' [cora_get_observations()] or `include_observations` in
+#' [edsan_get_event_bundles()].
+#'
+#' @param connection Optional existing CORA DBI connection. With `NULL`,
+#'   the function opens and closes its own connection.
+#' @param ojdbc_jar Optional path to an Oracle JDBC driver, used when
+#'   `connection` is `NULL`.
+#' @param active_only If `TRUE` (default), return only types with `ETAT = "A"`.
+#' @return A tibble with `NOSOUSVOLET`, `CODE`, `LIBCOURT`, `LIBLONG`, `ETAT`,
+#'   `VOLET_CODE`, and `VOLET_LABEL`.
 #' @export
 cora_observation_catalog <- function(connection = NULL, ojdbc_jar = NULL,
                                      active_only = TRUE) {
@@ -127,21 +132,36 @@ cora_observation_catalog <- function(connection = NULL, ojdbc_jar = NULL,
 
 #' Retrieve CORA observations linked to hospital stays
 #'
-#' Uses the active CORA observation reference, EDSaN CT for the EVTID/IEP
-#' correspondence, and indexed hospital (H) / rendez-vous (R) joins.
-#' @param ids Character IEP or EVTID identifiers.
-#' @param id_type "IEP" (default) or "EVTID".
-#' @param types CORA T_SOUS_VOLET.CODE values, or "all" for all active codes.
-#' @param event_type "H", "R" or both (default).
-#' @param connection Optional existing CORA DBI connection.
-#' @param ojdbc_jar Optional Oracle JDBC driver.
-#' @param chunk_size Oracle BLOB bytes per chunk, from 1 to 2000.
-#' @param env EDSaN CT service environment.
-#' @param ks_path Optional EDSaN CT keystore path.
-#' @return A tibble containing raw text in TEXT, a CORA document key
-#'   (NODOCUMENT, TYPEDOC), provenance and both stay identifiers.
-#'   For an IEP absent from EDSaN CT, EVTID is NA; such rows cannot
-#'   be attached to a bundle. Service failures raise errors.
+#' Uses the active CORA observation reference and EDSaN CT to map IEPs
+#' (hospital stay numbers) and EVTIDs (EDSaN stay identifiers).
+#'
+#' @inheritParams cora_observation_catalog
+#' @param ids Character vector of stay identifiers containing digits only.
+#' @param id_type Input identifier type, `"IEP"` (default) or `"EVTID"`.
+#' @param types A character vector of active `CODE` values from
+#'   [cora_observation_catalog()], or `"all"` (default) for every active type.
+#' @param event_type CORA event types to include. Use `"H"` for hospital
+#'   movements, `"R"` for appointments, or `c("H", "R")` (default) for both.
+#' @param chunk_size Number of bytes per read of the stored document text.
+#'   Must be a whole number from 1 to 2000.
+#' @param env EDSaN CT service environment used for EVTID/IEP mapping.
+#' @param ks_path Optional d2imr keystore path for EDSaN CT and any CORA
+#'   connection opened by this function.
+#'
+#' @return A tibble with `EVTID`, `IEP`, decompressed document text in
+#'   `TEXT`, the CORA document key (`NODOCUMENT`, `TYPEDOC`), and source
+#'   metadata including `OBS_CODE`, `OBS_LABEL`, `NOSOUSVOLET`, `TYPEEVT`,
+#'   and `CORA_NOEVT`. With IEP input, an observation may have `EVTID = NA`
+#'   if EDSaN CT has no match. With EVTID input, unmatched identifiers yield
+#'   no observations.
+#'
+#' @details Service failures and ambiguous identifier mappings raise errors.
+#' Use [cora_add_observations()] to attach rows with EVTIDs to existing bundles.
+#' @examples
+#' \dontrun{
+#' observations <- cora_get_observations("123456789", id_type = "EVTID",
+#'                                       types = "DIET")
+#' }
 #' @export
 cora_get_observations <- function(ids, id_type = c("IEP", "EVTID"),
                                   types = "all", event_type = c("H", "R"),
@@ -226,9 +246,10 @@ cora_get_observations <- function(ids, id_type = c("IEP", "EVTID"),
 
 #' Retrieve CORA dietary observations
 #'
-#' Convenience wrapper for cora_get_observations(types = "DIET").
+#' Retrieves observation type `"DIET"` through [cora_get_observations()].
 #' @inheritParams cora_get_observations
-#' @return A CORA observations tibble with the enriched provenance columns.
+#' @return The same tibble schema as [cora_get_observations()], including
+#'   observation type and event metadata.
 #' @export
 cora_get_diet <- function(ids, id_type = c("IEP", "EVTID"),
                           event_type = c("H", "R"),

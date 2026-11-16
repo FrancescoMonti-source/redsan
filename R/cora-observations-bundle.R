@@ -49,13 +49,27 @@
 
 #' Add CORA observations to bundles in memory
 #'
-#' Converts CORA observations into DOCEDS-compatible rows. Existing EDSaN
-#' DOCEDS rows are unchanged. CORA rows retain their original identifiers,
-#' category and event type; ELTID is namespaced by source and compound key.
-#' Repeated calls with the same data are idempotent.
-#' @param bundles A single edsan_event_bundle or named list of such bundles.
-#' @param observations Result of cora_get_observations().
-#' @return Bundles with merged sources$doceds tables.
+#' Adds matching CORA observations to the DOCEDS table for each bundle's
+#' EVTID. Existing DOCEDS rows keep their values. Adding the same CORA
+#' document again leaves its existing row in place.
+#'
+#' @param bundles A single `edsan_event_bundle` or a list of bundles.
+#' @param observations Result of [cora_get_observations()] or [cora_get_diet()]
+#'   with a non-missing `EVTID` on every row.
+#' @return A single bundle or a list matching the input, with observations in
+#'   `sources$doceds`. A DOCEDS table is created if absent.
+#'
+#' @details CORA rows carry `SOURCE = "CORA"`,
+#' `ELTID = "CORA:<TYPEDOC>:<NODOCUMENT>"`, and their original CORA metadata.
+#' `RECTXT` contains the decompressed observation text. `RECTYPE` is
+#' `"FICHE_DIET"` for diet observations and `"CORA_<CODE>"` for other types.
+#' This function works on objects already in memory.
+#' @examples
+#' \dontrun{
+#' bundle <- edsan_get_event_bundle("123456789")
+#' observations <- cora_get_diet("123456789", id_type = "EVTID")
+#' bundle <- cora_add_observations(bundle, observations)
+#' }
 #' @export
 cora_add_observations <- function(bundles, observations) {
   single <- inherits(bundles, "edsan_event_bundle")

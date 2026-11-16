@@ -43,6 +43,7 @@ to retain or normalize later.
 \code{\link[=label_pmsi]{label_pmsi()}} adds the packaged CIM-10 and CCAM/CDAM labels to normalized
 PMSI objects and can be applied to older artifacts. \code{\link[=pmsi_normalize]{pmsi_normalize()}} reuses
 it so new normalized outputs are labelled automatically.
+\code{\link[=label_doceds]{label_doceds()}} adds \code{RECTYPE_LABEL} during document normalization.
 \code{\link[=label_biol]{label_biol()}} similarly adds packaged analyte labels to normalized biology
 rows, and \code{\link[=biol_normalize]{biol_normalize()}} reuses it for new outputs. \code{\link[=label_pancarte]{label_pancarte()}}
 adds measurement type labels through \code{TYPE}, and \code{\link[=pancarte_normalize]{pancarte_normalize()}}
@@ -59,6 +60,10 @@ already available locally, use \code{\link[=edsan_event_bundle]{edsan_event_bund
 \code{\link[=edsan_event_bundles]{edsan_event_bundles()}} to partition them without another EDSAN request.
 \code{\link[=edsan_render_event_bundle]{edsan_render_event_bundle()}} serializes a bundle to neutral JSON without selecting
 clinical content.
+Set \code{include_observations} in either retrieval function to add CORA
+observations to \code{sources$doceds}. \code{\link[=cora_observation_catalog]{cora_observation_catalog()}} lists the
+available types, and \code{\link[=cora_add_observations]{cora_add_observations()}} attaches observations to
+bundles already in memory.
 }
 
 \section{Translate identifiers}{
@@ -72,7 +77,9 @@ status and multiplicity.
 \section{Query CORA and ICCA}{
 
 \code{\link[=cora_query]{cora_query()}} and \code{\link[=icca_query]{icca_query()}} execute read-only queries against their
-respective systems. \code{\link[=icca_get]{icca_get()}} retrieves ICCA data by EDSaN EVTID.
+respective systems. \code{\link[=db_connect]{db_connect()}} opens a reusable connection.
+\code{\link[=cora_get_observations]{cora_get_observations()}} retrieves CORA observations by IEP or EVTID, and
+\code{\link[=icca_get]{icca_get()}} retrieves ICCA data by EDSaN EVTID.
 }
 
 \section{Source and downstream responsibilities}{
