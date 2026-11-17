@@ -133,17 +133,17 @@ test_that("unmapped CORA rows cannot be accidentally joined", {
 
 test_that("retrieval joins CORA catalog, CT mapping and documents", {
   fake_map <- function(ids, id_type, env, ks_path) {
-    tibble::tibble(EVTID = ids, IEP = "745068610")
+    tibble::tibble(EVTID = evtid, IEP = expected_iep)
   }
   fake_catalog <- function(connection, active_only = TRUE) {
     tibble::tibble(NOSOUSVOLET = "443", CODE = "DIET",
                    LIBLONG = "Diététique")
   }
   fake_docs <- function(connection, ieps, subvolets, event_type) {
-    expect_identical(ieps, "745068610")
+    expect_identical(ieps, expected_iep)
     expect_identical(subvolets, "443")
     tibble::tibble(
-      IEP = "745068610", NODOCUMENT = "55", TYPEDOC = "W",
+      IEP = returned_iep, NODOCUMENT = "55", TYPEDOC = "W",
       CORA_NOEVT = "7", NOSOUSVOLET = "443", TYPEEVT = "H",
       DTDOC = as.POSIXct("2026-01-01", tz = "UTC"),
       TIMECREATE = as.POSIXct("2026-01-01", tz = "UTC"),
@@ -157,13 +157,20 @@ test_that("retrieval joins CORA catalog, CT mapping and documents", {
     .cora_read_diet_blob = function(...) "Poids 60 kg",
     .package = "redsan"
   )
-  out <- cora_get_observations(
-    "199196450", id_type = "EVTID", types = "DIET",
-    connection = structure(list(), class = "fake_connection")
-  )
-  expect_identical(out$EVTID, "199196450")
-  expect_identical(out$OBS_CODE, "DIET")
-  expect_identical(out$TEXT, "Poids 60 kg")
+  evtid <- "123"
+  connection <- structure(list(), class = "fake_connection")
+  fixtures <- list("000456", "000456    ", "000456\u00a0\u2007", 456000000)
+  for (returned_iep in fixtures) {
+    expected_iep <- if (is.numeric(returned_iep)) "456000000" else "000456"
+    by_evtid <- cora_get_diet(evtid, id_type = "EVTID", connection = connection)
+    by_iep <- cora_get_diet(expected_iep, id_type = "IEP", connection = connection)
+
+    expect_identical(by_evtid, by_iep)
+    expect_identical(by_evtid$IEP, expected_iep)
+    expect_identical(by_evtid$EVTID, evtid)
+    expect_identical(by_evtid$OBS_CODE, "DIET")
+    expect_identical(by_evtid$TEXT, "Poids 60 kg")
+  }
 })
 
 test_that("ambiguous EVTID/IEP mappings fail rather than multiplying data", {
