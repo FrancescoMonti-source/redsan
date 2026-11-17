@@ -213,7 +213,9 @@ cora_get_observations <- function(ids, id_type = c("IEP", "EVTID"),
     stop("CORA observations query returned an incomplete schema.",
          call. = FALSE)
   }
-  for (name in c("IEP", "NODOCUMENT", "TYPEDOC", "CORA_NOEVT",
+  # Match EDSaN CT keys even when the driver pads or returns a numeric IEP.
+  docs$IEP <- trimws(.edsan_as_identifier(docs$IEP), whitespace = "[\\h\\v]")
+  for (name in c("NODOCUMENT", "TYPEDOC", "CORA_NOEVT",
                  "NOSOUSVOLET", "TYPEEVT", "REDACTEUR",
                  "NOUSHEB", "NOUSRESP")) {
     docs[[name]] <- as.character(docs[[name]])
