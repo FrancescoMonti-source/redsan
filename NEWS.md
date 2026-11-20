@@ -1,5 +1,9 @@
 # redsan 2.0.0
 
+- Add provisional `mouvement` retrieval and normalization; backend module name,
+  response shape, and date filters still require confirmation. Request it explicitly
+  in event bundles; the default `modules = "all"` excludes it until confirmed.
+
 - Add `include_observations` to `edsan_get_event_bundle()` and
   `edsan_get_event_bundles()`. Pass active CORA observation codes or
   `"all"` to add CORA rows to `sources$doceds`. The default skips CORA retrieval.

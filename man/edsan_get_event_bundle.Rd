@@ -10,7 +10,8 @@ edsan_get_event_bundle(event_id, modules = "all", include_observations = NULL)
 \item{event_id}{One non-missing EDSAN \code{EVTID}.}
 
 \item{modules}{EDSAN modules to retrieve. Use \code{"all"} (the default) for every
-module registered by \code{\link[=edsan_source_catalog]{edsan_source_catalog()}}, or provide a character vector.}
+established module, or provide a character vector. The provisional
+\code{"mouvement"} module must be requested explicitly.}
 
 \item{include_observations}{\code{NULL} (default) skips CORA retrieval. Use
 \code{"all"} for every active CORA observation type or a character vector of

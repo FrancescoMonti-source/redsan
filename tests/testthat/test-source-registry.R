@@ -32,6 +32,7 @@ test_that("registered identifiers remain opaque character coordinates", {
         RESULTATS = data.frame(TYPEANA = "PCR", STRRES = "negative")
       )
     )),
+    "mouvement/movements" = mouvement_normalize(list(c(ids, list(DATENT = "2024-01-01")))),
     "pancarte/results" = pancarte_normalize(list(c(
       ids,
       list(DATEMES = "2024-01-01T08:30:00", TYPE = "POIDS-KG", RES = "65", NUMRES = 65)

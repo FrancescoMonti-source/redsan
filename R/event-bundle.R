@@ -25,7 +25,7 @@
 
 .resolve_event_bundle_modules <- function(modules) {
   available <- .edsan_supported_modules()
-  if (identical(modules, "all")) return(available)
+  if (identical(modules, "all")) return(setdiff(available, "mouvement"))
 
   if (!is.character(modules) || length(modules) == 0L || anyNA(modules) ||
       any(!nzchar(modules))) {
@@ -213,7 +213,8 @@ edsan_event_bundle <- function(event_id, sources) {
 #'
 #' @param event_ids Non-empty vector of unique EDSAN `EVTID` values.
 #' @param modules EDSAN modules to retrieve. Use `"all"` (the default) for every
-#'   module registered by [edsan_source_catalog()], or provide a character vector.
+#'   established module, or provide a character vector. The provisional
+#'   `"mouvement"` module must be requested explicitly.
 #'
 #' @param include_observations `NULL` (default) skips CORA retrieval. Use
 #'   `"all"` for every active CORA observation type or a character vector of
