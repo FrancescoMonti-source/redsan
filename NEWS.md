@@ -1,8 +1,10 @@
-# redsan 2.0.0
+# redsan 2.1.0
 
-- Add provisional `bact` retrieval and normalization. The backend response
-  shape and date filtering require confirmation; request it explicitly in
-  event bundles.
+- Add `bact` retrieval and normalization, including whitespace trimming for
+  selected text fields. Date filtering requires confirmation; request the
+  module explicitly in event bundles.
+
+# redsan 2.0.0
 
 - Add provisional `mouvement` retrieval and normalization; backend module name,
   response shape, and date filters still require confirmation. Request it explicitly
