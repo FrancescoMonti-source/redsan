@@ -1,5 +1,9 @@
 # redsan 2.0.0
 
+- Add provisional `bact` retrieval and normalization. The backend response
+  shape and date filtering require confirmation; request it explicitly in
+  event bundles.
+
 - Add provisional `mouvement` retrieval and normalization; backend module name,
   response shape, and date filters still require confirmation. Request it explicitly
   in event bundles; the default `modules = "all"` excludes it until confirmed.

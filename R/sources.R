@@ -2,10 +2,11 @@
 
 .edsan_source_registry <- function() {
   tibble::tibble(
-    module = c("doceds", "pmsi", "pmsi", "pmsi", "biol", "viro", "pancarte", "mouvement"),
-    table = c("documents", "main", "actes", "diag", "results", "results", "results", "movements"),
-    grain = c("document", "movement", "acte", "diagnosis", "biology_result", "virology_result", "measurement", "movement"),
+    module = c("doceds", "pmsi", "pmsi", "pmsi", "biol", "viro", "pancarte", "mouvement", "bact"),
+    table = c("documents", "main", "actes", "diag", "results", "results", "results", "movements", "results"),
+    grain = c("document", "movement", "acte", "diagnosis", "biology_result", "virology_result", "measurement", "movement", "bacteriology_result"),
     identifiers = list(
+      c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID"),
@@ -15,9 +16,9 @@
       c("PATID", "EVTID", "ELTID"),
       c("PATID", "EVTID", "ELTID")
     ),
-    source_time_kind = c("point", "interval", "point", "interval", "point", "point", "point", "interval"),
-    source_time_start = c("RECDATE", "DATENT", "DATEACTE", "DATENT", "DATEXAM", "DATEPRELEV", "DATEMES", "DATENT"),
-    source_time_end = c(NA_character_, "DATSORT", NA_character_, "DATSORT", NA_character_, NA_character_, NA_character_, "DATSORT"),
+    source_time_kind = c("point", "interval", "point", "interval", "point", "point", "point", "interval", "point"),
+    source_time_start = c("RECDATE", "DATENT", "DATEACTE", "DATENT", "DATEXAM", "DATEPRELEV", "DATEMES", "DATENT", "DATPRELEV"),
+    source_time_end = c(NA_character_, "DATSORT", NA_character_, "DATSORT", NA_character_, NA_character_, NA_character_, "DATSORT", NA_character_),
     query_date_keys = list(
       "RECDATE",
       c("DATENT", "DATSORT"),
@@ -26,10 +27,11 @@
       "DATEXAM",
       "DATEPRELEV",
       "DATEMES",
-      c("DATENT", "DATSORT")
+      c("DATENT", "DATSORT"),
+      "DATPRELEV"
     ),
-    default_batch_key = c("RECDATE", "DATENT", "DATENT", "DATENT", "DATEXAM", "DATEPRELEV", "DATEMES", "DATENT"),
-    normalizer = c("doceds_normalize", "pmsi_normalize", "pmsi_normalize", "pmsi_normalize", "biol_normalize", "viro_normalize", "pancarte_normalize", "mouvement_normalize"),
+    default_batch_key = c("RECDATE", "DATENT", "DATENT", "DATENT", "DATEXAM", "DATEPRELEV", "DATEMES", "DATENT", "DATPRELEV"),
+    normalizer = c("doceds_normalize", "pmsi_normalize", "pmsi_normalize", "pmsi_normalize", "biol_normalize", "viro_normalize", "pancarte_normalize", "mouvement_normalize", "bact_normalize"),
     notes = c(
       "Clinical documents; RECTXT and RECTYPE are document payload fields.",
       paste(
@@ -45,7 +47,8 @@
       "Biology results; analyte/value/unit columns depend on the returned payload.",
       "Virology results; BIOL-like payload with ELTID traceability and DATEPRELEV point time.",
       "Pancarte measurements; DATEMES point time, native TYPE codes, and ELTID source traceability.",
-      "Movements; DATENT/DATSORT define source intervals. Date query support is provisional."
+      "Movements; DATENT/DATSORT define source intervals. Date query support is provisional.",
+      "Bacteriology results; DATPRELEV is the collection date. Backend response shape and date filtering require confirmation."
     )
   )
 }
@@ -202,7 +205,7 @@
 #' scientific notation.
 #'
 #' @param module Optional module filter. Supported values are `"doceds"`,
-#'   `"pmsi"`, `"biol"`, `"viro"`, `"pancarte"`, and `"mouvement"`.
+#'   `"pmsi"`, `"biol"`, `"viro"`, `"pancarte"`, `"mouvement"`, and `"bact"`.
 #' @param table Optional normalized table filter, for example `"main"`,
 #'   `"actes"`, `"diag"`, or `"results"`.
 #'

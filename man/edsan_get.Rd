@@ -5,7 +5,7 @@
 \title{Retrieve EDSAN data with adaptive batching}
 \usage{
 edsan_get(
-  module = c("doceds", "pmsi", "biol", "viro", "pancarte", "mouvement"),
+  module = c("doceds", "pmsi", "biol", "viro", "pancarte", "mouvement", "bact"),
   what = c("data", "idtriplets"),
   query = list(),
   start_date = NULL,
@@ -28,7 +28,7 @@ edsan_get(
 )
 }
 \arguments{
-\item{module}{EDSAN module to query: \code{"doceds"}, \code{"pmsi"}, \code{"biol"}, \code{"viro"}, \code{"pancarte"}, or \code{"mouvement"}.}
+\item{module}{EDSAN module to query: \code{"doceds"}, \code{"pmsi"}, \code{"biol"}, \code{"viro"}, \code{"pancarte"}, \code{"mouvement"}, or \code{"bact"}.}
 
 \item{what}{Endpoint shape to request. \code{"data"} returns module payloads;
 \code{"idtriplets"} returns native identifier triplets unless extra \code{fields}
@@ -52,7 +52,7 @@ share an endpoint day.}
 end. Use only when the backend query needs overlapping windows.}
 
 \item{batch_key}{Date key used for time batching. Defaults by module:
-\code{RECDATE} for \code{doceds}, \code{DATENT} for \code{pmsi}, \code{DATEXAM} for \code{biol}, \code{DATEPRELEV} for \code{viro}, \code{DATEMES} for \code{pancarte}, and \code{DATENT} for \code{mouvement}.}
+\code{RECDATE} for \code{doceds}, \code{DATENT} for \code{pmsi}, \code{DATEXAM} for \code{biol}, \code{DATEPRELEV} for \code{viro}, \code{DATEMES} for \code{pancarte}, \code{DATENT} for \code{mouvement}, and \code{DATPRELEV} for \code{bact}.}
 
 \item{batch_ids_key}{Identifier key used for ID batching. If \code{NULL}, one of
 \code{ELTID}, \code{EVTID}, or \code{PATID} is selected from \code{query} when present.}
@@ -77,7 +77,7 @@ defaults to \code{PATID}, \code{EVTID}, \code{ELTID}, \code{PATAGE}, \code{PATSE
 \item{process}{If \code{TRUE} (default), a \code{what = "data"} payload for a module that
 has a processor is normalized before it is returned: \code{doceds} through
 \code{\link[=doceds_normalize]{doceds_normalize()}}, \code{pmsi} through \code{\link[=pmsi_normalize]{pmsi_normalize()}}, \code{biol} through
-\code{\link[=biol_normalize]{biol_normalize()}}, \code{viro} through \code{\link[=viro_normalize]{viro_normalize()}}, \code{pancarte} through \code{\link[=pancarte_normalize]{pancarte_normalize()}}, and \code{mouvement} through \code{\link[=mouvement_normalize]{mouvement_normalize()}}. Set \code{FALSE} to return the
+\code{\link[=biol_normalize]{biol_normalize()}}, \code{viro} through \code{\link[=viro_normalize]{viro_normalize()}}, \code{pancarte} through \code{\link[=pancarte_normalize]{pancarte_normalize()}}, \code{mouvement} through \code{\link[=mouvement_normalize]{mouvement_normalize()}}, and \code{bact} through \code{\link[=bact_normalize]{bact_normalize()}}. Set \code{FALSE} to return the
 raw payload unchanged -- the escape hatch for re-normalizing later with an
 updated \code{redsan}, auditing the payload, or caching the raw. \code{idtriplets}
 results pass through either way.}
@@ -90,7 +90,7 @@ every normalized PMSI \code{main} row. An explicit value is valid only for
 \value{
 By default (\code{process = TRUE}), a \code{what = "data"} call returns the
 normalized tables: a \code{list(main, actes, diag)} for \code{pmsi}, and processed
-tibbles for \code{biol}, \code{viro}, \code{doceds}, \code{pancarte}, and \code{mouvement}. With \code{process = FALSE}, or
+tibbles for \code{biol}, \code{viro}, \code{doceds}, \code{pancarte}, \code{mouvement}, and \code{bact}. With \code{process = FALSE}, or
 for \code{what = "idtriplets"}, the raw data frame/list is returned instead. When
 \code{return_audit = TRUE}, a list with \code{data} (the value just described) and
 \code{audit}.
@@ -110,6 +110,7 @@ Supported module date keys are:
 \item \code{viro}: \code{DATEPRELEV}
 \item \code{pancarte}: \code{DATEMES}
 \item \code{mouvement}: \code{DATENT} or \code{DATSORT} (provisional; verify with the backend)
+\item \code{bact}: \code{DATPRELEV} (provisional; verify with the backend)
 }
 
 Retrieval (batching, raw source fetch) and normalization (\code{\link[=doceds_normalize]{doceds_normalize()}},
