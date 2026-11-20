@@ -11,6 +11,10 @@ mouvement_records <- function() {
 
 test_that("movement normalization retains rows and normalizes fields", {
   out <- mouvement_normalize(mouvement_records())
+  expect_identical(names(out), c(
+    "PATID", "EVTID", "ELTID", "PATAGE", "PATSEX", "DATENT", "DATSORT",
+    "HEURE_DATENT", "HEURE_DATSORT", "SEJUM", "SEJUF"
+  ))
   expect_identical(out$ELTID, c("L1", "L2"))
   expect_identical(out$PATAGE, c(65, 65))
   expect_identical(out$SEJUF, c("F1", "F1;F2"))

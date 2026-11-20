@@ -38,5 +38,8 @@ mouvement_normalize <- function(data) {
   if ("PATAGE" %in% names(out)) {
     out$PATAGE <- suppressWarnings(as.numeric(as.character(out$PATAGE)))
   }
-  out
+  dplyr::select(out, dplyr::any_of(c(
+    "PATID", "EVTID", "ELTID", "PATAGE", "PATSEX", "DATENT", "DATSORT",
+    "HEURE_DATENT", "HEURE_DATSORT", "SEJUM", "SEJUF"
+  )), dplyr::everything())
 }
