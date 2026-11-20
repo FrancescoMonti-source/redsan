@@ -3,7 +3,9 @@
 #' Convert a flat list of bacteriology records or a data frame into a tibble.
 #' Source identifiers are character, age is numeric, and DATPRELEV is parsed
 #' using the Europe/Paris datetime convention. HEURE_PRELEV is retained as
-#' supplied by the source. CMI and all other source fields are preserved.
+#' supplied by the source. Leading and trailing whitespace is removed from
+#' NATUREPVT, IDENTIFICATION, LBLANA, LBLRES, and STRRES. Other fields are
+#' preserved.
 #'
 #' @param data Raw bacteriology records returned by EDSAN, or a data frame.
 #' @return A tibble retaining all records and fields.
@@ -37,6 +39,9 @@ bact_normalize <- function(data) {
   list_columns <- vapply(out, is.list, logical(1))
   out[list_columns] <- lapply(out[list_columns], .edsan_flatten_scalar_column)
   out <- .edsan_normalize_identifier_columns(out, "bact", "results")
+  for (column in intersect(c("NATUREPVT", "IDENTIFICATION", "LBLANA", "LBLRES", "STRRES"), names(out))) {
+    out[[column]] <- stringr::str_trim(as.character(out[[column]]))
+  }
   if ("DATPRELEV" %in% names(out)) {
     out$DATPRELEV <- .pmsi_parse_datetime(out$DATPRELEV)
   }

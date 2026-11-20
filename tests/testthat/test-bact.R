@@ -48,3 +48,21 @@ test_that("bact batching accepts the collection date", {
   table <- data.frame(PATID = "P1", EVTID = "E1", ELTID = "L1")
   expect_identical(nrow(redsan:::.edsan_combine("bact", list(table, table))), 2L)
 })
+
+
+test_that("bact trims selected text fields without changing internal spaces or other fields", {
+  raw <- data.frame(
+    NATUREPVT = c("  urine  ", NA_character_),
+    IDENTIFICATION = c(" E.  coli ", "  "),
+    LBLANA = c(" antibiotic ", " x "),
+    LBLRES = c(" resistant ", " y "),
+    STRRES = c(" R ", " S "), CMI = c(" <=0.5 ", " >2 ")
+  )
+  out <- bact_normalize(raw)
+  expect_identical(out$NATUREPVT, c("urine", NA_character_))
+  expect_identical(out$IDENTIFICATION, c("E.  coli", ""))
+  expect_identical(out$LBLANA, c("antibiotic", "x"))
+  expect_identical(out$LBLRES, c("resistant", "y"))
+  expect_identical(out$STRRES, c("R", "S"))
+  expect_identical(out$CMI, raw$CMI)
+})
