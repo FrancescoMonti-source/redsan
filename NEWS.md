@@ -1,3 +1,8 @@
+# redsan 2.2.0
+
+- Add the experimental `bactibs` bacteriology module, with the same text
+  normalization as `bact`. Request it explicitly in event bundles.
+
 # redsan 2.1.0
 
 - Add `bact` retrieval and normalization, including whitespace trimming for

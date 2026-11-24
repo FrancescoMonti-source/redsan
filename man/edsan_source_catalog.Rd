@@ -8,7 +8,7 @@ edsan_source_catalog(module = NULL, table = NULL)
 }
 \arguments{
 \item{module}{Optional module filter. Supported values are \code{"doceds"},
-\code{"pmsi"}, \code{"biol"}, \code{"viro"}, \code{"pancarte"}, \code{"mouvement"}, and \code{"bact"}.}
+\code{"pmsi"}, \code{"biol"}, \code{"viro"}, \code{"pancarte"}, \code{"mouvement"}, \code{"bact"}, and \code{"bactibs"}.}
 
 \item{table}{Optional normalized table filter, for example \code{"main"},
 \code{"actes"}, \code{"diag"}, or \code{"results"}.}

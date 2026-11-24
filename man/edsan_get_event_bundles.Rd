@@ -11,7 +11,7 @@ edsan_get_event_bundles(event_ids, modules = "all", include_observations = NULL)
 
 \item{modules}{EDSAN modules to retrieve. Use \code{"all"} (the default) for every
 established module, or provide a character vector. The provisional
-\code{"mouvement"} and \code{"bact"} modules must be requested explicitly.}
+\code{"mouvement"}, \code{"bact"}, and \code{"bactibs"} modules must be requested explicitly.}
 
 \item{include_observations}{\code{NULL} (default) skips CORA retrieval. Use
 \code{"all"} for every active CORA observation type or a character vector of
