@@ -1,9 +1,9 @@
 #' Normalize EDSAN bacteriology records
 #'
 #' Convert a flat list of bacteriology records or a data frame into a tibble.
-#' Source identifiers are character, age is numeric, and DATPRELEV is parsed
-#' using the Europe/Paris datetime convention. HEURE_PRELEV is retained as
-#' supplied by the source. Leading and trailing whitespace is removed from
+#' Source identifiers are character, age is numeric, and DATEPRELEV or
+#' DATPRELEV is parsed using the Europe/Paris datetime convention. HEUREPRELEV
+#' and HEURE_PRELEV are retained as supplied by the source. Leading and trailing whitespace is removed from
 #' NATUREPVT, IDENTIFICATION, LBLANA, LBLRES, and STRRES. Other fields are
 #' preserved.
 #'
@@ -60,14 +60,16 @@ bactibs_normalize <- function(data) {
   for (column in intersect(c("NATUREPVT", "IDENTIFICATION", "LBLANA", "LBLRES", "STRRES"), names(out))) {
     out[[column]] <- stringr::str_trim(as.character(out[[column]]))
   }
-  if (date_col %in% names(out)) {
-    out[[date_col]] <- .pmsi_parse_datetime(out[[date_col]])
+  date_cols <- if (identical(module, "bact")) c("DATEPRELEV", "DATPRELEV") else date_col
+  for (column in intersect(date_cols, names(out))) {
+    out[[column]] <- .pmsi_parse_datetime(out[[column]])
   }
   if ("PATAGE" %in% names(out)) {
     out$PATAGE <- suppressWarnings(as.numeric(as.character(out$PATAGE)))
   }
   dplyr::select(out, dplyr::any_of(c(
-    "PATID", "EVTID", "ELTID", "PATAGE", "PATSEX", date_col, time_col,
+    "PATID", "EVTID", "ELTID", "PATAGE", "PATSEX", date_cols, time_col,
+    if (identical(module, "bact")) "HEUREPRELEV",
     "SEJUM", "SEJUF", "NATUREPVT", "IDENTIFICATION", "LBLANA", "LBLRES", "CMI",
     "STRRES", "NUMRES", "ST", "CASFM"
   )), dplyr::everything())

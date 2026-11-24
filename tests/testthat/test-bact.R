@@ -66,3 +66,20 @@ test_that("bact trims selected text fields without changing internal spaces or o
   expect_identical(out$STRRES, c("R", "S"))
   expect_identical(out$CMI, raw$CMI)
 })
+
+
+test_that("bact converts the actual DATEPRELEV field without changing the time", {
+  raw <- bact_records()
+  for (i in seq_along(raw)) {
+    raw[[i]]$DATEPRELEV <- raw[[i]]$DATPRELEV
+    raw[[i]]$HEUREPRELEV <- raw[[i]]$HEURE_PRELEV
+    raw[[i]]$DATPRELEV <- NULL
+    raw[[i]]$HEURE_PRELEV <- NULL
+  }
+  out <- bact_normalize(raw)
+  expect_s3_class(out$DATEPRELEV, "POSIXct")
+  expect_identical(format(out$DATEPRELEV, "%Y-%m-%d", tz = "Europe/Paris"),
+                   c("2024-01-01", "2024-01-01"))
+  expect_identical(out$HEUREPRELEV, c("08:30", "08:30"))
+  expect_false(anyNA(out$DATEPRELEV))
+})

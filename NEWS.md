@@ -1,3 +1,8 @@
+# redsan 2.2.1
+
+- Parse `bact` collection dates returned in `DATEPRELEV`, while retaining
+  support for `DATPRELEV` and preserving the source time field.
+
 # redsan 2.2.0
 
 - Add the experimental `bactibs` bacteriology module, with the same text

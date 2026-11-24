@@ -14,9 +14,9 @@ A tibble retaining all records and fields.
 }
 \description{
 Convert a flat list of bacteriology records or a data frame into a tibble.
-Source identifiers are character, age is numeric, and DATPRELEV is parsed
-using the Europe/Paris datetime convention. HEURE_PRELEV is retained as
-supplied by the source. Leading and trailing whitespace is removed from
+Source identifiers are character, age is numeric, and DATEPRELEV or
+DATPRELEV is parsed using the Europe/Paris datetime convention. HEUREPRELEV
+and HEURE_PRELEV are retained as supplied by the source. Leading and trailing whitespace is removed from
 NATUREPVT, IDENTIFICATION, LBLANA, LBLRES, and STRRES. Other fields are
 preserved.
 }
