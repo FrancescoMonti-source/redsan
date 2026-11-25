@@ -130,30 +130,57 @@ cora_observation_catalog <- function(connection = NULL, ojdbc_jar = NULL,
   tibble::as_tibble(docs)
 }
 
+# Look up stays in CORA so observations can be returned without an EDSaN EVTID.
+.cora_patient_ieps <- function(connection, ipps) {
+  ipps <- .edsan_ct_validate_ids(ipps, digits_only = TRUE)
+  batches <- split(ipps, (seq_along(ipps) - 1L) %/% 900L)
+  results <- lapply(batches, function(batch) {
+    quoted <- paste0("'", batch, "'", collapse = ", ")
+    sql <- paste0(
+      "SELECT DISTINCT s.NO_SEJOUR AS IEP ",
+      "FROM CORA_REC.TB_SEJOUR s ",
+      "JOIN CORA_REC.TB_PATIENT p ON p.ID_PATIENT = s.ID_PATIENT ",
+      "WHERE p.IPP_PATIENT IN (", quoted, ")"
+    )
+    rows <- .cora_query(sql, connection = connection)
+    if (!"IEP" %in% names(rows)) {
+      stop("CORA patient stay lookup did not return the IEP column.",
+           call. = FALSE)
+    }
+    trimws(.edsan_as_identifier(rows$IEP), whitespace = "[\\h\\v]")
+  })
+  ieps <- unlist(results, use.names = FALSE)
+  .cora_validate_ieps(ieps[!is.na(ieps) & nzchar(ieps)])
+}
+
 #' Retrieve CORA observations linked to hospital stays
 #'
 #' Uses the active CORA observation reference and EDSaN CT to map IEPs
-#' (hospital stay numbers) and EVTIDs (EDSaN stay identifiers).
+#' (hospital stay numbers) and EVTIDs (EDSaN stay identifiers). With PATID
+#' input, EDSaN CT resolves the hospital patient number (IPP), and CORA
+#' supplies the IEPs linked to that IPP without a date restriction.
 #'
 #' @inheritParams cora_observation_catalog
-#' @param ids Character vector of stay identifiers containing digits only.
-#' @param id_type Input identifier type, `"IEP"` (default) or `"EVTID"`.
+#' @param ids Character vector of stay or patient identifiers containing
+#'   digits only.
+#' @param id_type Input identifier type, `"IEP"` (default), `"EVTID"`, or
+#'   `"PATID"` (EDSaN patient identifier).
 #' @param types A character vector of active `CODE` values from
 #'   [cora_observation_catalog()], or `"all"` (default) for every active type.
 #' @param event_type CORA event types to include. Use `"H"` for hospital
 #'   movements, `"R"` for appointments, or `c("H", "R")` (default) for both.
 #' @param chunk_size Number of bytes per read of the stored document text.
 #'   Must be a whole number from 1 to 2000.
-#' @param env EDSaN CT service environment used for EVTID/IEP mapping.
+#' @param env EDSaN CT service environment used for identifier mapping.
 #' @param ks_path Optional d2imr keystore path for EDSaN CT and any CORA
 #'   connection opened by this function.
 #'
 #' @return A tibble with `EVTID`, `IEP`, decompressed document text in
 #'   `TEXT`, the CORA document key (`NODOCUMENT`, `TYPEDOC`), and source
 #'   metadata including `OBS_CODE`, `OBS_LABEL`, `NOSOUSVOLET`, `TYPEEVT`,
-#'   and `CORA_NOEVT`. With IEP input, an observation may have `EVTID = NA`
-#'   if EDSaN CT has no match. With EVTID input, unmatched identifiers yield
-#'   no observations.
+#'   and `CORA_NOEVT`. With IEP or PATID input, an observation may have
+#'   `EVTID = NA` if EDSaN CT has no match for its IEP. Unmatched EVTIDs or
+#'   PATIDs yield no observations.
 #'
 #' @details Service failures and ambiguous identifier mappings raise errors.
 #' Use [cora_add_observations()] to attach rows with EVTIDs to existing bundles.
@@ -161,24 +188,49 @@ cora_observation_catalog <- function(connection = NULL, ojdbc_jar = NULL,
 #' \dontrun{
 #' observations <- cora_get_observations("123456789", id_type = "EVTID",
 #'                                       types = "DIET")
+#' patient_observations <- cora_get_observations("123456789", id_type = "PATID")
 #' }
 #' @export
-cora_get_observations <- function(ids, id_type = c("IEP", "EVTID"),
+cora_get_observations <- function(ids, id_type = c("IEP", "EVTID", "PATID"),
                                   types = "all", event_type = c("H", "R"),
                                   connection = NULL, ojdbc_jar = NULL,
                                   chunk_size = 2000L,
                                   env = "edsan-ct", ks_path = NULL) {
   id_type <- match.arg(id_type)
   event_type <- .cora_observation_event_types(event_type)
-  ids <- .cora_validate_stay_ids(ids, id_type)
+  ids <- .cora_validate_observation_ids(ids, id_type)
   if (!length(ids)) return(.cora_empty_observations())
   if (length(chunk_size) != 1L || !is.numeric(chunk_size) ||
       is.na(chunk_size) || chunk_size != floor(chunk_size) ||
       chunk_size < 1L || chunk_size > 2000L) {
     stop("`chunk_size` must be an integer from 1 to 2000.", call. = FALSE)
   }
-  mapping <- .cora_diet_id_map(ids, id_type = id_type, env = env,
-                               ks_path = ks_path)
+  patient_lookup <- identical(id_type, "PATID")
+  if (patient_lookup) {
+    patients <- edsan_ct(ids, from = "PATID", env = env, ks_path = ks_path)
+    if (any(patients$n_matches > 1L)) {
+      stop("Ambiguous EDSaN PATID/IPP correspondence.", call. = FALSE)
+    }
+    ipps <- unique(patients$IPP[!is.na(patients$IPP)])
+    if (!length(ipps)) return(.cora_empty_observations())
+  } else {
+    mapping <- .cora_diet_id_map(ids, id_type = id_type, env = env,
+                                 ks_path = ks_path)
+    if (!any(!is.na(mapping$IEP) & nzchar(mapping$IEP))) {
+      return(.cora_empty_observations())
+    }
+  }
+
+  .cora_require_namespace("DBI", "query execution")
+  if (is.null(connection)) {
+    connection <- .cora_connect(ojdbc_jar = ojdbc_jar, ks_path = ks_path)
+    on.exit(DBI::dbDisconnect(connection), add = TRUE)
+  }
+  if (patient_lookup) {
+    ieps <- .cora_patient_ieps(connection, ipps)
+    mapping <- .cora_diet_id_map(ieps, id_type = "IEP", env = env,
+                                 ks_path = ks_path)
+  }
   query_ieps <- unique(mapping$IEP[!is.na(mapping$IEP) & nzchar(mapping$IEP)])
   if (!length(query_ieps)) return(.cora_empty_observations())
 
@@ -192,12 +244,6 @@ cora_get_observations <- function(ids, id_type = c("IEP", "EVTID"),
     }
   }
 
-  .cora_require_namespace("DBI", "query execution")
-  owns_connection <- is.null(connection)
-  if (owns_connection) {
-    connection <- .cora_connect(ojdbc_jar = ojdbc_jar, ks_path = ks_path)
-    on.exit(DBI::dbDisconnect(connection), add = TRUE)
-  }
   catalog <- cora_observation_catalog(connection = connection)
   selected <- .cora_resolve_observation_types(types, catalog)
   if (!nrow(selected)) return(.cora_empty_observations())
@@ -253,7 +299,7 @@ cora_get_observations <- function(ids, id_type = c("IEP", "EVTID"),
 #' @return The same tibble schema as [cora_get_observations()], including
 #'   observation type and event metadata.
 #' @export
-cora_get_diet <- function(ids, id_type = c("IEP", "EVTID"),
+cora_get_diet <- function(ids, id_type = c("IEP", "EVTID", "PATID"),
                           event_type = c("H", "R"),
                           connection = NULL, ojdbc_jar = NULL,
                           chunk_size = 2000L,

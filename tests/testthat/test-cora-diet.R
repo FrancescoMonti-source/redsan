@@ -52,15 +52,15 @@ test_that("CORA Diet document queries batch large IEP lists", {
 
 test_that("CORA stay identifier validation supports IEP and EVTID", {
   expect_identical(
-    redsan:::.cora_validate_stay_ids(c(" 745068610 ", "745068610"), "IEP"),
+    redsan:::.cora_validate_observation_ids(c(" 745068610 ", "745068610"), "IEP"),
     "745068610"
   )
   expect_identical(
-    redsan:::.cora_validate_stay_ids(c("199196450", "199196450"), "EVTID"),
+    redsan:::.cora_validate_observation_ids(c("199196450", "199196450"), "EVTID"),
     "199196450"
   )
-  expect_error(redsan:::.cora_validate_stay_ids(199196450, "EVTID"), "character")
-  expect_error(redsan:::.cora_validate_stay_ids("EVT-1", "EVTID"), "digits only")
+  expect_error(redsan:::.cora_validate_observation_ids(199196450, "EVTID"), "character")
+  expect_error(redsan:::.cora_validate_observation_ids("EVT-1", "EVTID"), "digits only")
 })
 
 test_that("CORA Diet maps EVTID input to IEP", {

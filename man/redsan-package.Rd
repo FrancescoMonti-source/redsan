@@ -78,7 +78,7 @@ status and multiplicity.
 
 \code{\link[=cora_query]{cora_query()}} and \code{\link[=icca_query]{icca_query()}} execute read-only queries against their
 respective systems. \code{\link[=db_connect]{db_connect()}} opens a reusable connection.
-\code{\link[=cora_get_observations]{cora_get_observations()}} retrieves CORA observations by IEP or EVTID, and
+\code{\link[=cora_get_observations]{cora_get_observations()}} retrieves CORA observations by IEP, EVTID, or PATID, and
 \code{\link[=icca_get]{icca_get()}} retrieves ICCA data by EDSaN EVTID.
 }
 

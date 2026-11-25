@@ -1,3 +1,8 @@
+# redsan (development)
+
+- Accept `id_type = "PATID"` in `cora_get_observations()` and
+  `cora_get_diet()` to retrieve observations across a patient's CORA stays.
+
 # redsan 2.2.1
 
 - Parse `bact` collection dates returned in `DATEPRELEV`, while retaining

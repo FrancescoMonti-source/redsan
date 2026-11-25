@@ -6,7 +6,7 @@
 \usage{
 get_cora_diet(
   ids,
-  id_type = c("IEP", "EVTID"),
+  id_type = c("IEP", "EVTID", "PATID"),
   event_type = c("H", "R"),
   connection = NULL,
   ojdbc_jar = NULL,
@@ -16,9 +16,11 @@ get_cora_diet(
 )
 }
 \arguments{
-\item{ids}{Character vector of stay identifiers containing digits only.}
+\item{ids}{Character vector of stay or patient identifiers containing
+digits only.}
 
-\item{id_type}{Input identifier type, \code{"IEP"} (default) or \code{"EVTID"}.}
+\item{id_type}{Input identifier type, \code{"IEP"} (default), \code{"EVTID"}, or
+\code{"PATID"} (EDSaN patient identifier).}
 
 \item{event_type}{CORA event types to include. Use \code{"H"} for hospital
 movements, \code{"R"} for appointments, or \code{c("H", "R")} (default) for both.}
@@ -32,15 +34,15 @@ the function opens and closes its own connection.}
 \item{chunk_size}{Number of bytes per read of the stored document text.
 Must be a whole number from 1 to 2000.}
 
-\item{env}{EDSaN CT service environment used for EVTID/IEP mapping.}
+\item{env}{EDSaN CT service environment used for identifier mapping.}
 
 \item{ks_path}{Optional d2imr keystore path for EDSaN CT and any CORA
 connection opened by this function.}
 }
 \value{
 A tibble with \code{EVTID}, \code{IEP}, \code{NODOCUMENT}, \code{TYPEDOC},
-  \code{CORA_NOEVT}, \code{DTDOC}, \code{TIMECREATE}, \code{REDACTEUR}, \code{NOUSHEB},
-  \code{NOUSRESP}, and \code{TEXT}.
+\code{CORA_NOEVT}, \code{DTDOC}, \code{TIMECREATE}, \code{REDACTEUR}, \code{NOUSHEB},
+\code{NOUSRESP}, and \code{TEXT}.
 }
 \description{
 Deprecated wrapper for \code{\link[=cora_get_diet]{cora_get_diet()}} preserving the historical

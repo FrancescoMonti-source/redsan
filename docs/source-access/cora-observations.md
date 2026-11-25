@@ -38,6 +38,10 @@ table, the function creates `sources$doceds` from the supplied CORA rows.
 The old `get_cora_diet()` remains available with its historical 11-column
 output and a deprecation warning.
 
+Pass `id_type = "PATID"` to retrieve observations across a patient's stays.
+EDSaN CT resolves the hospital patient number (IPP), then CORA lists the
+stay numbers (IEPs) for that IPP without a date restriction.
+
 ## Row contract and provenance
 
 - Observations are rows in `sources$doceds`, not a separate EDSaN module.
@@ -55,7 +59,7 @@ output and a deprecation warning.
   are no native DOCEDS rows.
 
 IEP and EVTID correspondence uses EDSaN CT. With EVTID input, a missing
-mapping yields no CORA rows for that stay. With IEP input, retrieval can
+mapping yields no CORA rows for that stay. With IEP or PATID input, retrieval can
 return rows with `EVTID = NA`. Filter those rows out before calling
 `cora_add_observations()`. Service errors and ambiguous mappings raise errors.
 

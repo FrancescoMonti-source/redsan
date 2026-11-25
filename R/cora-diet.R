@@ -128,8 +128,7 @@
   unique(ieps)
 }
 
-.cora_validate_stay_ids <- function(ids, id_type = c("IEP", "EVTID")) {
-  id_type <- match.arg(id_type)
+.cora_validate_observation_ids <- function(ids, id_type) {
   if (!is.character(ids)) {
     stop("`ids` must be character ", id_type, " values.", call. = FALSE)
   }
@@ -151,7 +150,7 @@
                               reidentify = .edsan_ct_legacy_reidentify,
                               pseudonymize = .edsan_ct_legacy_pseudonymize) {
   id_type <- match.arg(id_type)
-  ids <- .cora_validate_stay_ids(ids, id_type)
+  ids <- .cora_validate_observation_ids(ids, id_type)
   if (!length(ids)) {
     return(tibble::tibble(EVTID = character(), IEP = character()))
   }
@@ -420,7 +419,7 @@
 #'   `CORA_NOEVT`, `DTDOC`, `TIMECREATE`, `REDACTEUR`, `NOUSHEB`,
 #'   `NOUSRESP`, and `TEXT`.
 #' @export
-get_cora_diet <- function(ids, id_type = c("IEP", "EVTID"),
+get_cora_diet <- function(ids, id_type = c("IEP", "EVTID", "PATID"),
                           event_type = c("H", "R"),
                           connection = NULL, ojdbc_jar = NULL,
                           chunk_size = 2000L,

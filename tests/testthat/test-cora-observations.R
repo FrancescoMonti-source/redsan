@@ -186,6 +186,88 @@ test_that("ambiguous EVTID/IEP mappings fail rather than multiplying data", {
   ), "Ambiguous")
 })
 
+test_that("PATID retrieval includes each CORA stay even without an EVTID", {
+  connection <- structure(list(), class = "fake_connection")
+  testthat::local_mocked_bindings(
+    edsan_ct = function(ids, from, env, ks_path) {
+      expect_identical(ids, c("10", "20"))
+      expect_identical(from, "PATID")
+      expect_identical(env, "ct-example")
+      expect_identical(ks_path, "keystore-example")
+      tibble::tibble(PATID = ids, IPP = c("00001234", NA_character_),
+                     n_matches = c(1L, 0L))
+    },
+    .cora_query = function(sql, connection) {
+      expect_s3_class(connection, "fake_connection")
+      expect_match(sql, "p.IPP_PATIENT IN ('00001234')", fixed = TRUE)
+      tibble::tibble(IEP = c("001   ", "002", "001", NA_character_))
+    },
+    .edsan_ct_legacy_pseudonymize = function(ids, id_type, env, ks_path) {
+      expect_identical(ids, c("001", "002"))
+      expect_identical(id_type, "IEP")
+      expect_identical(env, "ct-example")
+      expect_identical(ks_path, "keystore-example")
+      tibble::tibble(HIS_ID = ids, EDSAN_ID = c("101", NA_character_))
+    },
+    cora_observation_catalog = function(connection) {
+      tibble::tibble(NOSOUSVOLET = "443", CODE = "DIET", LIBLONG = "Diet")
+    },
+    .cora_query_observation_documents = function(connection, ieps, subvolets,
+                                                 event_type) {
+      expect_identical(ieps, c("001", "002"))
+      expect_identical(subvolets, "443")
+      expect_identical(event_type, c("H", "R"))
+      tibble::tibble(
+        IEP = ieps, NODOCUMENT = c("51", "52"), TYPEDOC = "W",
+        CORA_NOEVT = c("1", "2"), NOSOUSVOLET = "443", TYPEEVT = c("H", "R"),
+        DTDOC = as.POSIXct("2026-01-01", tz = "UTC"),
+        TIMECREATE = as.POSIXct("2026-01-01", tz = "UTC"),
+        REDACTEUR = "Clinician", NOUSHEB = NA_character_,
+        NOUSRESP = NA_character_
+      )
+    },
+    .cora_read_diet_blob = function(connection, nodocument, ...) nodocument,
+    .package = "redsan"
+  )
+  out <- cora_get_diet(
+    c("10", "20"), "PATID", connection = connection,
+    env = "ct-example", ks_path = "keystore-example"
+  )
+  expect_identical(out$IEP, c("001", "002"))
+  expect_identical(out$EVTID, c("101", NA_character_))
+  expect_identical(out$TEXT, c("51", "52"))
+})
+
+test_that("unmatched and ambiguous PATIDs do not query CORA", {
+  ipps <- NA_character_
+  testthat::local_mocked_bindings(
+    edsan_ct = function(...) {
+      tibble::tibble(IPP = ipps, n_matches = sum(!is.na(ipps)))
+    },
+    .cora_connect = function(...) stop("Unexpected CORA connection"),
+    .package = "redsan"
+  )
+  expect_identical(
+    cora_get_observations("10", "PATID"),
+    redsan:::.cora_empty_observations()
+  )
+  ipps <- c("00001234", "00005678")
+  expect_error(cora_get_observations("10", "PATID"), "Ambiguous EDSaN PATID/IPP")
+})
+
+test_that("a PATID without CORA stays returns the standard empty table", {
+  testthat::local_mocked_bindings(
+    edsan_ct = function(...) tibble::tibble(IPP = "00001234", n_matches = 1L),
+    .cora_query = function(sql, connection) tibble::tibble(IEP = character()),
+    cora_observation_catalog = function(...) stop("Unexpected catalog lookup"),
+    .package = "redsan"
+  )
+  expect_identical(
+    cora_get_observations("10", "PATID", connection = "fake connection"),
+    redsan:::.cora_empty_observations()
+  )
+})
+
 test_that("bundle retrieval opts into CORA only when requested", {
   calls <- character()
   fake_edsan <- function(module, what, query, process) {
