@@ -171,7 +171,6 @@ test_that("retrieval joins CORA catalog, CT mapping and documents", {
 
     expect_identical(by_evtid, by_iep)
     expect_identical(by_evtid$IEP, expected_iep)
-    expect_identical(by_evtid$NO_SEJOUR, expected_iep)
     expect_identical(by_evtid$ID_RSS, "1001")
     expect_identical(by_evtid$EVTID, evtid)
     expect_identical(by_evtid$OBS_CODE, "DIET")
@@ -250,7 +249,8 @@ test_that("PATID and IPP retrieve each CORA stay even without an EVTID", {
     env = "ct-example", ks_path = "keystore-example"
   )
   expect_identical(out$IEP, c("001", "002"))
-  expect_identical(out$NO_SEJOUR, out$IEP)
+  expect_identical(names(out)[1:3], c("EVTID", "IEP", "ID_RSS"))
+  expect_false("NO_SEJOUR" %in% names(out))
   expect_identical(out$ID_RSS, c("501, 502", NA_character_))
   expect_identical(out$EVTID, c("101", NA_character_))
   expect_identical(out$TEXT, c("51", "52"))

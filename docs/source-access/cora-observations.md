@@ -67,10 +67,9 @@ The default `event_type = c("H", "R")` supports hospital movement and
 rendez-vous documents. SQL queries batch IEPs into groups of at most 900
 and load only documents belonging to the selected observation sub-volets.
 
-`NO_SEJOUR` repeats the CORA stay number in `IEP`. The RSS lookup joins
-`CORA_REC.TB_SEJOUR` to `CORA_REC.TB_SYNTH_RSS` by `ID_SEJOUR`. `ID_RSS`
-contains the distinct RSS identifiers for the stay as comma-separated text,
-or `NA` for a stay without an RSS.
+`ID_RSS` follows `IEP` and contains the distinct RSS identifiers for the stay
+as comma-separated text, or `NA` for a stay without an RSS. The lookup joins
+`CORA_REC.TB_SEJOUR` to `CORA_REC.TB_SYNTH_RSS` by `ID_SEJOUR`.
 
 ## Validation before deployment
 

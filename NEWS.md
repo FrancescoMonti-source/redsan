@@ -2,7 +2,7 @@
 
 - Accept `id_type = "PATID"` or `"IPP"` in `cora_get_observations()` and
   `cora_get_diet()` to retrieve observations across a patient's CORA stays.
-- Include `NO_SEJOUR` and `ID_RSS` in CORA observation results.
+- Include `ID_RSS` after `IEP` in CORA observation results.
 
 # redsan 2.2.1
 

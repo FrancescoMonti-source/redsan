@@ -10,12 +10,10 @@
   out$OBS_CODE <- character()
   out$OBS_LABEL <- character()
   out$TYPEEVT <- character()
-  out$NO_SEJOUR <- character()
   out$ID_RSS <- character()
-  out[, c("EVTID", "IEP", "NODOCUMENT", "TYPEDOC", "CORA_NOEVT",
+  out[, c("EVTID", "IEP", "ID_RSS", "NODOCUMENT", "TYPEDOC", "CORA_NOEVT",
           "NOSOUSVOLET", "OBS_CODE", "OBS_LABEL", "TYPEEVT",
-          "DTDOC", "TIMECREATE", "REDACTEUR", "NOUSHEB", "NOUSRESP", "TEXT",
-          "NO_SEJOUR", "ID_RSS")]
+          "DTDOC", "TIMECREATE", "REDACTEUR", "NOUSHEB", "NOUSRESP", "TEXT")]
 }
 
 #' List CORA observation types
@@ -207,8 +205,8 @@ cora_observation_catalog <- function(connection = NULL, ojdbc_jar = NULL,
 #'   and `CORA_NOEVT`. With IEP, PATID, or IPP input, an observation may have
 #'   `EVTID = NA` if EDSaN CT has no match for its IEP. Unmatched EVTIDs or
 #'   patient identifiers yield no observations.
-#'   `NO_SEJOUR` is the CORA stay number, equal to `IEP`. `ID_RSS` contains
-#'   the CORA RSS identifiers for that stay as text, separated by commas
+#'   `ID_RSS` follows `IEP` and contains the CORA RSS identifiers for that
+#'   stay as text, separated by commas
 #'   if there are several. Stays without an RSS have `ID_RSS = NA`.
 #'
 #' @details Service failures and ambiguous identifier mappings raise errors.
@@ -312,9 +310,8 @@ cora_get_observations <- function(ids, id_type = c("IEP", "EVTID", "PATID", "IPP
   }
   if (!nrow(docs)) return(.cora_empty_observations())
 
-  docs$NO_SEJOUR <- docs$IEP
   rss_by_iep <- .cora_observation_rss_by_iep(connection, docs$IEP)
-  docs$ID_RSS <- unname(rss_by_iep[docs$NO_SEJOUR])
+  docs$ID_RSS <- unname(rss_by_iep[docs$IEP])
 
   # A CORA document is uniquely identified by (TYPEDOC, NODOCUMENT).
   keys <- paste(docs$TYPEDOC, docs$NODOCUMENT, sep = ":")

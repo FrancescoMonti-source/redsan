@@ -50,8 +50,8 @@ metadata including \code{OBS_CODE}, \code{OBS_LABEL}, \code{NOSOUSVOLET}, \code{
 and \code{CORA_NOEVT}. With IEP, PATID, or IPP input, an observation may have
 \code{EVTID = NA} if EDSaN CT has no match for its IEP. Unmatched EVTIDs or
 patient identifiers yield no observations.
-\code{NO_SEJOUR} is the CORA stay number, equal to \code{IEP}. \code{ID_RSS} contains
-the CORA RSS identifiers for that stay as text, separated by commas
+\code{ID_RSS} follows \code{IEP} and contains the CORA RSS identifiers for that
+stay as text, separated by commas
 if there are several. Stays without an RSS have \code{ID_RSS = NA}.
 }
 \description{
