@@ -1,6 +1,6 @@
 # redsan (development)
 
-- Accept `id_type = "PATID"` in `cora_get_observations()` and
+- Accept `id_type = "PATID"` or `"IPP"` in `cora_get_observations()` and
   `cora_get_diet()` to retrieve observations across a patient's CORA stays.
 
 # redsan 2.2.1

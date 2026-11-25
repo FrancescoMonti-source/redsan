@@ -60,7 +60,7 @@
 #' @section Query CORA and ICCA:
 #' [cora_query()] and [icca_query()] execute read-only queries against their
 #' respective systems. [db_connect()] opens a reusable connection.
-#' [cora_get_observations()] retrieves CORA observations by IEP, EVTID, or PATID, and
+#' [cora_get_observations()] retrieves CORA observations by IEP, EVTID, PATID, or IPP, and
 #' [icca_get()] retrieves ICCA data by EDSaN EVTID.
 #'
 #' @section Source and downstream responsibilities:

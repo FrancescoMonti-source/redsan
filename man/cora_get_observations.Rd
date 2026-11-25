@@ -6,7 +6,7 @@
 \usage{
 cora_get_observations(
   ids,
-  id_type = c("IEP", "EVTID", "PATID"),
+  id_type = c("IEP", "EVTID", "PATID", "IPP"),
   types = "all",
   event_type = c("H", "R"),
   connection = NULL,
@@ -20,8 +20,8 @@ cora_get_observations(
 \item{ids}{Character vector of stay or patient identifiers containing
 digits only.}
 
-\item{id_type}{Input identifier type, \code{"IEP"} (default), \code{"EVTID"}, or
-\code{"PATID"} (EDSaN patient identifier).}
+\item{id_type}{Input identifier type, \code{"IEP"} (default), \code{"EVTID"},
+\code{"PATID"} (EDSaN patient identifier), or \code{"IPP"} (hospital patient number).}
 
 \item{types}{A character vector of active \code{CODE} values from
 \code{\link[=cora_observation_catalog]{cora_observation_catalog()}}, or \code{"all"} (default) for every active type.}
@@ -47,15 +47,15 @@ connection opened by this function.}
 A tibble with \code{EVTID}, \code{IEP}, decompressed document text in
 \code{TEXT}, the CORA document key (\code{NODOCUMENT}, \code{TYPEDOC}), and source
 metadata including \code{OBS_CODE}, \code{OBS_LABEL}, \code{NOSOUSVOLET}, \code{TYPEEVT},
-and \code{CORA_NOEVT}. With IEP or PATID input, an observation may have
+and \code{CORA_NOEVT}. With IEP, PATID, or IPP input, an observation may have
 \code{EVTID = NA} if EDSaN CT has no match for its IEP. Unmatched EVTIDs or
-PATIDs yield no observations.
+patient identifiers yield no observations.
 }
 \description{
 Uses the active CORA observation reference and EDSaN CT to map IEPs
-(hospital stay numbers) and EVTIDs (EDSaN stay identifiers). With PATID
-input, EDSaN CT resolves the hospital patient number (IPP), and CORA
-supplies the IEPs linked to that IPP without a date restriction.
+(hospital stay numbers) and EVTIDs (EDSaN stay identifiers). For patient
+identifiers, CORA looks up stays by the hospital patient number (IPP)
+without a date restriction. EDSaN CT resolves PATID inputs to IPPs.
 }
 \details{
 Service failures and ambiguous identifier mappings raise errors.
@@ -66,5 +66,6 @@ Use \code{\link[=cora_add_observations]{cora_add_observations()}} to attach rows
 observations <- cora_get_observations("123456789", id_type = "EVTID",
                                       types = "DIET")
 patient_observations <- cora_get_observations("123456789", id_type = "PATID")
+patient_observations <- cora_get_observations("0000123456", id_type = "IPP")
 }
 }

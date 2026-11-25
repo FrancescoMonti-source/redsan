@@ -186,10 +186,12 @@ test_that("ambiguous EVTID/IEP mappings fail rather than multiplying data", {
   ), "Ambiguous")
 })
 
-test_that("PATID retrieval includes each CORA stay even without an EVTID", {
+test_that("PATID and IPP retrieve each CORA stay even without an EVTID", {
   connection <- structure(list(), class = "fake_connection")
+  patient_lookups <- 0L
   testthat::local_mocked_bindings(
     edsan_ct = function(ids, from, env, ks_path) {
+      patient_lookups <<- patient_lookups + 1L
       expect_identical(ids, c("10", "20"))
       expect_identical(from, "PATID")
       expect_identical(env, "ct-example")
@@ -236,6 +238,13 @@ test_that("PATID retrieval includes each CORA stay even without an EVTID", {
   expect_identical(out$IEP, c("001", "002"))
   expect_identical(out$EVTID, c("101", NA_character_))
   expect_identical(out$TEXT, c("51", "52"))
+
+  by_ipp <- cora_get_observations(
+    "00001234", "IPP", types = "DIET", connection = connection,
+    env = "ct-example", ks_path = "keystore-example"
+  )
+  expect_identical(by_ipp, out)
+  expect_identical(patient_lookups, 1L)
 })
 
 test_that("unmatched and ambiguous PATIDs do not query CORA", {

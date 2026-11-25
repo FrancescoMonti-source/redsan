@@ -419,7 +419,7 @@
 #'   `CORA_NOEVT`, `DTDOC`, `TIMECREATE`, `REDACTEUR`, `NOUSHEB`,
 #'   `NOUSRESP`, and `TEXT`.
 #' @export
-get_cora_diet <- function(ids, id_type = c("IEP", "EVTID", "PATID"),
+get_cora_diet <- function(ids, id_type = c("IEP", "EVTID", "PATID", "IPP"),
                           event_type = c("H", "R"),
                           connection = NULL, ojdbc_jar = NULL,
                           chunk_size = 2000L,

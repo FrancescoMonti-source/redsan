@@ -6,7 +6,7 @@
 \usage{
 cora_get_diet(
   ids,
-  id_type = c("IEP", "EVTID", "PATID"),
+  id_type = c("IEP", "EVTID", "PATID", "IPP"),
   event_type = c("H", "R"),
   connection = NULL,
   ojdbc_jar = NULL,
@@ -19,8 +19,8 @@ cora_get_diet(
 \item{ids}{Character vector of stay or patient identifiers containing
 digits only.}
 
-\item{id_type}{Input identifier type, \code{"IEP"} (default), \code{"EVTID"}, or
-\code{"PATID"} (EDSaN patient identifier).}
+\item{id_type}{Input identifier type, \code{"IEP"} (default), \code{"EVTID"},
+\code{"PATID"} (EDSaN patient identifier), or \code{"IPP"} (hospital patient number).}
 
 \item{event_type}{CORA event types to include. Use \code{"H"} for hospital
 movements, \code{"R"} for appointments, or \code{c("H", "R")} (default) for both.}
