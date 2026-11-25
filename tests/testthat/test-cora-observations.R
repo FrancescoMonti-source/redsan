@@ -154,6 +154,10 @@ test_that("retrieval joins CORA catalog, CT mapping and documents", {
     .cora_diet_id_map = fake_map,
     cora_observation_catalog = fake_catalog,
     .cora_query_observation_documents = fake_docs,
+    .cora_query = function(sql, connection) {
+      expect_match(sql, "s.NO_SEJOUR IN (", fixed = TRUE)
+      tibble::tibble(NO_SEJOUR = returned_iep, ID_RSS = "1001")
+    },
     .cora_read_diet_blob = function(...) "Poids 60 kg",
     .package = "redsan"
   )
@@ -167,6 +171,8 @@ test_that("retrieval joins CORA catalog, CT mapping and documents", {
 
     expect_identical(by_evtid, by_iep)
     expect_identical(by_evtid$IEP, expected_iep)
+    expect_identical(by_evtid$NO_SEJOUR, expected_iep)
+    expect_identical(by_evtid$ID_RSS, "1001")
     expect_identical(by_evtid$EVTID, evtid)
     expect_identical(by_evtid$OBS_CODE, "DIET")
     expect_identical(by_evtid$TEXT, "Poids 60 kg")
@@ -201,6 +207,14 @@ test_that("PATID and IPP retrieve each CORA stay even without an EVTID", {
     },
     .cora_query = function(sql, connection) {
       expect_s3_class(connection, "fake_connection")
+      if (grepl("TB_SYNTH_RSS", sql, fixed = TRUE)) {
+        expect_match(sql, "r.ID_SEJOUR = s.ID_SEJOUR", fixed = TRUE)
+        expect_match(sql, "s.NO_SEJOUR IN ('001', '002')", fixed = TRUE)
+        return(tibble::tibble(
+          NO_SEJOUR = c("001   ", "001", "001"),
+          ID_RSS = c("502", "501", "501")
+        ))
+      }
       expect_match(sql, "p.IPP_PATIENT IN ('00001234')", fixed = TRUE)
       tibble::tibble(IEP = c("001   ", "002", "001", NA_character_))
     },
@@ -236,6 +250,8 @@ test_that("PATID and IPP retrieve each CORA stay even without an EVTID", {
     env = "ct-example", ks_path = "keystore-example"
   )
   expect_identical(out$IEP, c("001", "002"))
+  expect_identical(out$NO_SEJOUR, out$IEP)
+  expect_identical(out$ID_RSS, c("501, 502", NA_character_))
   expect_identical(out$EVTID, c("101", NA_character_))
   expect_identical(out$TEXT, c("51", "52"))
 

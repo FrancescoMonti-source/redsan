@@ -10,9 +10,12 @@
   out$OBS_CODE <- character()
   out$OBS_LABEL <- character()
   out$TYPEEVT <- character()
+  out$NO_SEJOUR <- character()
+  out$ID_RSS <- character()
   out[, c("EVTID", "IEP", "NODOCUMENT", "TYPEDOC", "CORA_NOEVT",
           "NOSOUSVOLET", "OBS_CODE", "OBS_LABEL", "TYPEEVT",
-          "DTDOC", "TIMECREATE", "REDACTEUR", "NOUSHEB", "NOUSRESP", "TEXT")]
+          "DTDOC", "TIMECREATE", "REDACTEUR", "NOUSHEB", "NOUSRESP", "TEXT",
+          "NO_SEJOUR", "ID_RSS")]
 }
 
 #' List CORA observation types
@@ -153,6 +156,29 @@ cora_observation_catalog <- function(connection = NULL, ojdbc_jar = NULL,
   .cora_validate_ieps(ieps[!is.na(ieps) & nzchar(ieps)])
 }
 
+.cora_observation_rss_by_iep <- function(connection, ieps) {
+  ieps <- .cora_validate_ieps(ieps)
+  batches <- split(ieps, (seq_along(ieps) - 1L) %/% 900L)
+  rows <- dplyr::bind_rows(lapply(batches, function(batch) {
+    quoted <- paste0("'", batch, "'", collapse = ", ")
+    sql <- paste0(
+      "SELECT DISTINCT s.NO_SEJOUR, CAST(r.ID_RSS AS VARCHAR2(40)) AS ID_RSS ",
+      "FROM CORA_REC.TB_SEJOUR s ",
+      "JOIN CORA_REC.TB_SYNTH_RSS r ON r.ID_SEJOUR = s.ID_SEJOUR ",
+      "WHERE s.NO_SEJOUR IN (", quoted, ") AND r.ID_RSS IS NOT NULL"
+    )
+    .cora_query(sql, connection = connection)
+  }))
+  if (!all(c("NO_SEJOUR", "ID_RSS") %in% names(rows))) {
+    stop("CORA RSS lookup did not return the NO_SEJOUR and ID_RSS columns.",
+         call. = FALSE)
+  }
+  no_sejour <- trimws(.edsan_as_identifier(rows$NO_SEJOUR), whitespace = "[\\h\\v]")
+  rss_by_stay <- split(as.character(rows$ID_RSS), no_sejour)
+  vapply(rss_by_stay, function(ids) paste(sort(unique(ids)), collapse = ", "),
+         character(1))
+}
+
 #' Retrieve CORA observations linked to hospital stays
 #'
 #' Uses the active CORA observation reference and EDSaN CT to map IEPs
@@ -181,6 +207,9 @@ cora_observation_catalog <- function(connection = NULL, ojdbc_jar = NULL,
 #'   and `CORA_NOEVT`. With IEP, PATID, or IPP input, an observation may have
 #'   `EVTID = NA` if EDSaN CT has no match for its IEP. Unmatched EVTIDs or
 #'   patient identifiers yield no observations.
+#'   `NO_SEJOUR` is the CORA stay number, equal to `IEP`. `ID_RSS` contains
+#'   the CORA RSS identifiers for that stay as text, separated by commas
+#'   if there are several. Stays without an RSS have `ID_RSS = NA`.
 #'
 #' @details Service failures and ambiguous identifier mappings raise errors.
 #' Use [cora_add_observations()] to attach rows with EVTIDs to existing bundles.
@@ -282,6 +311,10 @@ cora_get_observations <- function(ids, id_type = c("IEP", "EVTID", "PATID", "IPP
     docs <- docs[!is.na(docs$EVTID) & docs$EVTID %in% ids, , drop = FALSE]
   }
   if (!nrow(docs)) return(.cora_empty_observations())
+
+  docs$NO_SEJOUR <- docs$IEP
+  rss_by_iep <- .cora_observation_rss_by_iep(connection, docs$IEP)
+  docs$ID_RSS <- unname(rss_by_iep[docs$NO_SEJOUR])
 
   # A CORA document is uniquely identified by (TYPEDOC, NODOCUMENT).
   keys <- paste(docs$TYPEDOC, docs$NODOCUMENT, sep = ":")
