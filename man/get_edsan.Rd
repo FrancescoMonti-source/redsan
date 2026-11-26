@@ -40,7 +40,10 @@ require the data endpoint.}
 omitted, bounds are inferred from the module-compatible date key in \code{query}.}
 
 \item{periods_by}{Initial time chunk size passed to \code{seq.Date()}, for example
-\code{"6 months"}, \code{"1 month"}, or \code{"1 week"}.}
+\code{"6 months"}, \code{"1 month"}, or \code{"1 week"}. The shorthands \code{"month"},
+\code{"week"}, and \code{"day"} mean one unit. For normalized \code{bactibs} data without
+an identifier filter, the default is \code{"1 day"}. Each period is split into
+requests with at most seven calendar dates joined by \code{OR}.}
 
 \item{periods_prefix, periods_suffix}{Strings wrapped around generated API date
 ranges. Defaults produce \code{"{YYYY-MM-DD,YYYY-MM-DD}"}.}
@@ -52,7 +55,10 @@ share an endpoint day.}
 end. Use only when the backend query needs overlapping windows.}
 
 \item{batch_key}{Date key used for time batching. Defaults by module:
-\code{RECDATE} for \code{doceds}, \code{DATENT} for \code{pmsi}, \code{DATEXAM} for \code{biol}, \code{DATEPRELEV} for \code{viro}, \code{DATEMES} for \code{pancarte}, \code{DATENT} for \code{mouvement}, \code{DATPRELEV} for \code{bact}, and \code{DATEPRELEV} for \code{bactibs}.}
+\code{RECDATE} for \code{doceds}, \code{DATENT} for \code{pmsi}, \code{DATEXAM} for \code{biol},
+\code{DATEPRELEV} for \code{viro}, \code{bact}, and \code{bactibs}, \code{DATEMES} for \code{pancarte},
+and \code{DATENT} for \code{mouvement}. For \code{bact}, an explicit \code{DATPRELEV} filter
+selects that key when \code{batch_key} is omitted.}
 
 \item{batch_ids_key}{Identifier key used for ID batching. If \code{NULL}, one of
 \code{ELTID}, \code{EVTID}, or \code{PATID} is selected from \code{query} when present.}
@@ -65,7 +71,9 @@ granularity before stopping.}
 \item{return_audit}{If \code{TRUE}, return \code{list(data = ..., audit = ...)}.}
 
 \item{batch_on_error_only}{If \code{TRUE}, try a single call first and fall back to
-time batching only for limit-style backend errors.}
+time batching only for limit-style backend errors. For normalized
+\code{bactibs} date batches and \code{bact} with explicit \code{start_date} and \code{end_date},
+start directly with time batching.}
 
 \item{verbose}{If \code{TRUE}, emit a concise retrieval plan and per-batch status.}
 

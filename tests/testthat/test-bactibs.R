@@ -40,3 +40,114 @@ test_that("bactibs retrieval, batches and event bundles work independently of ba
   )
   expect_identical(bounds$start, as.Date("2024-01-01"))
 })
+
+test_that("bactibs requests a range one date at a time and drops unrelated rows", {
+  days <- c("2026-05-21", "2026-05-22", "2026-05-23")
+  sent <- character()
+  testthat::local_mocked_bindings(
+    .edsan_call = function(module, query, what, fields = NULL, ...) {
+      day <- query$DATEPRELEV
+      sent <<- c(sent, day)
+      expect_named(query, "DATEPRELEV")
+      expect_setequal(fields, c("ELTID", "DATEPRELEV"))
+      list(ok = TRUE, value = tibble::tibble(
+        ELTID = c(day, "unrelated"), DATEPRELEV = c(day, "2025-05-14")
+      ), error = NULL)
+    }, .package = "redsan"
+  )
+
+  out <- edsan_get("bactibs", query = list(DATEPRELEV = "{2026-05-21,2026-05-23}"),
+                   periods_by = "1 day",
+                   batch_on_error_only = TRUE, fields = "ELTID", return_audit = TRUE)
+  expect_identical(sent, days)
+  expect_identical(out$data, tibble::tibble(ELTID = days))
+  expect_identical(out$audit$period[!is.na(out$audit$period)], days)
+
+  sent <- character()
+  one_day <- edsan_get("bactibs", query = list(DATEPRELEV = days[[1]]), fields = "ELTID")
+  expect_identical(sent, days[[1]])
+  expect_identical(one_day$ELTID, days[[1]])
+
+  sent <- character()
+  expect_warning(get_edsan("bactibs", query = list(DATEPRELEV = range(days)), fields = "ELTID"),
+                 "deprecated")
+  expect_identical(sent, days)
+})
+
+test_that("a rejected bactibs day reports the date and stops the range", {
+  sent <- character()
+  testthat::local_mocked_bindings(
+    .edsan_backend_function = function(use_data_endpoint) {
+      function(api_mod, api_query, env) {
+        day <- jsonlite::fromJSON(api_query)$DATEPRELEV
+        sent <<- c(sent, day)
+        if (day == "2026-05-22") return("Bad result")
+        tibble::tibble(DATEPRELEV = day)
+      }
+    }, .package = "redsan"
+  )
+
+  expect_error(
+    edsan_get("bactibs", query = list(DATEPRELEV = c("2026-05-21", "2026-05-23")),
+              periods_by = "1 day"),
+    "period=2026-05-22.*Bad result"
+  )
+  expect_identical(sent, c("2026-05-21", "2026-05-22"))
+})
+
+test_that("bactibs batches dates with OR at the selected granularity", {
+  days <- c("2026-05-21", "2026-05-22", "2026-05-23")
+  sent <- character()
+  testthat::local_mocked_bindings(
+    .edsan_call = function(module, query, what, fields = NULL, ...) {
+      sent <<- c(sent, query$DATEPRELEV)
+      expect_setequal(fields, c("ELTID", "DATEPRELEV"))
+      list(ok = TRUE, value = tibble::tibble(
+        ELTID = c(days, "outside"), DATEPRELEV = c(days, "2025-05-14")
+      ), error = NULL)
+    }, .package = "redsan"
+  )
+
+  query <- list(DATEPRELEV = range(days))
+  out <- edsan_get("bactibs", query = query, fields = "ELTID")
+  expect_identical(sent, days)
+  expect_identical(out$ELTID, days)
+
+  sent <- character()
+  out <- edsan_get("bactibs", query = query, periods_by = "2 days",
+                   fields = "ELTID", batch_on_error_only = TRUE, return_audit = TRUE)
+  expect_identical(sent, c(paste(days[1:2], collapse = " OR "), days[[3]]))
+  expect_identical(out$data$ELTID, days)
+  expect_identical(out$audit$period[!is.na(out$audit$period)], sent)
+})
+
+test_that("bactibs caps monthly requests at seven dates and preserves month boundaries", {
+  sent <- character()
+  testthat::local_mocked_bindings(
+    .edsan_call = function(module, query, what, fields = NULL, ...) {
+      sent <<- c(sent, query$DATEPRELEV)
+      days <- strsplit(query$DATEPRELEV, " OR ", fixed = TRUE)[[1L]]
+      if (startsWith(days[[1L]], "{")) return(list(ok = TRUE, value = list(), error = NULL))
+      if (length(days) > 7L) days <- tail(days, 1L)
+      list(ok = TRUE, value = tibble::tibble(ELTID = days, DATEPRELEV = days), error = NULL)
+    }, .package = "redsan"
+  )
+
+  query <- list(DATEPRELEV = "{2026-05-01,2026-06-03}")
+  expect_error(edsan_get("bactibs", query = query, periods_by = "month", max_time_batches = 5L),
+               "time_batch_too_many_batches: 6")
+  expect_length(sent, 0L)
+
+  out <- edsan_get("bactibs", query = query, periods_by = "month", return_audit = TRUE)
+  requests <- out$audit[!is.na(out$audit$time_idx), ]
+  expect_identical(sent, requests$period)
+  expect_identical(lengths(strsplit(sent, " OR ", fixed = TRUE)), c(7L, 7L, 7L, 7L, 3L, 3L))
+  expect_identical(as.character(requests$start),
+                   c("2026-05-01", "2026-05-08", "2026-05-15", "2026-05-22", "2026-05-29", "2026-06-01"))
+  expect_identical(out$data$ELTID,
+                   as.character(seq(as.Date("2026-05-01"), as.Date("2026-06-03"), by = "day")))
+
+  sent <- character()
+  edsan_get("bactibs", query = query, periods_by = "month", process = FALSE)
+  expect_identical(sent, c("{2026-05-01,2026-05-31}", "{2026-06-01,2026-06-03}"))
+})

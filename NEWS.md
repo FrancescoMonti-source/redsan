@@ -1,3 +1,13 @@
+# redsan (development)
+
+- Retrieve normalized `bactibs` date ranges without IDs using one request per
+  day by default in both `edsan_get()` and `get_edsan()`. Split longer periods
+  into requests with at most seven dates joined by `OR`. Discard rows outside
+  the requested dates, including for a single date passed in `query`.
+- Use `DATEPRELEV` by default for `bact`. Send one-day data batches as a
+  single date and continue to accept explicit `DATPRELEV` filters. Apply explicit
+  date bounds before the first request even when `batch_on_error_only = TRUE`.
+
 # redsan 2.2.1
 
 - Parse `bact` collection dates returned in `DATEPRELEV`, while retaining

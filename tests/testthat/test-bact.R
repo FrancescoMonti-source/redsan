@@ -40,13 +40,58 @@ test_that("bact supports retrieval and event bundles", {
 
 test_that("bact batching accepts the collection date", {
   spec <- edsan_source_catalog("bact")
-  expect_identical(spec$query_date_keys, list("DATPRELEV"))
+  expect_identical(spec$query_date_keys, list(c("DATPRELEV", "DATEPRELEV")))
   bounds <- redsan:::.edsan_infer_batch_window(
     "bact", list(DATPRELEV = "{2024-01-01,2024-01-31}"), "DATPRELEV"
   )
   expect_identical(bounds$start, as.Date("2024-01-01"))
   table <- data.frame(PATID = "P1", EVTID = "E1", ELTID = "L1")
   expect_identical(nrow(redsan:::.edsan_combine("bact", list(table, table))), 2L)
+})
+
+test_that("bact forwards DATEPRELEV and selects it for batching", {
+  sent <- list()
+  testthat::local_mocked_bindings(
+    .edsan_call = function(module, query, what, fields = NULL, ...) {
+      sent[[length(sent) + 1L]] <<- query
+      list(ok = TRUE, value = list(), error = NULL)
+    }, .package = "redsan"
+  )
+
+  day <- list(DATEPRELEV = "2026-05-22")
+  range <- list(DATEPRELEV = "{2026-05-21,2026-05-23}")
+  edsan_get("bact", query = day)
+  out <- edsan_get("bact", query = range, return_audit = TRUE)
+  expect_identical(sent, list(day, range))
+  expect_true(all(out$audit$batch_key == "DATEPRELEV"))
+  expect_true("time" %in% out$audit$strategy)
+})
+
+test_that("bact sends single-day date batches as DATEPRELEV and honors explicit DATPRELEV", {
+  sent <- list()
+  testthat::local_mocked_bindings(
+    .edsan_call = function(module, query, what, fields = NULL, ...) {
+      sent[[length(sent) + 1L]] <<- query
+      list(ok = TRUE, value = list(), error = NULL)
+    }, .package = "redsan"
+  )
+
+  days <- c("2022-04-01", "2022-04-02")
+  out <- edsan_get("bact", start_date = days[[1]], end_date = days[[2]],
+                   periods_by = "1 day", return_audit = TRUE)
+  expect_warning(get_edsan("bact", start_date = days[[1]], end_date = days[[1]]),
+                 "deprecated")
+  edsan_get("bact", start_date = days[[1]], end_date = days[[1]], batch_on_error_only = TRUE)
+  legacy <- list(DATPRELEV = "{2022-04-01,2022-04-02}")
+  edsan_get("bact", query = legacy)
+
+  expect_identical(sent, list(list(DATEPRELEV = days[[1]]),
+                              list(DATEPRELEV = days[[2]]),
+                              list(DATEPRELEV = days[[1]]),
+                              list(DATEPRELEV = days[[1]]), legacy))
+  requests <- out$audit[!is.na(out$audit$time_idx), ]
+  expect_identical(requests$batch_key, rep("DATEPRELEV", 2L))
+  expect_identical(requests$period, days)
 })
 
 

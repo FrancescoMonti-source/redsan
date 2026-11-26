@@ -8,6 +8,9 @@
 # Time-window helpers
 # These functions translate user-provided bounds into concrete batch windows.
 
+# Larger bactibs date batches can return incomplete results with HTTP 200.
+.bactibs_max_dates_per_request <- 7L
+
 .edsan_parse_fields <- function(fields) {
   if (is.null(fields) || length(fields) == 0 || all(is.na(fields))) return(character())
 
@@ -26,7 +29,8 @@
                                 sep = ",", by = "6 months",
                                 prefix = "", suffix = "",
                                 end_inclusive = TRUE,
-                                overlap_days = 0L) {
+                                overlap_days = 0L,
+                                max_days = NULL) {
   s <- lubridate::as_date(start_date)
   e <- lubridate::as_date(end_date)
   if (is.na(s) || is.na(e)) stop("start_date/end_date must be coercible to Date")
@@ -49,6 +53,12 @@
   }
   ends <- pmin(base_ends + overlap_days, e)
 
+  if (!is.null(max_days)) {
+    chunks <- ceiling((as.integer(ends - starts) + 1L) / max_days)
+    starts <- rep(starts, chunks) + (sequence(chunks) - 1L) * max_days
+    ends <- pmin(rep(ends, chunks), starts + max_days - 1L)
+  }
+
   tibble::tibble(
     start  = starts,
     end    = ends,
@@ -62,10 +72,15 @@
   )
 }
 
-.edsan_extract_bounds <- function(x) {
+.edsan_extract_bounds <- function(x, allow_single_date = FALSE) {
   # Parse API-style date bounds into list(lo, hi)
   if (is.null(x) || length(x) == 0 || is.na(x)) return(list(lo = NULL, hi = NULL))
   x <- trimws(as.character(x))
+
+  if (allow_single_date && grepl("^\\d{4}-\\d{2}-\\d{2}$", x)) {
+    day <- as.Date(x, format = "%Y-%m-%d")
+    return(list(lo = day, hi = day))
+  }
 
   # range: "{YYYY-MM-DD,YYYY-MM-DD}"
   m <- stringr::str_match(x, "^\\{\\s*(\\d{4}-\\d{2}-\\d{2})\\s*,\\s*(\\d{4}-\\d{2}-\\d{2})\\s*\\}$")
@@ -120,7 +135,8 @@
   query
 }
 
-.edsan_infer_batch_window <- function(module, query, batch_key, start_date = NULL, end_date = NULL) {
+.edsan_infer_batch_window <- function(module, query, batch_key, start_date = NULL, end_date = NULL,
+                                    allow_single_date = FALSE) {
   if (!is.null(start_date) && !is.null(end_date)) {
     lo <- as.Date(start_date)
     hi <- as.Date(end_date)
@@ -162,8 +178,8 @@
   }
 
   if (module %in% c("biol", "viro", "pancarte", "mouvement", "bact", "bactibs")) {
-    b <- .edsan_extract_bounds(query[[batch_key]])
-    if (is.null(b$lo) || is.null(b$hi) || b$lo > b$hi) {
+    b <- .edsan_extract_bounds(query[[batch_key]], allow_single_date = allow_single_date)
+    if (is.null(b$lo) || is.null(b$hi) || is.na(b$lo) || is.na(b$hi) || b$lo > b$hi) {
       stop("missing_time_window: ", module, " requires ", batch_key, " bounds")
     }
     return(list(start = b$lo, end = b$hi, inferred = TRUE))
@@ -172,11 +188,21 @@
   stop("infer_batch_window: module not supported")
 }
 
-.edsan_time_backoff_seq <- function(initial = "6 months") {
+.edsan_time_backoff_seq <- function(initial = "6 months", start = NULL) {
   ladder <- c("6 months", "3 months", "1 month", "2 weeks", "1 week", "1 day")
   i <- match(initial, ladder)
-  if (is.na(i)) i <- 1L
-  ladder[i:length(ladder)]
+  if (!is.na(i)) return(ladder[i:length(ladder)])
+  if (is.null(start)) return(ladder)
+
+  start <- as.Date(start)
+  next_start <- seq.Date(start, by = initial, length.out = 2L)[[2L]]
+  if (next_start - start < 1) {
+    stop("periods_by must advance by at least one day.", call. = FALSE)
+  }
+  smaller <- vapply(ladder, function(by) {
+    seq.Date(start, by = by, length.out = 2L)[[2L]] < next_start
+  }, logical(1))
+  c(initial, ladder[smaller])
 }
 
 .edsan_time_batch_adaptive <- function(
@@ -196,9 +222,14 @@
     batch_ids_key = NA_character_,
     n_in = NA_integer_,
     count_out_fn = NULL,
-    return_audit = FALSE
+    return_audit = FALSE,
+    bactibs_dates = FALSE
 ) {
-  by_seq <- .edsan_time_backoff_seq(initial_by)
+  by_seq <- .edsan_time_backoff_seq(initial_by, if (bactibs_dates) start_date)
+  if (bactibs_dates) {
+    requested_fields <- .edsan_parse_fields(fields)
+    if (length(requested_fields)) fields <- union(requested_fields, batch_key)
+  }
   last_limit_error <- NULL
 
   id_part <- if (!is.na(chunk_idx) && !is.na(n_chunks)) {
@@ -219,25 +250,35 @@
                   audit = dplyr::bind_rows(audit)))
     }
 
+    single_dates <- bactibs_dates && identical(by, "1 day")
     periods <- .edsan_make_periods(
       current_start, final_end,
       by = by,
       prefix = periods_prefix,
       suffix = periods_suffix,
-      end_inclusive = periods_end_inclusive,
-      overlap_days = periods_overlap_days
+      end_inclusive = single_dates || isTRUE(periods_end_inclusive),
+      overlap_days = if (single_dates) 0L else periods_overlap_days,
+      max_days = if (bactibs_dates) .bactibs_max_dates_per_request
     )
 
     if (nrow(periods) > as.integer(max_batches)) {
       stop("time_batch_too_many_batches: ", nrow(periods),
            " batches requested at granularity '", by,
-           "'. Narrow the time window or increase period size.")
+           "'. Narrow the time window or ",
+           if (bactibs_dates) "increase max_time_batches." else "increase period size.")
     }
 
     progress_every <- if (isTRUE(verbose)) 1L else as.integer(progress_every %||% 25L)
 
     for (i in seq_len(nrow(periods))) {
       per <- periods$period[[i]]
+      if (bactibs_dates) {
+        days <- seq(periods$start[[i]], periods$end[[i]], by = "day")
+        per <- paste(days, collapse = " OR ")
+      } else if (module == "bact" && what == "data" && batch_key == "DATEPRELEV" &&
+                 periods$start[[i]] == periods$end[[i]]) {
+        per <- format(periods$start[[i]], "%Y-%m-%d")
+      }
 
       if (isTRUE(verbose) && (i == 1L || i == nrow(periods) || (i %% progress_every) == 0L)) {
         message(id_part, "[call] ", by, " ", i, "/", nrow(periods),
@@ -250,6 +291,10 @@
       t0 <- proc.time()[[3]]
       tr <- .edsan_call(module, q, what, fields = fields)
       dt_ms <- as.integer(round((proc.time()[[3]] - t0) * 1000))
+
+      if (tr$ok && bactibs_dates) {
+        tr$value <- .bactibs_filter_dates(tr$value, days)
+      }
 
       n_out <- NA_integer_
       if (tr$ok && is.function(count_out_fn)) {
@@ -299,7 +344,7 @@
       }
 
       if (!tr$ok) {
-        if (.edsan_is_limit_error(tr$error)) {
+        if (!single_dates && .edsan_is_limit_error(tr$error)) {
           last_limit_error <- paste(tr$error, collapse = " ")
           current_start <- periods$start[[i]]
           if (isTRUE(verbose)) {
@@ -312,7 +357,8 @@
         }
 
         stop(paste0(
-          "time_batch_failed_nonlimit: module=", module,
+          if (single_dates) "daily_request_failed: module=" else "time_batch_failed_nonlimit: module=",
+          module,
           ", batch_key=", batch_key,
           ", by=", by,
           ", period=", per,
@@ -430,6 +476,10 @@
 
   if (inherits(res, "try-error")) {
     return(list(ok = FALSE, value = NULL, error = as.character(res)))
+  }
+
+  if (module == "bactibs" && identical(res, "Bad result")) {
+    return(list(ok = FALSE, value = NULL, error = res))
   }
 
   if (is.list(res) && "error" %in% names(res)) {
@@ -634,7 +684,10 @@
 #' @param start_date,end_date Optional explicit bounds for time batching. When
 #'   omitted, bounds are inferred from the module-compatible date key in `query`.
 #' @param periods_by Initial time chunk size passed to `seq.Date()`, for example
-#'   `"6 months"`, `"1 month"`, or `"1 week"`.
+#'   `"6 months"`, `"1 month"`, or `"1 week"`. The shorthands `"month"`,
+#'   `"week"`, and `"day"` mean one unit. For normalized `bactibs` data without
+#'   an identifier filter, the default is `"1 day"`. Each period is split into
+#'   requests with at most seven calendar dates joined by `OR`.
 #' @param periods_prefix,periods_suffix Strings wrapped around generated API date
 #'   ranges. Defaults produce `"{YYYY-MM-DD,YYYY-MM-DD}"`.
 #' @param periods_end_inclusive If `TRUE`, adjacent generated periods do not
@@ -643,7 +696,9 @@
 #'   end. Use only when the backend query needs overlapping windows.
 #' @param batch_key Date key used for time batching. Defaults by module:
 #'   `RECDATE` for `doceds`, `DATENT` for `pmsi`, `DATEXAM` for `biol`,
-#'   `DATEPRELEV` for `viro`, `DATEMES` for `pancarte`, `DATENT` for `mouvement`, `DATPRELEV` for `bact`, and `DATEPRELEV` for `bactibs`.
+#'   `DATEPRELEV` for `viro`, `bact`, and `bactibs`, `DATEMES` for `pancarte`,
+#'   and `DATENT` for `mouvement`. For `bact`, an explicit `DATPRELEV` filter
+#'   selects that key when `batch_key` is omitted.
 #' @param batch_ids_key Identifier key used for ID batching. If `NULL`, one of
 #'   `ELTID`, `EVTID`, or `PATID` is selected from `query` when present.
 #' @param max_in_ids Maximum number of input identifiers per ID chunk.
@@ -651,7 +706,9 @@
 #'   granularity before stopping.
 #' @param return_audit If `TRUE`, return `list(data = ..., audit = ...)`.
 #' @param batch_on_error_only If `TRUE`, try a single call first and fall back to
-#'   time batching only for limit-style backend errors.
+#'   time batching only for limit-style backend errors. For normalized
+#'   `bactibs` date batches and `bact` with explicit `start_date` and `end_date`,
+#'   start directly with time batching.
 #' @param verbose If `TRUE`, emit a concise retrieval plan and per-batch status.
 #' @param fields Optional character vector or comma-separated string of fields to
 #'   request from the backend. For `module = "doceds"` with `what = "data"`,
@@ -687,8 +744,14 @@
 #' - `viro`: `DATEPRELEV`
 #' - `pancarte`: `DATEMES`
 #' - `mouvement`: `DATENT` or `DATSORT` (provisional; verify with the backend)
-#' - `bact`: `DATPRELEV` (provisional; verify with the backend)
-#' - `bactibs`: `DATEPRELEV` (provisional; verify with the backend)
+#' - `bact`: `DATEPRELEV`. A one-day data batch sends a single date.
+#'   `DATPRELEV` is also accepted as an explicit query or batch key.
+#' - `bactibs`: `DATEPRELEV`. For normalized date ranges without an identifier
+#'   filter, each batch enumerates the requested calendar dates. Use
+#'   `periods_by = "1 week"` for weekly batches or `"1 day"` for individual dates.
+#'   Rows outside the dates requested in each batch are removed, including for a
+#'   single date passed in `query`. Raw range queries can return incomplete
+#'   results from EDSAN.
 #'
 #' Retrieval (batching, raw source fetch) and normalization ([doceds_normalize()],
 #' [pmsi_normalize()], [biol_normalize()], [viro_normalize()], [pancarte_normalize()], [mouvement_normalize()], [bact_normalize()], [bactibs_normalize()])
@@ -787,6 +850,9 @@ edsan_get <- function(
 
   if (is.null(batch_key)) {
     batch_key <- .edsan_default_batch_key(module)
+    if (module == "bact" && "DATPRELEV" %in% present_dates) {
+      batch_key <- "DATPRELEV"
+    }
   } else if (!batch_key %in% .edsan_module_date_keys(module)) {
     stop(
       module,
@@ -816,18 +882,31 @@ edsan_get <- function(
     split(ids_all, ceiling(seq_along(ids_all) / max_in_ids))
   }
 
+  normalized_bactibs <- module == "bactibs" && what == "data" && isTRUE(process)
+  if (missing(periods_by) || is.null(periods_by)) {
+    periods_by <- if (normalized_bactibs && length(ids_all) == 0L) "1 day" else "6 months"
+  }
+  if (length(periods_by) == 1L && periods_by %in% c("month", "week", "day")) {
+    periods_by <- paste("1", periods_by)
+  }
+  bactibs_dates <- normalized_bactibs &&
+    (length(ids_all) == 0L || identical(periods_by, "1 day"))
+
   if (isTRUE(verbose)) {
-    window0 <- try(.edsan_infer_batch_window(module, query, batch_key, start_date, end_date), silent = TRUE)
+    window0 <- try(.edsan_infer_batch_window(module, query, batch_key, start_date, end_date,
+                                          allow_single_date = bactibs_dates), silent = TRUE)
     est_n_time <- NA_integer_
     est_total_calls <- NA_integer_
     if (!inherits(window0, "try-error")) {
+      single_dates <- bactibs_dates && identical(periods_by, "1 day")
       est_n_time <- tryCatch({
         nrow(.edsan_make_periods(window0$start, window0$end,
                                  by = periods_by,
                                  prefix = periods_prefix,
                                  suffix = periods_suffix,
-                                 end_inclusive = periods_end_inclusive,
-                                 overlap_days = as.integer(periods_overlap_days %||% 0L)))
+                                  end_inclusive = single_dates || isTRUE(periods_end_inclusive),
+                                  overlap_days = if (single_dates) 0L else periods_overlap_days,
+                                  max_days = if (bactibs_dates) .bactibs_max_dates_per_request))
       }, error = function(e) NA_integer_)
       if (!is.na(est_n_time)) {
         est_total_calls <- as.integer(length(id_chunks) * est_n_time)
@@ -858,7 +937,8 @@ edsan_get <- function(
       q[[batch_ids_key]] <- paste(chunk_ids, collapse = " OR ")
     }
 
-    window <- try(.edsan_infer_batch_window(module, q, batch_key, start_date, end_date), silent = TRUE)
+    window <- try(.edsan_infer_batch_window(module, q, batch_key, start_date, end_date,
+                                          allow_single_date = bactibs_dates), silent = TRUE)
 
     if (inherits(window, "try-error")) {
       if (isTRUE(verbose)) {
@@ -896,7 +976,8 @@ edsan_get <- function(
       next
     }
 
-    if (isTRUE(batch_on_error_only)) {
+    if (isTRUE(batch_on_error_only) && !bactibs_dates &&
+        !(module == "bact" && !window$inferred)) {
       tr0 <- .edsan_call(module, q, what, fields = fields)
 
       if (isTRUE(return_audit)) {
@@ -948,7 +1029,8 @@ edsan_get <- function(
       batch_ids_key = batch_ids_key %||% NA_character_,
       n_in = as.integer(n_in),
       count_out_fn = function(x) .edsan_count_out_units(module, x, what),
-      return_audit = return_audit
+      return_audit = return_audit,
+      bactibs_dates = bactibs_dates
     )
 
     if (isTRUE(return_audit) && !is.null(tb$audit) && is.data.frame(tb$audit) && nrow(tb$audit) > 0) {
@@ -1029,7 +1111,7 @@ get_edsan <- function(
     query = query,
     start_date = start_date,
     end_date = end_date,
-    periods_by = periods_by,
+    periods_by = if (!missing(periods_by)) periods_by,
     periods_prefix = periods_prefix,
     periods_suffix = periods_suffix,
     periods_end_inclusive = periods_end_inclusive,
