@@ -18,7 +18,7 @@
       c("PATID", "EVTID", "ELTID")
     ),
     source_time_kind = c("point", "interval", "point", "interval", "point", "point", "point", "interval", "point", "point"),
-    source_time_start = c("RECDATE", "DATENT", "DATEACTE", "DATENT", "DATEXAM", "DATEPRELEV", "DATEMES", "DATENT", "DATPRELEV", "DATEPRELEV"),
+    source_time_start = c("RECDATE", "DATENT", "DATEACTE", "DATENT", "DATEXAM", "DATEPRELEV", "DATEMES", "DATENT", "DATEPRELEV", "DATEPRELEV"),
     source_time_end = c(NA_character_, "DATSORT", NA_character_, "DATSORT", NA_character_, NA_character_, NA_character_, "DATSORT", NA_character_, NA_character_),
     query_date_keys = list(
       "RECDATE",
@@ -29,10 +29,10 @@
       "DATEPRELEV",
       "DATEMES",
       c("DATENT", "DATSORT"),
-      "DATPRELEV",
+      c("DATPRELEV", "DATEPRELEV"),
       "DATEPRELEV"
     ),
-    default_batch_key = c("RECDATE", "DATENT", "DATENT", "DATENT", "DATEXAM", "DATEPRELEV", "DATEMES", "DATENT", "DATPRELEV", "DATEPRELEV"),
+    default_batch_key = c("RECDATE", "DATENT", "DATENT", "DATENT", "DATEXAM", "DATEPRELEV", "DATEMES", "DATENT", "DATEPRELEV", "DATEPRELEV"),
     normalizer = c("doceds_normalize", "pmsi_normalize", "pmsi_normalize", "pmsi_normalize", "biol_normalize", "viro_normalize", "pancarte_normalize", "mouvement_normalize", "bact_normalize", "bactibs_normalize"),
     notes = c(
       "Clinical documents; RECTXT and RECTYPE are document payload fields.",
@@ -50,7 +50,7 @@
       "Virology results; BIOL-like payload with ELTID traceability and DATEPRELEV point time.",
       "Pancarte measurements; DATEMES point time, native TYPE codes, and ELTID source traceability.",
       "Movements; DATENT/DATSORT define source intervals. Date query support is provisional.",
-      "Bacteriology results; DATPRELEV is the collection date. Backend response shape and date filtering require confirmation.",
+      "Bacteriology results. DATEPRELEV is the collection date and supports a single-date filter.",
       "Experimental bacteriology module; DATEPRELEV is the collection date. Date filtering requires confirmation."
     )
   )

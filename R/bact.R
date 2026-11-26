@@ -26,6 +26,18 @@ bactibs_normalize <- function(data) {
   .bact_normalize(data, module = "bactibs", date_col = "DATEPRELEV", time_col = "HEUREPRELEV")
 }
 
+.bactibs_filter_dates <- function(data, days) {
+  out <- bactibs_normalize(data)
+  if (nrow(out) == 0L) return(out)
+
+  dates <- as.Date(out[["DATEPRELEV"]], tz = "Europe/Paris")
+  if (length(dates) != nrow(out) || anyNA(dates)) {
+    stop("Cannot verify DATEPRELEV in the bactibs response for ",
+         paste(unique(range(days)), collapse = ".."), ".", call. = FALSE)
+  }
+  out[dates %in% days, , drop = FALSE]
+}
+
 .bact_normalize <- function(data, module, date_col, time_col) {
   if (length(data) == 0L) {
     data <- tibble::tibble(
