@@ -212,10 +212,14 @@ test_that("legacy event-bundle constructors warn and delegate", {
 })
 
 test_that("legacy event-bundle retrieval names warn and delegate", {
-  fake_plural <- function(event_ids, modules = "all") {
+  fake_plural <- function(event_ids, modules = "all", include_observations = NULL) {
+    expect_identical(include_observations, "DIET")
     stats::setNames(as.list(event_ids), event_ids)
   }
-  fake_singular <- function(event_id, modules = "all") event_id
+  fake_singular <- function(event_id, modules = "all", include_observations = NULL) {
+    expect_null(include_observations)
+    event_id
+  }
   testthat::local_mocked_bindings(
     edsan_get_event_bundles = fake_plural,
     edsan_get_event_bundle = fake_singular,
@@ -223,7 +227,10 @@ test_that("legacy event-bundle retrieval names warn and delegate", {
   )
 
   expect_warning(
-    expect_identical(get_event_bundles(c("E1", "E2")), list(E1 = "E1", E2 = "E2")),
+    expect_identical(
+      get_event_bundles(c("E1", "E2"), include_observations = "DIET"),
+      list(E1 = "E1", E2 = "E2")
+    ),
     "use `edsan_get_event_bundles\\(\\)`"
   )
   expect_warning(

@@ -293,6 +293,28 @@ test_that("a PATID without CORA stays returns the standard empty table", {
   )
 })
 
+test_that("CORA patient and RSS lookups keep Oracle IN lists to 900 IDs", {
+  ids <- sprintf("%09d", seq_len(901L))
+  batches <- list()
+  testthat::local_mocked_bindings(
+    .cora_query = function(sql, connection) {
+      values <- regmatches(sql, gregexpr("'[0-9]+'", sql))[[1L]]
+      values <- gsub("'", "", values, fixed = TRUE)
+      batches[[length(batches) + 1L]] <<- values
+      if (grepl("TB_SYNTH_RSS", sql, fixed = TRUE)) {
+        return(tibble::tibble(NO_SEJOUR = character(), ID_RSS = character()))
+      }
+      tibble::tibble(IEP = values)
+    },
+    .package = "redsan"
+  )
+
+  expect_identical(redsan:::.cora_patient_ieps(NULL, ids), ids)
+  rss <- redsan:::.cora_observation_rss_by_iep(NULL, ids)
+  expect_identical(unname(rss[ids]), rep(NA_character_, length(ids)))
+  expect_identical(batches, rep(list(ids[1:900], ids[901L]), 2L))
+})
+
 test_that("bundle retrieval opts into CORA only when requested", {
   calls <- character()
   fake_edsan <- function(module, what, query, process) {
